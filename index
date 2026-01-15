@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tajniacy</title>
+<style>
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:#1a1a1a;color:#fff;text-align:center;padding:10px;display:flex;flex-direction:column}
+body.game-active{height:100vh;height:100dvh;overflow:hidden;padding:5px}
+#gameScreen{display:none;flex-direction:column;height:100%;overflow:hidden}
+.game-header{flex-shrink:0;padding:5px 0}
+.game-header h1{margin:0;font-size:clamp(1.2rem,3vw,1.8rem)}
+#gameModeLabel{font-size:clamp(0.7rem,2vw,0.9rem);color:#aaa;margin-top:2px}
+.main-container{display:flex;flex-grow:1;gap:10px;max-width:1600px;margin:0 auto;width:100%;min-height:0;overflow:hidden}
+.side-panel{display:flex;flex-direction:column;justify-content:center;gap:5px;min-width:clamp(50px,8vw,100px);align-items:center;flex-shrink:0}
+.side-counter{font-size:clamp(1.2rem,3vw,2rem);font-weight:bold;margin-bottom:5px}
+.side-counter.red{color:#e74c3c}.side-counter.blue{color:#3498db}
+.side-card{width:clamp(40px,6vw,80px);height:clamp(30px,4vw,50px);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:clamp(1rem,2.5vw,2rem);transition:all .3s}
+.side-card.red{background:#e74c3c}.side-card.blue{background:#3498db}
+.side-card.revealed{opacity:.2;transform:scale(.8)}
+.center-area{flex-grow:1;display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
+.scoreboard{display:flex;justify-content:center;gap:clamp(10px,3vw,40px);margin:0 auto 5px;font-weight:bold;flex-shrink:0;flex-wrap:wrap}
+.score-team{background:linear-gradient(135deg,#2a2a2a,#1a1a1a);padding:clamp(8px,1.5vw,15px) clamp(12px,2vw,30px);border-radius:10px;border:2px solid;display:flex;align-items:center;gap:clamp(5px,1vw,10px);justify-content:space-between}
+.score-team.red{border-color:#e74c3c}.score-team.blue{border-color:#3498db}
+.team-info{display:flex;align-items:center;gap:5px}
+.team-emoji{font-size:clamp(1.2rem,2.5vw,2rem)}.team-name{font-size:clamp(0.8rem,1.5vw,1.1rem)}
+.team-score{font-size:clamp(1.2rem,2.5vw,2rem);padding:3px clamp(8px,1.5vw,15px);border-radius:8px;min-width:clamp(35px,5vw,50px);text-align:center}
+.score-team.red .team-name{color:#e74c3c}.score-team.blue .team-name{color:#3498db}
+.score-team.red .team-score{background:#e74c3c;color:#fff}.score-team.blue .team-score{background:#3498db;color:#fff}
+.controls{margin-bottom:5px;flex-shrink:0}
+button{padding:clamp(6px,1.2vw,12px) clamp(12px,2vw,26px);font-size:clamp(0.8rem,1.5vw,1.1rem);border:none;border-radius:8px;margin:3px;font-weight:bold;cursor:pointer;transition:transform .2s}
+button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
+.btn-new{background:#4CAF50;color:#fff}.btn-key{background:#FF9800;color:#fff}.btn-reset{background:#e74c3c;color:#fff;padding:6px 12px;font-size:clamp(0.7rem,1.2vw,0.9rem)}
+#status{font-size:clamp(0.9rem,2vw,1.4rem);margin-bottom:5px;font-weight:bold;flex-shrink:0}
+#status .team-red{color:#e74c3c}#status .team-blue{color:#3498db}
+.grid-container{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(4px,1vw,12px);flex-grow:1;width:100%;height:100%;max-width:min(100%,calc(100vh - 200px));margin:auto;aspect-ratio:5/5}
+.card{background:#e0e0e0;color:#333;border-radius:clamp(6px,1vw,10px);display:flex;align-items:center;justify-content:center;font-size:clamp(10px,min(2.5vw,2.5vh),24px);font-weight:bold;text-transform:uppercase;cursor:pointer;user-select:none;padding:clamp(4px,0.8vw,8px);transition:.2s;text-align:center;word-break:break-word;overflow:hidden}
+.card:hover{transform:translateY(-2px)}
+.is-red{--true:#e74c3c;--text:#fff}.is-blue{--true:#3498db;--text:#fff}.is-neutral{--true:#95a5a6;--text:#333}.is-assassin{--true:#2c3e50;--text:#fff}
+.card.revealed{background:var(--true);color:var(--text);cursor:default}
+body.spymaster-mode .card{border:clamp(3px,0.5vw,6px) solid var(--true);box-shadow:0 0 10px var(--true)}
+body.spymaster-mode .card.revealed{border:none;box-shadow:none}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:999;padding:20px;overflow-y:auto}
+.home-container{max-width:900px;width:90%}
+.home-title{font-size:clamp(2rem,6vw,3.5rem);margin-bottom:20px;background:linear-gradient(135deg,#e74c3c,#3498db);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.home-subtitle{font-size:clamp(1rem,2.5vw,1.3rem);color:#aaa;margin-bottom:30px}
+.mode-selection{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:30px}
+.mode-card{background:linear-gradient(135deg,#2a2a2a,#1a1a1a);border-radius:20px;padding:clamp(20px,4vw,40px);cursor:pointer;transition:all .3s;border:3px solid transparent}
+.mode-card:hover{transform:translateY(-5px);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.mode-card.classic{border-color:#4CAF50}.mode-card.crazy{border-color:#FF9800}
+.mode-icon{font-size:clamp(2.5rem,6vw,4rem);margin-bottom:15px}
+.mode-title{font-size:clamp(1.3rem,3vw,2rem);margin-bottom:10px;font-weight:bold}
+.mode-card.classic .mode-title{color:#4CAF50}.mode-card.crazy .mode-title{color:#FF9800}
+.mode-description{font-size:clamp(0.9rem,2vw,1.1rem);color:#aaa}
+.mode-features{margin-top:15px;text-align:left;font-size:clamp(0.8rem,1.8vw,0.95rem);color:#888;list-style:none;padding:0}
+.mode-features li{margin:6px 0}
+.settings-container{background:#2a2a2a;border-radius:20px;padding:clamp(20px,4vw,40px);max-width:800px;width:90%;max-height:90vh;overflow-y:auto}
+.settings-title{font-size:clamp(1.5rem,4vw,2.5rem);margin-bottom:20px;background:linear-gradient(135deg,#e74c3c,#3498db);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.team-setup{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;margin-bottom:20px}
+.team-card{background:#1a1a1a;border-radius:15px;padding:clamp(15px,3vw,25px);border:3px solid}
+.team-card.red{border-color:#e74c3c}.team-card.blue{border-color:#3498db}
+.team-card h3{margin:0 0 15px;font-size:clamp(1.1rem,2.5vw,1.5rem)}
+.team-card.red h3{color:#e74c3c}.team-card.blue h3{color:#3498db}
+.avatar-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.avatar-option{font-size:clamp(1.3rem,3vw,2rem);padding:8px;background:#333;border-radius:10px;cursor:pointer;transition:all .2s;border:3px solid transparent}
+.avatar-option:hover{transform:scale(1.1);background:#444}
+.avatar-option.selected{border-color:#4CAF50;background:#2d5016}
+.team-card input{width:100%;padding:10px;font-size:1rem;border-radius:8px;border:none;text-align:center;background:#333;color:#fff;margin-top:8px}
+.game-settings{background:#1a1a1a;border-radius:15px;padding:clamp(15px,3vw,25px);margin-bottom:15px}
+.setting-row{display:flex;justify-content:space-between;align-items:center;margin:10px 0;padding:8px;background:#2a2a2a;border-radius:8px;flex-wrap:wrap;gap:10px}
+.setting-row label{font-size:clamp(0.9rem,2vw,1.1rem);color:#ccc}
+.setting-row input,.setting-row select{padding:8px 12px;font-size:0.95rem;border-radius:6px;border:none;background:#333;color:#fff;width:110px;text-align:center}
+.button-group{display:flex;gap:10px;margin-top:15px;flex-wrap:wrap}
+#endText{font-size:clamp(1.5rem,5vw,3rem);animation:pop .6s ease;margin-bottom:20px}
+@keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+.confetti{position:fixed;top:-10px;width:10px;height:10px;animation:fall 3s linear forwards;pointer-events:none}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+@media(max-width:600px){
+.scoreboard{flex-direction:column;gap:5px;align-items:center}
+.score-team{width:100%;max-width:280px}
+.controls button{padding:8px 12px;margin:2px}
+.side-panel{min-width:40px;gap:3px}
+.side-card{width:35px;height:28px;font-size:0.9rem;border-radius:4px}
+.side-counter{font-size:1rem}
+.grid-container{gap:3px}
+}
+@media(max-height:600px){
+.game-header h1{font-size:1rem}
+#gameModeLabel{display:none}
+.scoreboard{margin-bottom:3px}
+.controls{margin-bottom:3px}
+#status{font-size:0.8rem;margin-bottom:3px}
+}
+</style>
+</head>
+<body>
+
+<div class="overlay" id="homeScreen" style="display:flex">
+<div class="home-container">
+<h1 class="home-title">🎯 TAJNIACY</h1>
+<p class="home-subtitle">Gra towarzyska</p>
+<div class="mode-selection">
+<div class="mode-card classic" onclick="selectMode('classic')">
+<div class="mode-icon">🎲</div>
+<div class="mode-title">KLASYCZNA</div>
+<div class="mode-description">Szybki start z tradycyjnymi zasadami</div>
+<ul class="mode-features"><li>✓ Standardowa plansza 5x5</li><li>✓ 1 zabójca, 7 neutralnych</li><li>✓ 8/9 agentów</li></ul>
+</div>
+<div class="mode-card crazy" onclick="selectMode('crazy')">
+<div class="mode-icon">🎪</div>
+<div class="mode-title">SZALONA</div>
+<div class="mode-description">Więcej zabójców, więcej emocji!</div>
+<ul class="mode-features"><li>⚡ Od 1 do 7 zabójców</li><li>⚡ Mniej neutralnych kart</li><li>⚡ Wybierz kto zaczyna</li></ul>
+</div>
+</div>
+</div>
+</div>
+
+<div class="overlay" id="classicSettings">
+<div class="settings-container">
+<h2 class="settings-title">🎮 Tryb Klasyczny</h2>
+<div class="team-setup">
+<div class="team-card red">
+<h3>🔴 Drużyna Czerwona</h3>
+<div class="avatar-picker" id="classicRedPicker"></div>
+<input id="classicRedName" value="Czerwoni" placeholder="Nazwa drużyny">
+</div>
+<div class="team-card blue">
+<h3>🔵 Drużyna Niebieska</h3>
+<div class="avatar-picker" id="classicBluePicker"></div>
+<input id="classicBlueName" value="Niebiescy" placeholder="Nazwa drużyny">
+</div>
+</div>
+<div class="game-settings">
+<div class="setting-row"><label>🎴 Talia kart:</label><select id="classicDeck"><option value="standard">Standardowa</option><option value="adult">Dla dorosłych (18+)</option></select></div>
+<div class="setting-row"><label>🏆 Rundy do wygranej:</label><input id="classicWinTarget" type="number" min="1" max="10" value="3"></div>
+<div class="setting-row"><label>🔊 Dźwięki:</label><select id="classicSound"><option value="true">Włączone</option><option value="false">Wyłączone</option></select></div>
+</div>
+<div class="button-group">
+<button class="btn-reset" onclick="backToHome()" style="flex:1">← Powrót</button>
+<button class="btn-new" onclick="startClassic()" style="flex:2;font-size:1.3rem">▶️ Start</button>
+</div>
+</div>
+</div>
+
+<div class="overlay" id="crazySettings">
+<div class="settings-container">
+<h2 class="settings-title">🎪 Tryb Szalony</h2>
+<div class="team-setup">
+<div class="team-card red">
+<h3>🔴 Drużyna Czerwona</h3>
+<div class="avatar-picker" id="crazyRedPicker"></div>
+<input id="crazyRedName" value="Czerwoni" placeholder="Nazwa drużyny">
+</div>
+<div class="team-card blue">
+<h3>🔵 Drużyna Niebieska</h3>
+<div class="avatar-picker" id="crazyBluePicker"></div>
+<input id="crazyBlueName" value="Niebiescy" placeholder="Nazwa drużyny">
+</div>
+</div>
+<div class="game-settings">
+<h3 style="color:#FF9800;margin-bottom:15px">⚙️ Zaawansowane Ustawienia</h3>
+<div class="setting-row"><label>🎴 Talia:</label><select id="crazyDeck"><option value="standard">Standardowa</option><option value="adult">Dla dorosłych</option></select></div>
+<div class="setting-row"><label>💀 Zabójcy:</label><input id="crazyAssassins" type="number" min="1" max="7" value="1" onchange="updateAssassins()"></div>
+<div class="setting-row"><label>😐 Neutralne:</label><input id="crazyNeutral" type="number" value="7" readonly style="background:#222"></div>
+<div class="setting-row"><label>🎯 Zaczyna:</label><select id="crazyStarter"><option value="random">🎲 Losowo</option><option value="red">🔴 Czerwoni</option><option value="blue">🔵 Niebiescy</option></select></div>
+<div class="setting-row"><label>🏆 Rundy:</label><input id="crazyWinTarget" type="number" min="1" max="10" value="3"></div>
+<div class="setting-row"><label>🔊 Dźwięki:</label><select id="crazySound"><option value="true">Włączone</option><option value="false">Wyłączone</option></select></div>
+</div>
+<div style="background:#1a1a1a;border-radius:10px;padding:15px;margin-bottom:20px">
+<p style="color:#4CAF50;margin:0;font-size:.95rem">✓ Więcej zabójców = mniej neutralnych kart</p>
+<p style="color:#888;font-size:.9rem;margin:5px 0 0" id="cardInfo">Zabójcy: 1 | Neutralne: 7</p>
+</div>
+<div class="button-group">
+<button class="btn-reset" onclick="backToHome()" style="flex:1">← Powrót</button>
+<button class="btn-new" onclick="startCrazy()" style="flex:2;font-size:1.3rem">▶️ Start</button>
+</div>
+</div>
+</div>
+
+<div id="gameScreen">
+<div class="game-header">
+<h1>🎯 TAJNIACY</h1>
+<div id="gameModeLabel">🎲 Tryb Klasyczny</div>
+</div>
+<div class="scoreboard">
+<div class="score-team red"><div class="team-info"><div class="team-emoji" id="scoreRedEmoji">🐉</div><div class="team-name" id="scoreRedName">Czerwoni</div></div><div class="team-score" id="scoreRedPoints">0</div></div>
+<div class="score-team blue"><div class="team-info"><div class="team-emoji" id="scoreBlueEmoji">🦈</div><div class="team-name" id="scoreBlueName">Niebiescy</div></div><div class="team-score" id="scoreBluePoints">0</div></div>
+</div>
+<div class="controls">
+<button class="btn-new" onclick="confirmNewRound()">🔄 Nowa runda</button>
+<button class="btn-key" id="keyBtn" onclick="toggleKey()">👁️ Pokaż klucz</button>
+<button class="btn-reset" onclick="confirmBack()">🏠 Menu</button>
+</div>
+<div id="status">Zaczynają: ...</div>
+<div class="main-container">
+<div class="side-panel" id="redPanel"><div class="side-counter red" id="redCounter">0</div></div>
+<div class="center-area"><div class="grid-container" id="board"></div></div>
+<div class="side-panel" id="bluePanel"><div class="side-counter blue" id="blueCounter">0</div></div>
+</div>
+</div>
+
+<div class="overlay" id="endOverlay">
+<div id="endText"></div>
+<button class="btn-new" id="nextRoundBtn" onclick="initRound()">➡️ Kolejna runda</button>
+<button class="btn-reset" onclick="confirmBack()">🏠 Menu</button>
+</div>
+
+<div class="overlay" id="assassinOverlay">
+<h2>💀 ZABÓJCA!</h2>
+<p style="font-size:1.2rem;margin:20px 0">Która drużyna trafiła na zabójcę?</p>
+<button class="btn-new" style="background:#e74c3c;margin:10px" onclick="assassinHit('red')">🔴 <span id="assRedText">Czerwoni</span></button>
+<button class="btn-new" style="background:#3498db;margin:10px" onclick="assassinHit('blue')">🔵 <span id="assBlueText">Niebiescy</span></button>
+</div>
+
+<div class="overlay" id="keyWarning">
+<div class="settings-container" style="max-width:500px">
+<h2 style="font-size:2rem;margin-bottom:20px">👁️ Pokaż klucz?</h2>
+<p style="font-size:1.2rem;color:#f39c12;margin-bottom:30px">⚠️ Uwaga! To ujawni wszystkie karty.</p>
+<p style="font-size:1rem;color:#ccc;margin-bottom:30px">Upewnij się, że tylko szpiedzy widzą ekran!</p>
+<div style="display:flex;gap:15px;justify-content:center">
+<button class="btn-reset" onclick="hideO('keyWarning')">❌ Anuluj</button>
+<button class="btn-key" onclick="showKey()">👁️ Pokaż</button>
+</div>
+</div>
+</div>
+
+<div class="overlay" id="newRoundConfirm">
+<div class="settings-container" style="max-width:500px">
+<h2 style="font-size:2rem;margin-bottom:20px">🔄 Nowa runda?</h2>
+<p style="font-size:1.2rem;color:#f39c12;margin-bottom:30px">⚠️ Obecna rozgrywka zostanie zresetowana.</p>
+<div style="display:flex;gap:15px;justify-content:center">
+<button class="btn-reset" onclick="hideO('newRoundConfirm')">❌ Anuluj</button>
+<button class="btn-new" onclick="hideO('newRoundConfirm');initRound()">🔄 Nowa runda</button>
+</div>
+</div>
+</div>
+
+<div class="overlay" id="backConfirm">
+<div class="settings-container" style="max-width:500px">
+<h2 style="font-size:2rem;margin-bottom:20px">🏠 Powrót do menu?</h2>
+<p style="font-size:1.2rem;color:#f39c12;margin-bottom:30px">⚠️ Cały postęp meczu zostanie utracony!</p>
+<div style="display:flex;gap:15px;justify-content:center">
+<button class="btn-reset" onclick="hideO('backConfirm')">❌ Anuluj</button>
+<button class="btn-key" style="background:#e74c3c" onclick="resetMatch()">🏠 Menu</button>
+</div>
+</div>
+</div>
+
+<script>
+const WORDS=["Dinozaur","Lód","Szpieg","Zamek","Księżyc","Pies","Dźwig","Afryka","Piramida","Pilot","Szpital","Oko","Niedźwiedź","Orzeł","Trawa","Bombowiec","Pociąg","Doktor","Ziemia","Wieloryb","Szkoła","Góra","But","Bank","Ryba","Anioł","Pająk","Klucz","Złoto","Papier","Jabłko","Ogień","Samolot","Kod","Mecz","Tort","Gwiazda","Policja","Woda","Mur","Królowa","Rycerz","Wiatr","Radio","Las","Duch","Zegarek","Rzeka","Komputer","Książka","Kawa","Cukier","Miasto","Most","Grom","Słońce","Chmura","Śnieg","Deszcz","Burza","Sztorm","Ocean","Plaża","Wyspa","Dżungla","Pustynia","Lawina","Wulkan","Trzęsienie","Robot","Laser","Rakieta","Planeta","Kometa","Satelita","Astronauta","Mars","Gitara","Pianino","Bęben","Trąbka","Skrzypce","Opera","Koncert","Muzyka","Malarz","Rzeźba","Galeria","Obraz","Farba","Pędzel","Paleta","Muzeum","Piłka","Stadion","Bramka","Sędzia","Mistrz","Medal","Puchar","Olimpiada","Smok","Czarodziej","Elf","Krasnolud","Troll","Goblin","Mag","Kapitan","Statek","Kotwica","Żagiel","Pirat","Skarb","Mapa","Kompas","Telefon","Ekran","Mysz","Klawiatura","Monitor","Drukarka","Kamera","Mikrofon"];
+const ADULT=["Kamasutra","Orgazm","Seks","Erotyka","Striptiz","Kochanek","Gangster","Mafioso","Grzech","Piekło","Szatan","Demon","Alkohol","Wódka","Narkotyk","Dealer","Przemyt","Zabójca","Morderca","Trucizna","Broń","Rewolwer","Karabin","Granat","Dynamit","Poker","Kasyno","Hazard","Ruletka","Oszust","Kanciarz","Więzienie","Kraty","Kajdanki","Policjant","Areszt","Cela","Wyrok","Whisky","Piwo","Wino","Kac","Impreza","Disco","Klub","Jackpot","Stawka","Blef","Hip-Hop","Rap","Skandal"];
+const EMOJIS_RED=["🐉","🦁","🔥","🌶️","🦅","🚀","⚡","💎"];
+const EMOJIS_BLUE=["🦈","🐺","❄️","🌊","🦋","🛸","⭐","🔮"];
+
+let wordList=WORDS,gameMode='classic',gameOver=false,isSpymaster=false,sideCards={red:[],blue:[]};
+const team={red:{name:"Czerwoni",emoji:"🐉",score:0},blue:{name:"Niebiescy",emoji:"🦈",score:0}};
+const cfg={winTarget:3,sound:true,assassins:1,starter:'random',startAgents:9,otherAgents:8,neutral:7,width:5,height:5};
+let remaining={red:0,blue:0};
+
+const $=id=>document.getElementById(id);
+const showO=id=>$(id).style.display='flex';
+const hideO=id=>$(id).style.display='none';
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+function buildPickers(){
+    ['classic','crazy'].forEach(mode=>{
+        [['Red',EMOJIS_RED,'red'],['Blue',EMOJIS_BLUE,'blue']].forEach(([suffix,emojis,t])=>{
+            const picker=$(mode+suffix+'Picker');
+            if(!picker)return;
+            picker.innerHTML='';
+            emojis.forEach((e,i)=>{
+                const div=document.createElement('div');
+                div.className='avatar-option'+(i===0?' selected':'');
+                div.dataset.emoji=e;
+                div.textContent=e;
+                div.onclick=()=>{
+                    picker.querySelectorAll('.avatar-option').forEach(o=>o.classList.remove('selected'));
+                    div.classList.add('selected');
+                    team[t].emoji=e;
+                };
+                picker.appendChild(div);
+            });
+        });
+    });
+}
+
+function selectMode(mode){
+    gameMode=mode;
+    hideO('homeScreen');
+    showO(mode==='classic'?'classicSettings':'crazySettings');
+    if(mode==='crazy')updateAssassins();
+}
+
+function backToHome(){hideO('classicSettings');hideO('crazySettings');showO('homeScreen')}
+
+function updateAssassins(){
+    const assassins=Math.max(1,Math.min(7,+$('crazyAssassins').value||1));
+    const neutral=8-assassins;
+    $('crazyAssassins').value=assassins;
+    $('crazyNeutral').value=neutral;
+    $('cardInfo').textContent=`Zabójcy: ${assassins} | Neutralne: ${neutral}`;
+}
+
+function startClassic(){
+    team.red.name=$('classicRedName').value||'Czerwoni';
+    team.blue.name=$('classicBlueName').value||'Niebiescy';
+    cfg.winTarget=Math.max(1,+$('classicWinTarget').value||3);
+    cfg.sound=$('classicSound').value==='true';
+    wordList=$('classicDeck').value==='adult'?ADULT:WORDS;
+    cfg.assassins=1;cfg.starter='random';cfg.startAgents=9;cfg.otherAgents=8;cfg.neutral=7;cfg.width=5;cfg.height=5;
+    team.red.score=team.blue.score=0;
+    hideO('classicSettings');
+    $('gameScreen').style.display='flex';
+    $('gameModeLabel').textContent='🎲 Tryb Klasyczny';
+    document.body.classList.add('game-active');
+    updateScore();initRound();
+}
+
+function startCrazy(){
+    team.red.name=$('crazyRedName').value||'Czerwoni';
+    team.blue.name=$('crazyBlueName').value||'Niebiescy';
+    wordList=$('crazyDeck').value==='adult'?ADULT:WORDS;
+    cfg.assassins=Math.max(1,Math.min(7,+$('crazyAssassins').value||1));
+    cfg.starter=$('crazyStarter').value;
+    cfg.startAgents=9;
+    cfg.otherAgents=8;
+    cfg.neutral=8-cfg.assassins;
+    cfg.width=5;
+    cfg.height=5;
+    cfg.winTarget=Math.max(1,+$('crazyWinTarget').value||3);
+    cfg.sound=$('crazySound').value==='true';
+    team.red.score=team.blue.score=0;
+    hideO('crazySettings');
+    $('gameScreen').style.display='flex';
+    $('gameModeLabel').textContent='🎪 Tryb Szalony';
+    document.body.classList.add('game-active');
+    updateScore();initRound();
+}
+
+function updateScore(){
+    $('scoreRedEmoji').textContent=team.red.emoji;$('scoreRedName').textContent=team.red.name;$('scoreRedPoints').textContent=team.red.score;
+    $('scoreBlueEmoji').textContent=team.blue.emoji;$('scoreBlueName').textContent=team.blue.name;$('scoreBluePoints').textContent=team.blue.score;
+}
+
+function createSideCards(){
+    ['red','blue'].forEach(c=>{
+        const panel=$(c+'Panel');
+        panel.querySelectorAll('.side-card').forEach(e=>e.remove());
+        sideCards[c]=[];
+        $(c+'Counter').textContent=remaining[c];
+        for(let i=0;i<remaining[c];i++){
+            const card=document.createElement('div');
+            card.className='side-card '+c;
+            card.textContent=team[c].emoji;
+            panel.appendChild(card);
+            sideCards[c].push(card);
+        }
+    });
+}
+
+function updateSideCard(c){
+    const unrevealed=sideCards[c].filter(e=>!e.classList.contains('revealed'));
+    if(unrevealed.length)unrevealed[0].classList.add('revealed');
+    $(c+'Counter').textContent=remaining[c];
+}
+
+function genLayout(roles,w,h){
+    let attempts=0,result;
+    do{result=shuffle([...roles]);attempts++}while(!checkLayout(result,w,h)&&attempts<50);
+    return result;
+}
+
+function checkLayout(r,w,h){
+    for(let row=0;row<h;row++)for(let col=0;col<=w-3;col++){const i=row*w+col;if(r[i]!=='neutral'&&r[i]===r[i+1]&&r[i+1]===r[i+2])return false}
+    for(let col=0;col<w;col++)for(let row=0;row<=h-3;row++){const i=row*w+col;if(r[i]!=='neutral'&&r[i]===r[i+w]&&r[i+w]===r[i+2*w])return false}
+    return true;
+}
+
+function initRound(){
+    const board=$('board'),status=$('status');
+    board.innerHTML='';hideO('endOverlay');
+    gameOver=false;isSpymaster=false;
+    document.body.classList.remove('spymaster-mode');
+    $('keyBtn').textContent='👁️ Pokaż klucz';
+    
+    const redStarts=cfg.starter==='random'?Math.random()<.5:cfg.starter==='red';
+    remaining={red:redStarts?cfg.startAgents:cfg.otherAgents,blue:redStarts?cfg.otherAgents:cfg.startAgents};
+    createSideCards();
+    
+    status.innerHTML=`Zaczynają: <span class="team-${redStarts?'red':'blue'}">${team[redStarts?'red':'blue'].emoji} ${team[redStarts?'red':'blue'].name}</span>`;
+    
+    let roles=[...Array(cfg.assassins).fill('assassin'),...Array(cfg.neutral).fill('neutral'),...Array(remaining.red).fill('red'),...Array(remaining.blue).fill('blue')];
+    roles=genLayout(roles,cfg.width,cfg.height);
+    
+    const words=shuffle([...wordList]).slice(0,cfg.width*cfg.height);
+    
+    words.forEach((word,i)=>{
+        if(i>=roles.length)return;
+        const card=document.createElement('div');
+        card.className=`card is-${roles[i]}`;
+        card.textContent=word;
+        card.onclick=()=>{
+            if(gameOver||isSpymaster||card.classList.contains('revealed'))return;
+            card.classList.add('revealed');
+            playSound('click');
+            if(roles[i]==='assassin'){
+                gameOver=true;
+                $('assRedText').textContent=team.red.name;
+                $('assBlueText').textContent=team.blue.name;
+                showO('assassinOverlay');
+                return;
+            }
+            if(roles[i]==='red'){remaining.red--;updateSideCard('red');if(!remaining.red)endRound(`🔴 ${team.red.name} wygrywa rundę!`,'red')}
+            if(roles[i]==='blue'){remaining.blue--;updateSideCard('blue');if(!remaining.blue)endRound(`🔵 ${team.blue.name} wygrywa rundę!`,'blue')}
+        };
+        board.appendChild(card);
+    });
+}
+
+function endRound(text,winner){
+    gameOver=true;
+    $('endText').textContent=text;
+    showO('endOverlay');
+    if(winner){
+        team[winner].score++;
+        updateScore();
+        if(team[winner].score>=cfg.winTarget){
+            confetti(winner==='red'?'#e74c3c':'#3498db');
+            playSound('win');
+            $('endText').textContent=`🏆 ${team[winner].emoji} ${team[winner].name} WYGRYWAJĄ MECZ! 🏆`;
+            $('nextRoundBtn').style.display='none';
+        }else{
+            playSound('win');
+            $('nextRoundBtn').style.display='inline-block';
+        }
+    }else{
+        playSound('assassin');
+        $('nextRoundBtn').style.display='inline-block';
+    }
+}
+
+function assassinHit(loser){
+    hideO('assassinOverlay');
+    const winner=loser==='red'?'blue':'red';
+    endRound(`💀 ZABÓJCA! ${team[loser].emoji} ${team[loser].name} przegrywają!`,winner);
+}
+
+function toggleKey(){
+    if(gameOver)return;
+    if(!isSpymaster)showO('keyWarning');
+    else{isSpymaster=false;document.body.classList.remove('spymaster-mode');$('keyBtn').textContent='👁️ Pokaż klucz'}
+}
+
+function showKey(){
+    hideO('keyWarning');
+    isSpymaster=true;
+    document.body.classList.add('spymaster-mode');
+    $('keyBtn').textContent='❌ Ukryj klucz';
+}
+
+function confirmNewRound(){
+    if(!gameOver&&$('board').children.length)showO('newRoundConfirm');
+    else initRound();
+}
+
+function confirmBack(){showO('backConfirm')}
+
+function resetMatch(){
+    hideO('backConfirm');hideO('endOverlay');
+    $('gameScreen').style.display='none';
+    showO('homeScreen');
+    document.body.classList.remove('game-active','spymaster-mode');
+    $('board').innerHTML='';
+    ['red','blue'].forEach(c=>$(c+'Panel').querySelectorAll('.side-card').forEach(e=>e.remove()));
+    team.red.score=team.blue.score=0;
+    gameOver=false;isSpymaster=false;
+}
+
+function confetti(color){
+    for(let i=0;i<100;i++){
+        const c=document.createElement('div');
+        c.className='confetti';
+        c.style.left=Math.random()*100+'vw';
+        c.style.background=color;
+        c.style.animationDuration=2+Math.random()*2+'s';
+        document.body.appendChild(c);
+        setTimeout(()=>c.remove(),4000);
+    }
+}
+
+let audioCtx=null;
+function playSound(type){
+    if(!cfg.sound)return;
+    try{
+        if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+        const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
+        osc.connect(gain);gain.connect(audioCtx.destination);
+        if(type==='assassin'){osc.frequency.value=100;gain.gain.setValueAtTime(.3,audioCtx.currentTime);gain.gain.exponentialRampToValueAtTime(.01,audioCtx.currentTime+.5);osc.start();osc.stop(audioCtx.currentTime+.5)}
+        else if(type==='win'){[523,659,784].forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=f;g.gain.setValueAtTime(.2,audioCtx.currentTime+i*.15);g.gain.exponentialRampToValueAtTime(.01,audioCtx.currentTime+i*.15+.3);o.start(audioCtx.currentTime+i*.15);o.stop(audioCtx.currentTime+i*.15+.3)})}
+        else{osc.frequency.value=800;gain.gain.setValueAtTime(.15,audioCtx.currentTime);gain.gain.exponentialRampToValueAtTime(.01,audioCtx.currentTime+.1);osc.start();osc.stop(audioCtx.currentTime+.1)}
+    }catch(e){}
+}
+
+buildPickers();
+showO('homeScreen');
+</script>
+</body>
+</html>
