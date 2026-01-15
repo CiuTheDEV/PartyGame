@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tajniacy</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
 <style>
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
@@ -82,14 +83,29 @@ body.game-active{height:100vh;height:100dvh;overflow:hidden}
     color:#fff;
     font-size:clamp(1.2rem,3vmin,2.5rem);
     cursor:pointer;
-    transition:all .2s;
+    transition:background .2s;
     display:flex;
     align-items:center;
     justify-content:center;
     padding:0;
+    position:relative;
 }
-.icon-btn:hover{background:#444;transform:scale(1.1)}
-.icon-btn:active{transform:scale(0.95)}
+.icon-btn span{position:relative;z-index:2}
+.icon-btn svg.hold-progress{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    z-index:1;
+}
+.icon-btn svg.hold-progress path{
+    fill:none;
+    stroke:#4CAF50;
+    stroke-width:4;
+    stroke-dasharray:1000;
+    stroke-dashoffset:1000;
+}
+.icon-btn:hover{background:#444}
 .icon-btn.settings-btn{background:#555}
 .icon-btn.active{background:#FF9800;box-shadow:0 0 15px rgba(255,152,0,0.5)}
 
@@ -113,7 +129,7 @@ body.game-active{height:100vh;height:100dvh;overflow:hidden}
 }
 
 .card{
-    background:linear-gradient(145deg,#f5f5f5,#d5d5d5);
+    background:#f5f5f5;
     color:#222;
     border-radius:clamp(8px,1.5vmin,20px);
     display:flex;
@@ -125,35 +141,67 @@ body.game-active{height:100vh;height:100dvh;overflow:hidden}
     cursor:pointer;
     user-select:none;
     padding:clamp(5px,1vmin,15px);
-    transition:transform .15s,box-shadow .15s;
+    transition:transform .15s,box-shadow .15s,background .15s;
     text-align:center;
     word-break:break-word;
     overflow:hidden;
-    box-shadow:0 clamp(3px,0.6vmin,8px) clamp(6px,1.2vmin,16px) rgba(0,0,0,0.3);
-    text-shadow:1px 1px 0 rgba(255,255,255,0.5);
+    box-shadow:0 clamp(2px,0.4vmin,6px) clamp(4px,0.8vmin,12px) rgba(0,0,0,0.3);
     letter-spacing:0.5px;
 }
-.card:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 clamp(6px,1vmin,14px) clamp(12px,2vmin,28px) rgba(0,0,0,0.4)}
+.card:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 clamp(4px,0.8vmin,10px) clamp(8px,1.5vmin,20px) rgba(0,0,0,0.4)}
 
-.is-red{--true:#e74c3c;--text:#fff}
-.is-blue{--true:#3498db;--text:#fff}
-.is-neutral{--true:#7f8c8d;--text:#fff}
-.is-assassin{--true:#1a1a1a;--text:#fff}
+/* Style talii */
+.deck-white .card{background:#f5f5f5;color:#222}
+.deck-white .card:hover{background:#fff}
+
+.deck-classic .card{background:#2a2a2a;color:#f0f0f0;border:2px solid #3a3a3a}
+.deck-classic .card:hover{background:#333}
+
+.deck-night .card{background:linear-gradient(145deg,#1a1a2e,#0d0d18);color:#d0d0f0;border:2px solid #2a2a4e}
+.deck-night .card:hover{background:linear-gradient(145deg,#252540,#12121f)}
+
+.is-red{--true:#e74c3c;--text:#fff;--soft:rgba(231,76,60,0.7)}
+.is-blue{--true:#3498db;--text:#fff;--soft:rgba(52,152,219,0.7)}
+.is-neutral{--true:#7f8c8d;--text:#fff;--soft:rgba(127,140,141,0.5)}
+.is-assassin{--true:#1a1a1a;--text:#fff;--soft:rgba(20,20,20,0.9)}
 
 .card.revealed{
-    background:var(--true);
-    color:var(--text);
+    background:var(--true)!important;
+    color:var(--text)!important;
     cursor:default;
     box-shadow:inset 0 0 clamp(15px,3vmin,40px) rgba(0,0,0,0.3);
     text-shadow:2px 2px 4px rgba(0,0,0,0.5);
+    border-color:var(--true)!important;
 }
 .card.revealed:hover{transform:none;box-shadow:inset 0 0 clamp(15px,3vmin,40px) rgba(0,0,0,0.3)}
 
+/* Tryb klucza - pełne tło w stonowanych kolorach */
 body.spymaster-mode .card{
-    border:clamp(4px,0.8vmin,10px) solid var(--true);
-    box-shadow:0 0 clamp(15px,3vmin,35px) var(--true);
+    background:var(--soft)!important;
+    color:#fff!important;
+    text-shadow:1px 1px 3px rgba(0,0,0,0.5);
 }
-body.spymaster-mode .card.revealed{border:none;box-shadow:inset 0 0 clamp(15px,3vmin,40px) rgba(0,0,0,0.3)}
+body.spymaster-mode .card:hover{
+    transform:none;
+}
+body.spymaster-mode .card.is-assassin{
+    color:#e74c3c!important;
+    text-shadow:0 0 10px rgba(0,0,0,0.8);
+    flex-direction:column;
+    gap:clamp(2px,0.5vmin,8px);
+}
+body.spymaster-mode .card.is-assassin::after{
+    content:'☠';
+    font-size:clamp(16px,3.5vmin,40px);
+    opacity:0.9;
+}
+body.spymaster-mode .card.is-assassin.revealed::after{
+    display:none;
+}
+body.spymaster-mode .card.revealed{
+    background:var(--true)!important;
+    box-shadow:inset 0 0 clamp(15px,3vmin,40px) rgba(0,0,0,0.3);
+}
 
 .bottom-bar{
     display:flex;
@@ -240,6 +288,251 @@ body.spymaster-mode .card.revealed{border:none;box-shadow:inset 0 0 clamp(15px,3
 .setting-row{display:flex;justify-content:space-between;align-items:center;margin:clamp(8px,1.5vmin,15px) 0;padding:clamp(8px,1.5vmin,15px);background:#2a2a2a;border-radius:clamp(6px,1vmin,12px);flex-wrap:wrap;gap:10px}
 .setting-row label{font-size:clamp(1rem,2.5vmin,1.4rem);color:#ccc}
 .setting-row input,.setting-row select{padding:clamp(8px,1.5vmin,12px);font-size:clamp(0.95rem,2.2vmin,1.3rem);border-radius:clamp(5px,0.8vmin,10px);border:none;background:#333;color:#fff;width:clamp(100px,15vmin,150px);text-align:center}
+
+/* Style picker */
+.style-row{flex-direction:column;align-items:stretch;padding:0;background:transparent}
+.style-selector{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:clamp(8px,1.5vmin,15px);
+    background:#2a2a2a;
+    border-radius:clamp(6px,1vmin,12px);
+    cursor:pointer;
+    transition:all .2s;
+}
+.style-selector:hover{background:#333}
+.style-selector label{font-size:clamp(1rem,2.5vmin,1.4rem);color:#ccc;pointer-events:none}
+.style-current{display:flex;align-items:center;gap:10px}
+.style-current span:first-child{color:#fff;font-size:clamp(0.95rem,2.2vmin,1.3rem)}
+.style-arrow{color:#888;font-size:0.8rem;transition:transform .3s}
+.style-row.open .style-arrow{transform:rotate(180deg)}
+.style-picker{
+    display:none;
+    gap:clamp(8px,1.5vmin,15px);
+    margin-top:clamp(8px,1.5vmin,12px);
+    padding:clamp(10px,2vmin,15px);
+    background:#222;
+    border-radius:clamp(6px,1vmin,12px);
+    flex-wrap:wrap;
+    justify-content:center;
+}
+.style-row.open .style-picker{display:flex}
+.style-option{
+    cursor:pointer;
+    padding:clamp(10px,1.5vmin,15px);
+    border-radius:clamp(8px,1vmin,12px);
+    border:2px solid transparent;
+    background:#1a1a1a;
+    transition:all .2s;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:clamp(6px,1vmin,10px);
+}
+.style-option:hover{border-color:#666;background:#252525}
+.style-option.selected{border-color:#4CAF50;background:#1a2a1a}
+.style-preview{
+    display:flex;
+    gap:clamp(4px,0.8vmin,8px);
+    padding:clamp(6px,1vmin,12px);
+    border-radius:clamp(6px,0.8vmin,10px);
+    background:#111;
+}
+.preview-card{
+    width:clamp(35px,6vmin,55px);
+    height:clamp(45px,8vmin,70px);
+    border-radius:clamp(4px,0.6vmin,8px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:clamp(0.5rem,1.2vmin,0.75rem);
+    font-weight:bold;
+    text-transform:uppercase;
+    box-shadow:0 2px 4px rgba(0,0,0,0.3);
+}
+.deck-white .preview-card{background:#f5f5f5;color:#222}
+.deck-classic .preview-card{background:#2a2a2a;color:#f0f0f0;border:1px solid #3a3a3a}
+.deck-night .preview-card{background:linear-gradient(145deg,#1a1a2e,#0d0d18);color:#d0d0f0;border:1px solid #2a2a4e}
+.preview-card.revealed.is-red{background:#e74c3c!important;color:#fff!important}
+.preview-card.revealed.is-blue{background:#3498db!important;color:#fff!important}
+.style-name{font-size:clamp(0.9rem,1.8vmin,1.1rem);color:#ccc}
+
+/* Deck picker */
+.deck-row{flex-direction:column;align-items:stretch;padding:0;background:transparent}
+.deck-selector{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:clamp(8px,1.5vmin,15px);
+    background:#2a2a2a;
+    border-radius:clamp(6px,1vmin,12px);
+    cursor:pointer;
+    transition:all .2s;
+}
+.deck-selector:hover{background:#333}
+.deck-selector label{font-size:clamp(1rem,2.5vmin,1.4rem);color:#ccc;pointer-events:none}
+.deck-current{display:flex;align-items:center;gap:10px}
+.deck-current span:first-child{color:#fff;font-size:clamp(0.95rem,2.2vmin,1.3rem)}
+.deck-arrow{color:#888;font-size:0.8rem;transition:transform .3s}
+.deck-row.open .deck-arrow{transform:rotate(180deg)}
+.deck-picker{
+    display:none;
+    flex-direction:column;
+    gap:clamp(8px,1.5vmin,12px);
+    margin-top:clamp(8px,1.5vmin,12px);
+    padding:clamp(10px,2vmin,15px);
+    background:#222;
+    border-radius:clamp(6px,1vmin,12px);
+}
+.deck-row.open .deck-picker{display:flex}
+.deck-option{
+    cursor:pointer;
+    padding:clamp(12px,2vmin,18px);
+    border-radius:clamp(8px,1vmin,12px);
+    border:2px solid transparent;
+    background:#1a1a1a;
+    transition:all .2s;
+}
+.deck-option:hover{border-color:#666;background:#252525}
+.deck-option.selected{border-color:#4CAF50;background:#1a2a1a}
+.deck-info{display:flex;flex-direction:column;gap:6px}
+.deck-title{font-size:clamp(1rem,2vmin,1.3rem);color:#fff;font-weight:bold}
+.deck-desc{font-size:clamp(0.8rem,1.6vmin,1rem);color:#888;line-height:1.4}
+
+/* Rounds picker */
+.rounds-row{flex-direction:column;align-items:stretch;padding:0;background:transparent}
+.rounds-selector{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:clamp(8px,1.5vmin,15px);
+    background:#2a2a2a;
+    border-radius:clamp(6px,1vmin,12px);
+    cursor:pointer;
+    transition:all .2s;
+}
+.rounds-selector:hover{background:#333}
+.rounds-selector label{font-size:clamp(1rem,2.5vmin,1.4rem);color:#ccc;pointer-events:none}
+.rounds-current{display:flex;align-items:center;gap:10px}
+.rounds-current span:first-child{color:#fff;font-size:clamp(0.95rem,2.2vmin,1.3rem)}
+.rounds-arrow{color:#888;font-size:0.8rem;transition:transform .3s}
+.rounds-row.open .rounds-arrow{transform:rotate(180deg)}
+.rounds-picker{
+    display:none;
+    flex-direction:column;
+    gap:clamp(10px,1.5vmin,15px);
+    margin-top:clamp(8px,1.5vmin,12px);
+    padding:clamp(10px,2vmin,15px);
+    background:#222;
+    border-radius:clamp(6px,1vmin,12px);
+}
+.rounds-row.open .rounds-picker{display:flex}
+.rounds-options{
+    display:flex;
+    gap:clamp(6px,1vmin,12px);
+    flex-wrap:wrap;
+    justify-content:center;
+}
+.rounds-option{
+    width:clamp(40px,7vmin,60px);
+    height:clamp(40px,7vmin,60px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:clamp(1.1rem,2.5vmin,1.6rem);
+    font-weight:bold;
+    color:#fff;
+    background:#1a1a1a;
+    border:2px solid transparent;
+    border-radius:clamp(8px,1vmin,12px);
+    cursor:pointer;
+    transition:all .2s;
+}
+.rounds-option:hover{border-color:#666;background:#252525}
+.rounds-option.selected{border-color:#4CAF50;background:#1a2a1a}
+.rounds-option.custom{font-size:clamp(1.5rem,3vmin,2rem);color:#888}
+.rounds-custom{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:clamp(8px,1.5vmin,12px);
+    padding-top:clamp(10px,1.5vmin,15px);
+    border-top:1px solid #333;
+}
+.rounds-custom label{font-size:clamp(0.9rem,2vmin,1.1rem);color:#888}
+.rounds-custom input{
+    width:clamp(70px,12vmin,100px);
+    padding:clamp(8px,1.5vmin,12px);
+    font-size:clamp(1rem,2.2vmin,1.3rem);
+    border-radius:clamp(5px,0.8vmin,10px);
+    border:2px solid #4CAF50;
+    background:#1a2a1a;
+    color:#fff;
+    text-align:center;
+}
+
+/* Generic picker */
+.picker-row{flex-direction:column;align-items:stretch;padding:0;background:transparent}
+.picker-selector{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:clamp(8px,1.5vmin,15px);
+    background:#2a2a2a;
+    border-radius:clamp(6px,1vmin,12px);
+    cursor:pointer;
+    transition:all .2s;
+}
+.picker-selector:hover{background:#333}
+.picker-selector label{font-size:clamp(1rem,2.5vmin,1.4rem);color:#ccc;pointer-events:none}
+.picker-current{display:flex;align-items:center;gap:10px}
+.picker-current span:first-child{color:#fff;font-size:clamp(0.95rem,2.2vmin,1.3rem)}
+.picker-arrow{color:#888;font-size:0.8rem;transition:transform .3s}
+.picker-row.open .picker-arrow{transform:rotate(180deg)}
+.picker-panel{
+    display:none;
+    flex-direction:column;
+    gap:clamp(10px,1.5vmin,15px);
+    margin-top:clamp(8px,1.5vmin,12px);
+    padding:clamp(10px,2vmin,15px);
+    background:#222;
+    border-radius:clamp(6px,1vmin,12px);
+}
+.picker-row.open .picker-panel{display:flex}
+.picker-options{
+    display:flex;
+    gap:clamp(6px,1vmin,12px);
+    flex-wrap:wrap;
+    justify-content:center;
+}
+.picker-option{
+    min-width:clamp(40px,7vmin,60px);
+    height:clamp(40px,7vmin,60px);
+    padding:0 clamp(10px,1.5vmin,15px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:clamp(1rem,2.2vmin,1.4rem);
+    font-weight:bold;
+    color:#fff;
+    background:#1a1a1a;
+    border:2px solid transparent;
+    border-radius:clamp(8px,1vmin,12px);
+    cursor:pointer;
+    transition:all .2s;
+}
+.picker-option:hover{border-color:#666;background:#252525}
+.picker-option.selected{border-color:#4CAF50;background:#1a2a1a}
+.starter-options .picker-option{min-width:auto;padding:0 clamp(15px,2vmin,25px)}
+.picker-info{
+    text-align:center;
+    font-size:clamp(0.9rem,2vmin,1.1rem);
+    color:#888;
+    padding-top:clamp(8px,1.5vmin,12px);
+    border-top:1px solid #333;
+}
+.picker-info span{color:#4CAF50;font-weight:bold}
 .button-group{display:flex;gap:clamp(10px,2vmin,20px);margin-top:2vh;flex-wrap:wrap}
 
 button{padding:clamp(10px,2vh,20px) clamp(20px,3vw,40px);font-size:clamp(1rem,2.5vmin,1.5rem);border:none;border-radius:clamp(8px,1vmin,15px);font-weight:bold;cursor:pointer;transition:transform .2s}
@@ -248,10 +541,88 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 .btn-key{background:#FF9800;color:#fff}
 .btn-reset{background:#e74c3c;color:#fff}
 
-#endText{font-size:clamp(2rem,6vmin,5rem);animation:pop .6s ease;margin-bottom:3vh}
-@keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
-.confetti{position:fixed;top:-10px;width:clamp(8px,1.5vmin,15px);height:clamp(8px,1.5vmin,15px);animation:fall 3s linear forwards;pointer-events:none}
-@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+#endText{font-size:clamp(2rem,6vmin,5rem);margin-bottom:3vh}
+.confetti{position:fixed;top:-20px;pointer-events:none;z-index:9999}
+
+/* END OVERLAY */
+.end-container{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:clamp(15px,3vmin,30px);
+    padding:clamp(20px,4vmin,50px);
+    max-width:min(600px,90vw);
+}
+.end-result{
+    font-size:clamp(1.2rem,4vmin,2.5rem);
+    font-weight:bold;
+    text-align:center;
+    padding:clamp(10px,2vmin,20px) clamp(20px,4vmin,40px);
+    border-radius:clamp(10px,1.5vmin,20px);
+    background:rgba(255,255,255,0.1);
+}
+.end-result.win-red{color:#e74c3c;border:2px solid #e74c3c}
+.end-result.win-blue{color:#3498db;border:2px solid #3498db}
+.end-result.assassin{color:#aaa;border:2px solid #1a1a1a;background:rgba(0,0,0,0.3)}
+.end-result.match-won{
+    font-size:clamp(1.5rem,5vmin,3rem);
+    background:linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,215,0,0.05));
+    border:2px solid gold;
+    color:gold;
+}
+.end-scores{
+    display:flex;
+    align-items:center;
+    gap:clamp(15px,3vmin,40px);
+    margin:clamp(10px,2vmin,20px) 0;
+}
+.end-team{
+    display:flex;
+    align-items:center;
+    gap:clamp(8px,1.5vmin,15px);
+    padding:clamp(10px,2vmin,20px) clamp(15px,3vmin,30px);
+    border-radius:clamp(10px,1.5vmin,20px);
+    background:rgba(0,0,0,0.3);
+}
+.end-team.red{border:2px solid #e74c3c}
+.end-team.blue{border:2px solid #3498db}
+.end-emoji{font-size:clamp(1.5rem,4vmin,3rem)}
+.end-name{font-size:clamp(0.9rem,2vmin,1.3rem);font-weight:bold}
+.end-team.red .end-name{color:#e74c3c}
+.end-team.blue .end-name{color:#3498db}
+.end-score{
+    font-size:clamp(2rem,6vmin,4rem);
+    font-weight:bold;
+    min-width:clamp(50px,8vmin,80px);
+    text-align:center;
+    padding:clamp(5px,1vmin,10px) clamp(10px,2vmin,20px);
+    border-radius:clamp(8px,1vmin,15px);
+}
+.end-team.red .end-score{background:#e74c3c}
+.end-team.blue .end-score{background:#3498db}
+.end-vs{
+    font-size:clamp(1.2rem,3vmin,2rem);
+    font-weight:bold;
+    color:#666;
+}
+.end-target{
+    font-size:clamp(0.9rem,2vmin,1.2rem);
+    color:#888;
+}
+.btn-next{
+    font-size:clamp(1.1rem,3vmin,1.8rem)!important;
+    padding:clamp(12px,2.5vmin,25px) clamp(30px,6vmin,60px)!important;
+    margin-top:clamp(10px,2vmin,20px);
+}
+.btn-menu{
+    margin-top:clamp(5px,1vmin,10px);
+}
+
+@media(max-width:500px){
+.end-scores{flex-direction:column;gap:10px}
+.end-team{width:100%;justify-content:space-between}
+.end-vs{display:none}
+}
 
 /* MAŁE EKRANY (telefony) */
 @media(max-width:600px){
@@ -299,20 +670,20 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 
 <div class="overlay" id="homeScreen" style="display:flex">
 <div class="home-container">
-<h1 class="home-title">🎯 TAJNIACY</h1>
+<h1 class="home-title">TAJNIACY</h1>
 <p class="home-subtitle">Gra towarzyska</p>
 <div class="mode-selection">
 <div class="mode-card classic" onclick="selectMode('classic')">
 <div class="mode-icon">🎲</div>
 <div class="mode-title">KLASYCZNA</div>
 <div class="mode-description">Szybki start z tradycyjnymi zasadami</div>
-<ul class="mode-features"><li>✓ Standardowa plansza 5x5</li><li>✓ 1 zabójca, 7 neutralnych</li><li>✓ 8/9 agentów</li></ul>
+<ul class="mode-features"><li>Standardowa plansza 5x5</li><li>1 zabójca, 7 neutralnych</li><li>8/9 agentów</li></ul>
 </div>
 <div class="mode-card crazy" onclick="selectMode('crazy')">
 <div class="mode-icon">🎪</div>
 <div class="mode-title">SZALONA</div>
 <div class="mode-description">Więcej zabójców, więcej emocji!</div>
-<ul class="mode-features"><li>⚡ Od 1 do 7 zabójców</li><li>⚡ Mniej neutralnych kart</li><li>⚡ Wybierz kto zaczyna</li></ul>
+<ul class="mode-features"><li>Od 1 do 7 zabójców</li><li>Mniej neutralnych kart</li><li>Wybierz kto zaczyna</li></ul>
 </div>
 </div>
 </div>
@@ -320,62 +691,257 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 
 <div class="overlay" id="classicSettings">
 <div class="settings-container">
-<h2 class="settings-title">🎮 Tryb Klasyczny</h2>
+<h2 class="settings-title">Tryb Klasyczny</h2>
 <div class="team-setup">
 <div class="team-card red">
-<h3>🔴 Drużyna Czerwona</h3>
+<h3>Drużyna Czerwona</h3>
 <div class="avatar-picker" id="classicRedPicker"></div>
 <input id="classicRedName" value="Czerwoni" placeholder="Nazwa drużyny">
 </div>
 <div class="team-card blue">
-<h3>🔵 Drużyna Niebieska</h3>
+<h3>Drużyna Niebieska</h3>
 <div class="avatar-picker" id="classicBluePicker"></div>
 <input id="classicBlueName" value="Niebiescy" placeholder="Nazwa drużyny">
 </div>
 </div>
 <div class="game-settings">
-<div class="setting-row"><label>🎴 Talia kart:</label><select id="classicDeck"><option value="standard">Standardowa</option><option value="adult">Dla dorosłych (18+)</option></select></div>
-<div class="setting-row"><label>🏆 Rundy do wygranej:</label><input id="classicWinTarget" type="number" min="1" max="10" value="3"></div>
-<div class="setting-row"><label>🔊 Dźwięki:</label><select id="classicSound"><option value="true">Włączone</option><option value="false">Wyłączone</option></select></div>
+<div class="setting-row deck-row">
+<div class="deck-selector" id="classicDeckSelector" onclick="toggleDeckPicker('classic')">
+<label>Talia kart:</label>
+<div class="deck-current">
+<span id="classicDeckName">Standardowa</span>
+<span class="deck-arrow">▼</span>
+</div>
+</div>
+<div class="deck-picker" id="classicDeckPicker">
+<div class="deck-option selected" data-deck="standard">
+<div class="deck-info">
+<span class="deck-title">Standardowa</span>
+<span class="deck-desc">Klasyczne słowa dla całej rodziny. Bezpieczne hasła odpowiednie dla każdego wieku.</span>
+</div>
+</div>
+<div class="deck-option" data-deck="adult">
+<div class="deck-info">
+<span class="deck-title">Dla dorosłych (18+)</span>
+<span class="deck-desc">Hasła z motywami dla dorosłych: alkohol, imprezy, kasyno i więcej.</span>
+</div>
+</div>
+</div>
+<input type="hidden" id="classicDeck" value="standard">
+</div>
+<div class="setting-row style-row">
+<div class="style-selector" id="classicStyleSelector" onclick="toggleStylePicker('classic')">
+<label>Styl kart:</label>
+<div class="style-current">
+<span id="classicStyleName">Białe</span>
+<span class="style-arrow">▼</span>
+</div>
+</div>
+<div class="style-picker" id="classicStylePicker">
+<div class="style-option selected" data-style="white">
+<div class="style-preview deck-white">
+<div class="preview-card">Agent</div>
+<div class="preview-card revealed is-red">Red</div>
+<div class="preview-card revealed is-blue">Blue</div>
+</div>
+<span class="style-name">Białe</span>
+</div>
+<div class="style-option" data-style="classic">
+<div class="style-preview deck-classic">
+<div class="preview-card">Agent</div>
+<div class="preview-card revealed is-red">Red</div>
+<div class="preview-card revealed is-blue">Blue</div>
+</div>
+<span class="style-name">Ciemne</span>
+</div>
+<div class="style-option" data-style="night">
+<div class="style-preview deck-night">
+<div class="preview-card">Agent</div>
+<div class="preview-card revealed is-red">Red</div>
+<div class="preview-card revealed is-blue">Blue</div>
+</div>
+<span class="style-name">Noc</span>
+</div>
+</div>
+<input type="hidden" id="classicStyle" value="white">
+</div>
+<div class="setting-row rounds-row">
+<div class="rounds-selector" id="classicRoundsSelector" onclick="toggleRoundsPicker('classic')">
+<label>Rundy do wygranej:</label>
+<div class="rounds-current">
+<span id="classicRoundsName">3</span>
+<span class="rounds-arrow">▼</span>
+</div>
+</div>
+<div class="rounds-picker" id="classicRoundsPicker">
+<div class="rounds-options">
+<div class="rounds-option" data-rounds="1">1</div>
+<div class="rounds-option" data-rounds="2">2</div>
+<div class="rounds-option selected" data-rounds="3">3</div>
+<div class="rounds-option" data-rounds="4">4</div>
+<div class="rounds-option" data-rounds="5">5</div>
+<div class="rounds-option custom" data-rounds="custom">...</div>
+</div>
+<div class="rounds-custom" id="classicRoundsCustom" style="display:none">
+<label>Własna liczba:</label>
+<input type="number" id="classicRoundsInput" min="1" max="99" value="6" onchange="updateCustomRounds('classic')">
+</div>
+</div>
+<input type="hidden" id="classicWinTarget" value="3">
+</div>
 </div>
 <div class="button-group">
 <button class="btn-reset" onclick="backToHome()" style="flex:1">← Powrót</button>
-<button class="btn-new" onclick="startClassic()" style="flex:2;font-size:1.3rem">▶️ Start</button>
+<button class="btn-new" onclick="startClassic()" style="flex:2;font-size:1.3rem">Start</button>
 </div>
 </div>
 </div>
 
 <div class="overlay" id="crazySettings">
 <div class="settings-container">
-<h2 class="settings-title">🎪 Tryb Szalony</h2>
+<h2 class="settings-title">Tryb Szalony</h2>
 <div class="team-setup">
 <div class="team-card red">
-<h3>🔴 Drużyna Czerwona</h3>
+<h3>Drużyna Czerwona</h3>
 <div class="avatar-picker" id="crazyRedPicker"></div>
 <input id="crazyRedName" value="Czerwoni" placeholder="Nazwa drużyny">
 </div>
 <div class="team-card blue">
-<h3>🔵 Drużyna Niebieska</h3>
+<h3>Drużyna Niebieska</h3>
 <div class="avatar-picker" id="crazyBluePicker"></div>
 <input id="crazyBlueName" value="Niebiescy" placeholder="Nazwa drużyny">
 </div>
 </div>
 <div class="game-settings">
-<h3 style="color:#FF9800;margin-bottom:15px">⚙️ Zaawansowane Ustawienia</h3>
-<div class="setting-row"><label>🎴 Talia:</label><select id="crazyDeck"><option value="standard">Standardowa</option><option value="adult">Dla dorosłych</option></select></div>
-<div class="setting-row"><label>💀 Zabójcy:</label><input id="crazyAssassins" type="number" min="1" max="7" value="1" onchange="updateAssassins()"></div>
-<div class="setting-row"><label>😐 Neutralne:</label><input id="crazyNeutral" type="number" value="7" readonly style="background:#222"></div>
-<div class="setting-row"><label>🎯 Zaczyna:</label><select id="crazyStarter"><option value="random">🎲 Losowo</option><option value="red">🔴 Czerwoni</option><option value="blue">🔵 Niebiescy</option></select></div>
-<div class="setting-row"><label>🏆 Rundy:</label><input id="crazyWinTarget" type="number" min="1" max="10" value="3"></div>
-<div class="setting-row"><label>🔊 Dźwięki:</label><select id="crazySound"><option value="true">Włączone</option><option value="false">Wyłączone</option></select></div>
+<h3 style="color:#FF9800;margin-bottom:15px">Zaawansowane</h3>
+<div class="setting-row deck-row">
+<div class="deck-selector" id="crazyDeckSelector" onclick="toggleDeckPicker('crazy')">
+<label>Talia kart:</label>
+<div class="deck-current">
+<span id="crazyDeckName">Standardowa</span>
+<span class="deck-arrow">▼</span>
 </div>
-<div style="background:#1a1a1a;border-radius:10px;padding:15px;margin-bottom:20px">
-<p style="color:#4CAF50;margin:0;font-size:.95rem">✓ Więcej zabójców = mniej neutralnych kart</p>
-<p style="color:#888;font-size:.9rem;margin:5px 0 0" id="cardInfo">Zabójcy: 1 | Neutralne: 7</p>
+</div>
+<div class="deck-picker" id="crazyDeckPicker">
+<div class="deck-option selected" data-deck="standard">
+<div class="deck-info">
+<span class="deck-title">Standardowa</span>
+<span class="deck-desc">Klasyczne słowa dla całej rodziny. Bezpieczne hasła odpowiednie dla każdego wieku.</span>
+</div>
+</div>
+<div class="deck-option" data-deck="adult">
+<div class="deck-info">
+<span class="deck-title">Dla dorosłych (18+)</span>
+<span class="deck-desc">Hasła z motywami dla dorosłych: alkohol, imprezy, kasyno i więcej.</span>
+</div>
+</div>
+</div>
+<input type="hidden" id="crazyDeck" value="standard">
+</div>
+<div class="setting-row style-row">
+<div class="style-selector" id="crazyStyleSelector" onclick="toggleStylePicker('crazy')">
+<label>Styl kart:</label>
+<div class="style-current">
+<span id="crazyStyleName">Białe</span>
+<span class="style-arrow">▼</span>
+</div>
+</div>
+<div class="style-picker" id="crazyStylePicker">
+<div class="style-option selected" data-style="white">
+<div class="style-preview deck-white">
+<div class="preview-card">Agent</div>
+<div class="preview-card revealed is-red">Red</div>
+<div class="preview-card revealed is-blue">Blue</div>
+</div>
+<span class="style-name">Białe</span>
+</div>
+<div class="style-option" data-style="classic">
+<div class="style-preview deck-classic">
+<div class="preview-card">Agent</div>
+<div class="preview-card revealed is-red">Red</div>
+<div class="preview-card revealed is-blue">Blue</div>
+</div>
+<span class="style-name">Ciemne</span>
+</div>
+<div class="style-option" data-style="night">
+<div class="style-preview deck-night">
+<div class="preview-card">Agent</div>
+<div class="preview-card revealed is-red">Red</div>
+<div class="preview-card revealed is-blue">Blue</div>
+</div>
+<span class="style-name">Noc</span>
+</div>
+</div>
+<input type="hidden" id="crazyStyle" value="white">
+</div>
+<div class="setting-row picker-row">
+<div class="picker-selector" id="crazyAssassinsSelector" onclick="togglePicker('crazyAssassins')">
+<label>Zabójcy:</label>
+<div class="picker-current">
+<span id="crazyAssassinsName">1</span>
+<span class="picker-arrow">▼</span>
+</div>
+</div>
+<div class="picker-panel" id="crazyAssassinsPanel">
+<div class="picker-options">
+<div class="picker-option selected" data-value="1">1</div>
+<div class="picker-option" data-value="2">2</div>
+<div class="picker-option" data-value="3">3</div>
+<div class="picker-option" data-value="4">4</div>
+<div class="picker-option" data-value="5">5</div>
+<div class="picker-option" data-value="6">6</div>
+<div class="picker-option" data-value="7">7</div>
+</div>
+<div class="picker-info">Neutralne: <span id="crazyNeutralDisplay">7</span></div>
+</div>
+<input type="hidden" id="crazyAssassins" value="1">
+<input type="hidden" id="crazyNeutral" value="7">
+</div>
+<div class="setting-row picker-row">
+<div class="picker-selector" id="crazyStarterSelector" onclick="togglePicker('crazyStarter')">
+<label>Zaczyna:</label>
+<div class="picker-current">
+<span id="crazyStarterName">Losowo</span>
+<span class="picker-arrow">▼</span>
+</div>
+</div>
+<div class="picker-panel" id="crazyStarterPanel">
+<div class="picker-options starter-options">
+<div class="picker-option selected" data-value="random">🎲 Losowo</div>
+<div class="picker-option" data-value="red">🔴 Czerwoni</div>
+<div class="picker-option" data-value="blue">🔵 Niebiescy</div>
+</div>
+</div>
+<input type="hidden" id="crazyStarter" value="random">
+</div>
+<div class="setting-row rounds-row">
+<div class="rounds-selector" id="crazyRoundsSelector" onclick="toggleRoundsPicker('crazy')">
+<label>Rundy do wygranej:</label>
+<div class="rounds-current">
+<span id="crazyRoundsName">3</span>
+<span class="rounds-arrow">▼</span>
+</div>
+</div>
+<div class="rounds-picker" id="crazyRoundsPicker">
+<div class="rounds-options">
+<div class="rounds-option" data-rounds="1">1</div>
+<div class="rounds-option" data-rounds="2">2</div>
+<div class="rounds-option selected" data-rounds="3">3</div>
+<div class="rounds-option" data-rounds="4">4</div>
+<div class="rounds-option" data-rounds="5">5</div>
+<div class="rounds-option custom" data-rounds="custom">...</div>
+</div>
+<div class="rounds-custom" id="crazyRoundsCustom" style="display:none">
+<label>Własna liczba:</label>
+<input type="number" id="crazyRoundsInput" min="1" max="99" value="6" onchange="updateCustomRounds('crazy')">
+</div>
+</div>
+<input type="hidden" id="crazyWinTarget" value="3">
+</div>
 </div>
 <div class="button-group">
 <button class="btn-reset" onclick="backToHome()" style="flex:1">← Powrót</button>
-<button class="btn-new" onclick="startCrazy()" style="flex:2;font-size:1.3rem">▶️ Start</button>
+<button class="btn-new" onclick="startCrazy()" style="flex:2;font-size:1.3rem">Start</button>
 </div>
 </div>
 </div>
@@ -388,9 +954,9 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 <span class="team-score" id="scoreRedPoints">0</span>
 </div>
 <div class="top-controls">
-<button class="icon-btn" onclick="confirmNewRound()" title="Nowa runda">🔄</button>
-<button class="icon-btn" id="keyBtn" onclick="toggleKey()" title="Pokaż klucz">👁️</button>
-<button class="icon-btn settings-btn" onclick="showO('gameSettings')" title="Ustawienia">⚙️</button>
+<button class="icon-btn" id="newRoundBtn" title="Nowa runda (przytrzymaj)"><svg class="hold-progress" viewBox="0 0 100 100"><path d="M50 2 L85 2 Q98 2 98 15 L98 85 Q98 98 85 98 L15 98 Q2 98 2 85 L2 15 Q2 2 15 2 Z"/></svg><span>🔄</span></button>
+<button class="icon-btn" id="keyBtn" title="Pokaż klucz (przytrzymaj)"><svg class="hold-progress" viewBox="0 0 100 100"><path d="M50 2 L85 2 Q98 2 98 15 L98 85 Q98 98 85 98 L15 98 Q2 98 2 85 L2 15 Q2 2 15 2 Z"/></svg><span>👁️</span></button>
+<button class="icon-btn settings-btn" onclick="showO('gameSettings')" title="Ustawienia"><span>⚙️</span></button>
 </div>
 <div class="team-bar blue">
 <span class="team-score" id="scoreBluePoints">0</span>
@@ -410,58 +976,80 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 
 <div class="overlay" id="gameSettings">
 <div class="settings-container" style="max-width:400px">
-<h2 style="font-size:1.8rem;margin-bottom:20px">⚙️ Ustawienia</h2>
+<h2 style="font-size:1.8rem;margin-bottom:20px">Ustawienia</h2>
 <div style="display:flex;flex-direction:column;gap:15px">
-<button class="btn-new" onclick="hideO('gameSettings')" style="width:100%">▶️ Kontynuuj grę</button>
-<button class="btn-key" onclick="hideO('gameSettings');confirmNewRound()" style="width:100%">🔄 Nowa runda</button>
-<button class="btn-reset" onclick="hideO('gameSettings');confirmBack()" style="width:100%;padding:15px">🏠 Powrót do menu</button>
+<div class="setting-row" style="margin:0">
+<label>Dźwięki:</label>
+<select id="gameSoundToggle" onchange="cfg.sound=this.value==='true'">
+<option value="true">Włączone</option>
+<option value="false">Wyłączone</option>
+</select>
+</div>
+<button class="btn-new" onclick="hideO('gameSettings')" style="width:100%">Kontynuuj grę</button>
+<button class="btn-reset" onclick="hideO('gameSettings');confirmBack()" style="width:100%;padding:15px">Powrót do menu</button>
 </div>
 </div>
 </div>
 
 <div class="overlay" id="endOverlay">
-<div id="endText"></div>
-<button class="btn-new" id="nextRoundBtn" onclick="initRound()">➡️ Kolejna runda</button>
-<button class="btn-reset" onclick="confirmBack()">🏠 Menu</button>
+<div class="end-container">
+<div class="end-result" id="endResult"></div>
+<div class="end-scores">
+<div class="end-team red">
+<span class="end-emoji" id="endRedEmoji">🐉</span>
+<span class="end-name" id="endRedName">Czerwoni</span>
+<span class="end-score" id="endRedScore">0</span>
+</div>
+<div class="end-vs">VS</div>
+<div class="end-team blue">
+<span class="end-score" id="endBlueScore">0</span>
+<span class="end-name" id="endBlueName">Niebiescy</span>
+<span class="end-emoji" id="endBlueEmoji">🦈</span>
+</div>
+</div>
+<div class="end-target" id="endTarget">Pierwszy do 3 wygranych</div>
+<button class="btn-new btn-next" id="nextRoundBtn" onclick="hideO('endOverlay');initRound()">Kolejna runda →</button>
+<button class="btn-reset btn-menu" id="matchWonBtn" onclick="resetMatch()" style="display:none">Powrót do menu</button>
+</div>
 </div>
 
 <div class="overlay" id="assassinOverlay">
-<h2>💀 ZABÓJCA!</h2>
+<h2>ZABÓJCA!</h2>
 <p style="font-size:1.2rem;margin:20px 0">Która drużyna trafiła na zabójcę?</p>
-<button class="btn-new" style="background:#e74c3c;margin:10px" onclick="assassinHit('red')">🔴 <span id="assRedText">Czerwoni</span></button>
-<button class="btn-new" style="background:#3498db;margin:10px" onclick="assassinHit('blue')">🔵 <span id="assBlueText">Niebiescy</span></button>
+<button class="btn-new" style="background:#e74c3c;margin:10px" onclick="assassinHit('red')"><span id="assRedText">Czerwoni</span></button>
+<button class="btn-new" style="background:#3498db;margin:10px" onclick="assassinHit('blue')"><span id="assBlueText">Niebiescy</span></button>
 </div>
 
 <div class="overlay" id="keyWarning">
 <div class="settings-container" style="max-width:500px">
-<h2 style="font-size:2rem;margin-bottom:20px">👁️ Pokaż klucz?</h2>
-<p style="font-size:1.2rem;color:#f39c12;margin-bottom:30px">⚠️ Uwaga! To ujawni wszystkie karty.</p>
+<h2 style="font-size:2rem;margin-bottom:20px">Pokaż klucz?</h2>
+<p style="font-size:1.2rem;color:#f39c12;margin-bottom:30px">Uwaga! To ujawni wszystkie karty.</p>
 <p style="font-size:1rem;color:#ccc;margin-bottom:30px">Upewnij się, że tylko szpiedzy widzą ekran!</p>
 <div style="display:flex;gap:15px;justify-content:center">
-<button class="btn-reset" onclick="hideO('keyWarning')">❌ Anuluj</button>
-<button class="btn-key" onclick="showKey()">👁️ Pokaż</button>
+<button class="btn-reset" onclick="hideO('keyWarning')">Anuluj</button>
+<button class="btn-key" onclick="showKey()">Pokaż</button>
 </div>
 </div>
 </div>
 
 <div class="overlay" id="newRoundConfirm">
 <div class="settings-container" style="max-width:500px">
-<h2 style="font-size:2rem;margin-bottom:20px">🔄 Nowa runda?</h2>
-<p style="font-size:1.2rem;color:#f39c12;margin-bottom:30px">⚠️ Obecna rozgrywka zostanie zresetowana.</p>
+<h2 style="font-size:2rem;margin-bottom:20px">Nowa runda?</h2>
+<p style="font-size:1.2rem;color:#f39c12;margin-bottom:30px">Obecna rozgrywka zostanie zresetowana.</p>
 <div style="display:flex;gap:15px;justify-content:center">
-<button class="btn-reset" onclick="hideO('newRoundConfirm')">❌ Anuluj</button>
-<button class="btn-new" onclick="hideO('newRoundConfirm');initRound()">🔄 Nowa runda</button>
+<button class="btn-reset" onclick="hideO('newRoundConfirm')">Anuluj</button>
+<button class="btn-new" onclick="hideO('newRoundConfirm');initRound()">Nowa runda</button>
 </div>
 </div>
 </div>
 
 <div class="overlay" id="backConfirm">
 <div class="settings-container" style="max-width:500px">
-<h2 style="font-size:2rem;margin-bottom:20px">🏠 Powrót do menu?</h2>
-<p style="font-size:1.2rem;color:#f39c12;margin-bottom:30px">⚠️ Cały postęp meczu zostanie utracony!</p>
+<h2 style="font-size:2rem;margin-bottom:20px">Powrót do menu?</h2>
+<p style="font-size:1.2rem;color:#f39c12;margin-bottom:30px">Cały postęp meczu zostanie utracony!</p>
 <div style="display:flex;gap:15px;justify-content:center">
-<button class="btn-reset" onclick="hideO('backConfirm')">❌ Anuluj</button>
-<button class="btn-key" style="background:#e74c3c" onclick="resetMatch()">🏠 Menu</button>
+<button class="btn-reset" onclick="hideO('backConfirm')">Anuluj</button>
+<button class="btn-key" style="background:#e74c3c" onclick="resetMatch()">Menu</button>
 </div>
 </div>
 </div>
@@ -474,13 +1062,41 @@ const EMOJIS_BLUE=["🦈","🐺","❄️","🌊","🦋","🛸","⭐","🔮"];
 
 let wordList=WORDS,gameMode='classic',gameOver=false,isSpymaster=false,sideCards={red:[],blue:[]};
 const team={red:{name:"Czerwoni",emoji:"🐉",score:0},blue:{name:"Niebiescy",emoji:"🦈",score:0}};
-const cfg={winTarget:3,sound:true,assassins:1,starter:'random',startAgents:9,otherAgents:8,neutral:7,width:5,height:5};
+const cfg={winTarget:3,sound:true,assassins:1,starter:'random',startAgents:9,otherAgents:8,neutral:7,width:5,height:5,deckStyle:'white'};
 let remaining={red:0,blue:0};
 
 const $=id=>document.getElementById(id);
 const showO=id=>$(id).style.display='flex';
 const hideO=id=>$(id).style.display='none';
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+function toggleStylePicker(mode){
+    const row=$(mode+'StyleSelector').closest('.style-row');
+    row.classList.toggle('open');
+}
+
+function toggleDeckPicker(mode){
+    const row=$(mode+'DeckSelector').closest('.deck-row');
+    row.classList.toggle('open');
+}
+
+function toggleRoundsPicker(mode){
+    const row=$(mode+'RoundsSelector').closest('.rounds-row');
+    row.classList.toggle('open');
+}
+
+function togglePicker(id){
+    const row=$(id+'Selector').closest('.picker-row');
+    row.classList.toggle('open');
+}
+
+function updateCustomRounds(mode){
+    const input=$(mode+'RoundsInput');
+    const value=Math.max(1,Math.min(99,parseInt(input.value)||1));
+    input.value=value;
+    $(mode+'WinTarget').value=value;
+    $(mode+'RoundsName').textContent=value;
+}
 
 function buildPickers(){
     ['classic','crazy'].forEach(mode=>{
@@ -501,36 +1117,109 @@ function buildPickers(){
                 picker.appendChild(div);
             });
         });
+        
+        // Style picker
+        const stylePicker=$(mode+'StylePicker');
+        const styleNameEl=$(mode+'StyleName');
+        if(stylePicker){
+            stylePicker.querySelectorAll('.style-option').forEach(opt=>{
+                opt.onclick=()=>{
+                    stylePicker.querySelectorAll('.style-option').forEach(o=>o.classList.remove('selected'));
+                    opt.classList.add('selected');
+                    $(mode+'Style').value=opt.dataset.style;
+                    styleNameEl.textContent=opt.querySelector('.style-name').textContent;
+                    $(mode+'StyleSelector').closest('.style-row').classList.remove('open');
+                };
+            });
+        }
+        
+        // Deck picker
+        const deckPicker=$(mode+'DeckPicker');
+        const deckNameEl=$(mode+'DeckName');
+        if(deckPicker){
+            deckPicker.querySelectorAll('.deck-option').forEach(opt=>{
+                opt.onclick=()=>{
+                    deckPicker.querySelectorAll('.deck-option').forEach(o=>o.classList.remove('selected'));
+                    opt.classList.add('selected');
+                    $(mode+'Deck').value=opt.dataset.deck;
+                    deckNameEl.textContent=opt.querySelector('.deck-title').textContent;
+                };
+            });
+        }
+        
+        // Rounds picker
+        const roundsPicker=$(mode+'RoundsPicker');
+        const roundsNameEl=$(mode+'RoundsName');
+        const customEl=$(mode+'RoundsCustom');
+        if(roundsPicker){
+            roundsPicker.querySelectorAll('.rounds-option').forEach(opt=>{
+                opt.onclick=()=>{
+                    roundsPicker.querySelectorAll('.rounds-option').forEach(o=>o.classList.remove('selected'));
+                    opt.classList.add('selected');
+                    
+                    if(opt.dataset.rounds==='custom'){
+                        customEl.style.display='flex';
+                        updateCustomRounds(mode);
+                    }else{
+                        customEl.style.display='none';
+                        $(mode+'WinTarget').value=opt.dataset.rounds;
+                        roundsNameEl.textContent=opt.dataset.rounds;
+                    }
+                };
+            });
+        }
     });
+    
+    // Assassins picker (tylko crazy)
+    const assassinsPanel=$('crazyAssassinsPanel');
+    if(assassinsPanel){
+        assassinsPanel.querySelectorAll('.picker-option').forEach(opt=>{
+            opt.onclick=()=>{
+                assassinsPanel.querySelectorAll('.picker-option').forEach(o=>o.classList.remove('selected'));
+                opt.classList.add('selected');
+                const val=parseInt(opt.dataset.value);
+                $('crazyAssassins').value=val;
+                $('crazyAssassinsName').textContent=val;
+                const neutral=8-val;
+                $('crazyNeutral').value=neutral;
+                $('crazyNeutralDisplay').textContent=neutral;
+            };
+        });
+    }
+    
+    // Starter picker (tylko crazy)
+    const starterPanel=$('crazyStarterPanel');
+    if(starterPanel){
+        starterPanel.querySelectorAll('.picker-option').forEach(opt=>{
+            opt.onclick=()=>{
+                starterPanel.querySelectorAll('.picker-option').forEach(o=>o.classList.remove('selected'));
+                opt.classList.add('selected');
+                $('crazyStarter').value=opt.dataset.value;
+                $('crazyStarterName').textContent=opt.textContent.trim();
+            };
+        });
+    }
 }
 
 function selectMode(mode){
     gameMode=mode;
     hideO('homeScreen');
     showO(mode==='classic'?'classicSettings':'crazySettings');
-    if(mode==='crazy')updateAssassins();
 }
 
 function backToHome(){hideO('classicSettings');hideO('crazySettings');showO('homeScreen')}
-
-function updateAssassins(){
-    const assassins=Math.max(1,Math.min(7,+$('crazyAssassins').value||1));
-    const neutral=8-assassins;
-    $('crazyAssassins').value=assassins;
-    $('crazyNeutral').value=neutral;
-    $('cardInfo').textContent=`Zabójcy: ${assassins} | Neutralne: ${neutral}`;
-}
 
 function startClassic(){
     team.red.name=$('classicRedName').value||'Czerwoni';
     team.blue.name=$('classicBlueName').value||'Niebiescy';
     cfg.winTarget=Math.max(1,+$('classicWinTarget').value||3);
-    cfg.sound=$('classicSound').value==='true';
+    cfg.deckStyle=$('classicStyle').value;
     wordList=$('classicDeck').value==='adult'?ADULT:WORDS;
     cfg.assassins=1;cfg.starter='random';cfg.startAgents=9;cfg.otherAgents=8;cfg.neutral=7;cfg.width=5;cfg.height=5;
     team.red.score=team.blue.score=0;
     hideO('classicSettings');
     $('gameScreen').style.display='flex';
+    $('board').className='grid-container deck-'+cfg.deckStyle;
     document.body.classList.add('game-active');
     updateScore();initRound();
 }
@@ -539,6 +1228,7 @@ function startCrazy(){
     team.red.name=$('crazyRedName').value||'Czerwoni';
     team.blue.name=$('crazyBlueName').value||'Niebiescy';
     wordList=$('crazyDeck').value==='adult'?ADULT:WORDS;
+    cfg.deckStyle=$('crazyStyle').value;
     cfg.assassins=Math.max(1,Math.min(7,+$('crazyAssassins').value||1));
     cfg.starter=$('crazyStarter').value;
     cfg.startAgents=9;
@@ -547,10 +1237,10 @@ function startCrazy(){
     cfg.width=5;
     cfg.height=5;
     cfg.winTarget=Math.max(1,+$('crazyWinTarget').value||3);
-    cfg.sound=$('crazySound').value==='true';
     team.red.score=team.blue.score=0;
     hideO('crazySettings');
     $('gameScreen').style.display='flex';
+    $('board').className='grid-container deck-'+cfg.deckStyle;
     document.body.classList.add('game-active');
     updateScore();initRound();
 }
@@ -569,15 +1259,23 @@ function createSideCards(){
             const card=document.createElement('div');
             card.className='remaining-card';
             card.innerHTML=`<span class="card-emoji">${team[c].emoji}</span><span class="card-num">${i+1}</span>`;
+            card.style.opacity='0';
+            card.style.transform='scale(0)';
             panel.appendChild(card);
             sideCards[c].push(card);
         }
+        // Animacja pojawiania się żetonów
+        setTimeout(()=>animateTokensAppear(sideCards[c]),100);
     });
 }
 
 function updateSideCard(c){
     const unrevealed=sideCards[c].filter(e=>!e.classList.contains('revealed'));
-    if(unrevealed.length)unrevealed[unrevealed.length-1].classList.add('revealed');
+    if(unrevealed.length){
+        const token=unrevealed[unrevealed.length-1];
+        token.classList.add('revealed');
+        animateTokenReveal(token);
+    }
 }
 
 function genLayout(roles,w,h){
@@ -597,7 +1295,7 @@ function initRound(){
     board.innerHTML='';hideO('endOverlay');
     gameOver=false;isSpymaster=false;
     document.body.classList.remove('spymaster-mode');
-    $('keyBtn').textContent='👁️';
+    $('keyBtn').querySelector('span').textContent='👁️';
     $('keyBtn').classList.remove('active');
     
     const redStarts=cfg.starter==='random'?Math.random()<.5:cfg.starter==='red';
@@ -616,9 +1314,11 @@ function initRound(){
         const card=document.createElement('div');
         card.className=`card is-${roles[i]}`;
         card.textContent=word;
+        card.style.opacity='0';
         card.onclick=()=>{
             if(gameOver||isSpymaster||card.classList.contains('revealed'))return;
             card.classList.add('revealed');
+            animateCardReveal(card);
             playSound('click');
             if(roles[i]==='assassin'){
                 gameOver=true;
@@ -627,52 +1327,82 @@ function initRound(){
                 showO('assassinOverlay');
                 return;
             }
-            if(roles[i]==='red'){remaining.red--;updateSideCard('red');if(!remaining.red)endRound(`🔴 ${team.red.name} wygrywa rundę!`,'red')}
-            if(roles[i]==='blue'){remaining.blue--;updateSideCard('blue');if(!remaining.blue)endRound(`🔵 ${team.blue.name} wygrywa rundę!`,'blue')}
+            if(roles[i]==='red'){remaining.red--;updateSideCard('red');if(!remaining.red)endRound(null,'red')}
+            if(roles[i]==='blue'){remaining.blue--;updateSideCard('blue');if(!remaining.blue)endRound(null,'blue')}
         };
         board.appendChild(card);
     });
+    
+    // Animacja pojawiania się kart
+    setTimeout(()=>animateCardAppear(board.querySelectorAll('.card')),50);
 }
 
-function endRound(text,winner){
+function endRound(resultText,winner,isAssassin=false){
     gameOver=true;
-    $('endText').textContent=text;
-    showO('endOverlay');
+    
+    // Aktualizuj dane drużyn w overlay
+    $('endRedEmoji').textContent=team.red.emoji;
+    $('endRedName').textContent=team.red.name;
+    $('endBlueEmoji').textContent=team.blue.emoji;
+    $('endBlueName').textContent=team.blue.name;
+    
+    const resultEl=$('endResult');
+    resultEl.className='end-result';
+    
     if(winner){
         team[winner].score++;
         updateScore();
+        
+        // Animacja wyniku w górnym pasku
+        animateScoreUpdate($('score'+winner.charAt(0).toUpperCase()+winner.slice(1)+'Points'));
+        
+        $('endRedScore').textContent=team.red.score;
+        $('endBlueScore').textContent=team.blue.score;
+        $('endTarget').textContent=`Do ${cfg.winTarget} wygranych rund`;
+        
         if(team[winner].score>=cfg.winTarget){
+            // Wygrana meczu
             confetti(winner==='red'?'#e74c3c':'#3498db');
             playSound('win');
-            $('endText').textContent=`🏆 ${team[winner].emoji} ${team[winner].name} WYGRYWAJĄ MECZ! 🏆`;
+            resultEl.textContent=`${team[winner].emoji} ${team[winner].name} WYGRYWAJĄ MECZ!`;
+            resultEl.classList.add('match-won');
             $('nextRoundBtn').style.display='none';
+            $('matchWonBtn').style.display='inline-block';
         }else{
+            // Wygrana rundy
             playSound('win');
+            if(isAssassin){
+                resultEl.textContent=resultText;
+                resultEl.classList.add('assassin');
+            }else{
+                resultEl.textContent=`${team[winner].emoji} ${team[winner].name} wygrywają rundę!`;
+                resultEl.classList.add('win-'+winner);
+            }
             $('nextRoundBtn').style.display='inline-block';
+            $('matchWonBtn').style.display='none';
         }
-    }else{
-        playSound('assassin');
-        $('nextRoundBtn').style.display='inline-block';
     }
+    
+    showO('endOverlay');
 }
 
 function assassinHit(loser){
     hideO('assassinOverlay');
     const winner=loser==='red'?'blue':'red';
-    endRound(`💀 ZABÓJCA! ${team[loser].emoji} ${team[loser].name} przegrywają!`,winner);
+    endRound(`${team[loser].emoji} ${team[loser].name} trafili na zabójcę!`,winner,true);
 }
 
 function toggleKey(){
     if(gameOver)return;
     if(!isSpymaster)showO('keyWarning');
-    else{isSpymaster=false;document.body.classList.remove('spymaster-mode');$('keyBtn').textContent='👁️';$('keyBtn').classList.remove('active')}
+    else{isSpymaster=false;document.body.classList.remove('spymaster-mode');$('keyBtn').querySelector('span').textContent='👁️';$('keyBtn').classList.remove('active')}
 }
 
 function showKey(){
     hideO('keyWarning');
     isSpymaster=true;
     document.body.classList.add('spymaster-mode');
-    $('keyBtn').textContent='👁️';
+    $('keyBtn').querySelector('span').textContent='👁️';
     $('keyBtn').classList.add('active');
 }
 
@@ -697,14 +1427,130 @@ function resetMatch(){
 }
 
 function confetti(color){
-    for(let i=0;i<100;i++){
+    const colors = color === '#e74c3c' ? ['#e74c3c','#c0392b','#ff6b6b','#ee5a24'] : ['#3498db','#2980b9','#74b9ff','#0984e3'];
+    for(let i=0;i<80;i++){
         const c=document.createElement('div');
         c.className='confetti';
         c.style.left=Math.random()*100+'vw';
-        c.style.background=color;
-        c.style.animationDuration=2+Math.random()*2+'s';
+        c.style.background=colors[Math.floor(Math.random()*colors.length)];
+        c.style.width=(8+Math.random()*10)+'px';
+        c.style.height=(8+Math.random()*10)+'px';
+        c.style.borderRadius=Math.random()>0.5?'50%':'0';
         document.body.appendChild(c);
-        setTimeout(()=>c.remove(),4000);
+        
+        anime({
+            targets:c,
+            translateY:[0,window.innerHeight+100],
+            translateX:()=>anime.random(-100,100),
+            rotate:()=>anime.random(0,720),
+            scale:[1,anime.random(0.5,1.5)],
+            opacity:[1,0],
+            duration:anime.random(2000,4000),
+            easing:'easeOutQuad',
+            complete:()=>c.remove()
+        });
+    }
+}
+
+// Animacje Anime.js
+function animateCardReveal(card){
+    anime({
+        targets:card,
+        scale:[1,1.1,1],
+        rotateY:[0,10,0],
+        duration:400,
+        easing:'easeOutBack'
+    });
+}
+
+function animateCardAppear(cards){
+    anime({
+        targets:cards,
+        scale:[0.8,1],
+        opacity:[0,1],
+        delay:anime.stagger(30,{grid:[5,5],from:'center'}),
+        duration:400,
+        easing:'easeOutBack'
+    });
+}
+
+function animateTokenReveal(token){
+    anime({
+        targets:token,
+        scale:[1,0.85],
+        opacity:[1,0.2],
+        duration:300,
+        easing:'easeOutQuad'
+    });
+}
+
+function animateTokensAppear(tokens){
+    anime({
+        targets:tokens,
+        scale:[0,1],
+        opacity:[0,1],
+        delay:anime.stagger(50),
+        duration:300,
+        easing:'easeOutBack'
+    });
+}
+
+function animateOverlayShow(overlay){
+    const container=overlay.querySelector('.settings-container, .home-container, #endText');
+    anime.set(overlay,{display:'flex'});
+    anime({
+        targets:overlay,
+        opacity:[0,1],
+        duration:200,
+        easing:'easeOutQuad'
+    });
+    if(container){
+        anime({
+            targets:container,
+            scale:[0.9,1],
+            opacity:[0,1],
+            duration:300,
+            easing:'easeOutBack'
+        });
+    }
+}
+
+function animateOverlayHide(overlay,callback){
+    anime({
+        targets:overlay,
+        opacity:[1,0],
+        duration:200,
+        easing:'easeInQuad',
+        complete:()=>{
+            overlay.style.display='none';
+            if(callback)callback();
+        }
+    });
+}
+
+function animateScoreUpdate(el){
+    anime({
+        targets:el,
+        scale:[1,1.3,1],
+        duration:400,
+        easing:'easeOutBack'
+    });
+}
+
+function animateButtonHover(btn,enter){
+    anime.remove(btn);
+    anime({
+        targets:btn,
+        scale:enter?1.1:1,
+        duration:200,
+        easing:'easeOutQuad'
+    });
+}
+
+function animateHoldProgress(btn,progress){
+    const circle=btn.querySelector('.hold-progress');
+    if(circle){
+        circle.style.background=`conic-gradient(#4CAF50 ${progress*360}deg, transparent ${progress*360}deg)`;
     }
 }
 
@@ -723,6 +1569,114 @@ function playSound(type){
 
 buildPickers();
 showO('homeScreen');
+
+// Obsługa przytrzymania przycisków z animacją
+let holdTimer=null;
+let holdAnimation=null;
+const HOLD_TIME=500;
+
+function setupHoldButton(btnId,action){
+    const btn=$(btnId);
+    if(!btn)return;
+    
+    const path=btn.querySelector('svg.hold-progress path');
+    const perimeter=384; // przybliżony obwód ścieżki
+    if(path){
+        path.style.strokeDasharray=perimeter;
+        path.style.strokeDashoffset=perimeter;
+    }
+    
+    const startHold=(e)=>{
+        e.preventDefault();
+        btn.classList.add('holding');
+        
+        if(path){
+            path.style.strokeDashoffset=perimeter;
+            holdAnimation=anime({
+                targets:path,
+                strokeDashoffset:[perimeter,0],
+                duration:HOLD_TIME,
+                easing:'linear'
+            });
+        }
+        
+        holdTimer=setTimeout(()=>{
+            btn.classList.remove('holding');
+            // Flash effect po zakończeniu
+            anime({
+                targets:btn,
+                scale:[1,1.15,1],
+                duration:200,
+                easing:'easeOutBack'
+            });
+            if(path){
+                path.style.strokeDashoffset=perimeter;
+            }
+            action();
+        },HOLD_TIME);
+    };
+    
+    const cancelHold=()=>{
+        if(holdTimer){
+            clearTimeout(holdTimer);
+            holdTimer=null;
+        }
+        if(holdAnimation){
+            holdAnimation.pause();
+        }
+        btn.classList.remove('holding');
+        if(path){
+            anime({
+                targets:path,
+                strokeDashoffset:perimeter,
+                duration:150,
+                easing:'easeOutQuad'
+            });
+        }
+    };
+    
+    btn.addEventListener('mousedown',startHold);
+    btn.addEventListener('touchstart',startHold,{passive:false});
+    btn.addEventListener('mouseup',cancelHold);
+    btn.addEventListener('mouseleave',cancelHold);
+    btn.addEventListener('touchend',cancelHold);
+    btn.addEventListener('touchcancel',cancelHold);
+}
+
+setupHoldButton('newRoundBtn',()=>{
+    if(!gameOver&&$('board').children.length)showO('newRoundConfirm');
+    else initRound();
+});
+
+setupHoldButton('keyBtn',()=>{
+    if(gameOver)return;
+    if(!isSpymaster)showO('keyWarning');
+});
+
+// Natychmiastowe wyjście z trybu klucza
+$('keyBtn').addEventListener('click',()=>{
+    if(isSpymaster)toggleKey();
+});
+
+// Animowane przejścia overlay
+const origShowO=showO;
+showO=id=>{
+    const overlay=$(id);
+    if(overlay){
+        animateOverlayShow(overlay);
+    }
+    if(id==='gameSettings'){
+        $('gameSoundToggle').value=cfg.sound?'true':'false';
+    }
+};
+
+const origHideO=hideO;
+hideO=id=>{
+    const overlay=$(id);
+    if(overlay && overlay.style.display!=='none'){
+        animateOverlayHide(overlay);
+    }
+};
 </script>
 </body>
 </html>
