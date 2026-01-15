@@ -7,84 +7,162 @@
 <style>
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
-body{font-family:'Segoe UI',Tahoma,sans-serif;background:#1a1a1a;color:#fff;text-align:center;padding:1vh 1vw;display:flex;flex-direction:column}
-body.game-active{height:100vh;height:100dvh;overflow:hidden;padding:0.5vh 0.5vw}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:#1a1a1a;color:#fff;text-align:center;padding:0;display:flex;flex-direction:column}
+body.game-active{height:100vh;height:100dvh;overflow:hidden}
 
-/* GAME SCREEN */
-#gameScreen{display:none;flex-direction:column;height:100%;overflow:hidden;padding:0.5vh 1vw}
-.game-header{flex-shrink:0;padding:0.5vh 0}
-.game-header h1{margin:0;font-size:clamp(1.5rem,4vh,4rem)}
-#gameModeLabel{font-size:clamp(0.8rem,2vh,1.5rem);color:#aaa;margin-top:0.3vh}
+/* GAME SCREEN - nowy layout */
+#gameScreen{display:none;flex-direction:column;height:100%;overflow:hidden}
 
-.main-container{display:flex;flex-grow:1;gap:1vw;margin:0 auto;width:100%;min-height:0;overflow:hidden;padding:0.5vh 0}
-.side-panel{display:flex;flex-direction:column;justify-content:center;gap:0.8vh;width:8vw;min-width:50px;max-width:120px;align-items:center;flex-shrink:0}
-.side-counter{font-size:clamp(1.5rem,4vh,4rem);font-weight:bold;margin-bottom:0.5vh}
-.side-counter.red{color:#e74c3c}.side-counter.blue{color:#3498db}
-.side-card{width:clamp(40px,5vw,100px);height:clamp(30px,5vh,70px);border-radius:clamp(4px,0.5vw,10px);display:flex;align-items:center;justify-content:center;font-size:clamp(1rem,3vh,2.5rem);transition:all .3s}
-.side-card.red{background:#e74c3c}.side-card.blue{background:#3498db}
-.side-card.revealed{opacity:.2;transform:scale(.8)}
+.top-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:clamp(5px,1vh,15px) clamp(10px,2vw,30px);
+    background:linear-gradient(180deg,#252525,#1a1a1a);
+    flex-shrink:0;
+    gap:clamp(10px,2vw,30px);
+}
 
-.center-area{flex-grow:1;display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
+.team-bar{
+    display:flex;
+    align-items:center;
+    gap:clamp(8px,1.5vw,20px);
+    padding:clamp(8px,1.5vh,20px) clamp(12px,2vw,30px);
+    border-radius:clamp(8px,1vw,15px);
+    flex:1;
+    max-width:40%;
+}
+.team-bar.red{
+    background:linear-gradient(135deg,rgba(231,76,60,0.3),rgba(231,76,60,0.1));
+    border:2px solid #e74c3c;
+    justify-content:flex-start;
+}
+.team-bar.blue{
+    background:linear-gradient(135deg,rgba(52,152,219,0.1),rgba(52,152,219,0.3));
+    border:2px solid #3498db;
+    justify-content:flex-end;
+}
 
-.scoreboard{display:flex;justify-content:center;gap:clamp(15px,3vw,60px);margin:0 auto 0.5vh;font-weight:bold;flex-shrink:0}
-.score-team{background:linear-gradient(135deg,#2a2a2a,#1a1a1a);padding:clamp(8px,1.5vh,25px) clamp(15px,2vw,50px);border-radius:clamp(8px,1vw,20px);border:clamp(2px,0.3vw,5px) solid;display:flex;align-items:center;gap:clamp(8px,1vw,20px);justify-content:space-between}
-.score-team.red{border-color:#e74c3c}.score-team.blue{border-color:#3498db}
-.team-info{display:flex;align-items:center;gap:clamp(5px,0.8vw,15px)}
-.team-emoji{font-size:clamp(1.5rem,4vh,4rem)}
-.team-name{font-size:clamp(1rem,2.5vh,2.5rem)}
-.team-score{font-size:clamp(1.5rem,4vh,4rem);padding:clamp(3px,0.5vh,10px) clamp(10px,1.5vw,30px);border-radius:clamp(6px,0.8vw,15px);min-width:clamp(40px,4vw,80px);text-align:center}
-.score-team.red .team-name{color:#e74c3c}.score-team.blue .team-name{color:#3498db}
-.score-team.red .team-score{background:#e74c3c;color:#fff}.score-team.blue .team-score{background:#3498db;color:#fff}
+.team-bar .team-emoji{font-size:clamp(1.5rem,4vmin,3.5rem)}
+.team-bar .team-name{font-size:clamp(1rem,2.5vmin,2rem);font-weight:bold}
+.team-bar.red .team-name{color:#e74c3c}
+.team-bar.blue .team-name{color:#3498db}
+.team-bar .team-score{
+    font-size:clamp(1.5rem,4vmin,3.5rem);
+    font-weight:bold;
+    min-width:clamp(40px,5vmin,80px);
+    text-align:center;
+    padding:clamp(3px,0.5vmin,8px) clamp(10px,1.5vmin,20px);
+    border-radius:clamp(6px,0.8vmin,12px);
+}
+.team-bar.red .team-score{background:#e74c3c}
+.team-bar.blue .team-score{background:#3498db}
+.team-bar .team-remaining{
+    font-size:clamp(1.2rem,3vmin,2.5rem);
+    opacity:0.7;
+    min-width:clamp(30px,4vmin,60px);
+    text-align:center;
+}
+.team-bar.red .team-remaining{color:#e74c3c}
+.team-bar.blue .team-remaining{color:#3498db}
 
-.controls{margin-bottom:0.5vh;flex-shrink:0}
-button{padding:clamp(8px,1.5vh,20px) clamp(15px,2vw,40px);font-size:clamp(0.9rem,2.2vh,1.8rem);border:none;border-radius:clamp(6px,0.8vw,12px);margin:clamp(2px,0.3vw,8px);font-weight:bold;cursor:pointer;transition:transform .2s}
-button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
-.btn-new{background:#4CAF50;color:#fff}.btn-key{background:#FF9800;color:#fff}
-.btn-reset{background:#e74c3c;color:#fff;padding:clamp(6px,1vh,15px) clamp(10px,1.5vw,30px);font-size:clamp(0.8rem,1.8vh,1.4rem)}
+.top-controls{
+    display:flex;
+    gap:clamp(5px,1vw,15px);
+    flex-shrink:0;
+}
 
-#status{font-size:clamp(1rem,2.8vh,2.5rem);margin-bottom:0.5vh;font-weight:bold;flex-shrink:0}
-#status .team-red{color:#e74c3c}#status .team-blue{color:#3498db}
+.icon-btn{
+    width:clamp(40px,6vmin,70px);
+    height:clamp(40px,6vmin,70px);
+    border-radius:clamp(8px,1vmin,15px);
+    border:none;
+    background:#333;
+    color:#fff;
+    font-size:clamp(1.2rem,3vmin,2.5rem);
+    cursor:pointer;
+    transition:all .2s;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+}
+.icon-btn:hover{background:#444;transform:scale(1.1)}
+.icon-btn:active{transform:scale(0.95)}
+.icon-btn.settings-btn{background:#555}
+.icon-btn.active{background:#FF9800;box-shadow:0 0 15px rgba(255,152,0,0.5)}
 
-/* GAME BOARD - kluczowe dla TV */
+.board-container{
+    flex-grow:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:clamp(5px,1vmin,15px);
+    min-height:0;
+    overflow:hidden;
+}
+
 .grid-container{
     display:grid;
     grid-template-columns:repeat(5,1fr);
     grid-template-rows:repeat(5,1fr);
-    gap:clamp(4px,0.8vmin,15px);
-    flex-grow:1;
+    gap:clamp(4px,0.8vmin,12px);
     width:100%;
     height:100%;
-    max-height:calc(100vh - 25vh);
-    max-width:calc((100vh - 25vh) * 1.1);
-    margin:auto;
 }
+
 .card{
-    background:linear-gradient(145deg,#f0f0f0,#d0d0d0);
+    background:linear-gradient(145deg,#f5f5f5,#d5d5d5);
     color:#222;
-    border-radius:clamp(6px,1vmin,15px);
+    border-radius:clamp(8px,1.5vmin,20px);
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:clamp(12px,3.5vmin,42px);
+    font-size:clamp(14px,4vmin,52px);
     font-weight:bold;
     text-transform:uppercase;
     cursor:pointer;
     user-select:none;
-    padding:clamp(4px,1vmin,15px);
+    padding:clamp(5px,1vmin,15px);
     transition:transform .15s,box-shadow .15s;
     text-align:center;
     word-break:break-word;
     overflow:hidden;
-    box-shadow:0 clamp(2px,0.4vmin,6px) clamp(4px,0.8vmin,12px) rgba(0,0,0,0.3);
+    box-shadow:0 clamp(3px,0.6vmin,8px) clamp(6px,1.2vmin,16px) rgba(0,0,0,0.3);
     text-shadow:1px 1px 0 rgba(255,255,255,0.5);
     letter-spacing:0.5px;
 }
-.card:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 clamp(4px,0.6vmin,10px) clamp(8px,1.2vmin,20px) rgba(0,0,0,0.4)}
-.is-red{--true:#e74c3c;--text:#fff}.is-blue{--true:#3498db;--text:#fff}.is-neutral{--true:#7f8c8d;--text:#fff}.is-assassin{--true:#1a1a1a;--text:#fff}
-.card.revealed{background:var(--true);color:var(--text);cursor:default;box-shadow:inset 0 0 clamp(10px,2vmin,30px) rgba(0,0,0,0.3);text-shadow:1px 1px 2px rgba(0,0,0,0.5)}
-.card.revealed:hover{transform:none;box-shadow:inset 0 0 clamp(10px,2vmin,30px) rgba(0,0,0,0.3)}
-body.spymaster-mode .card{border:clamp(3px,0.6vmin,8px) solid var(--true);box-shadow:0 0 clamp(10px,2vmin,25px) var(--true)}
-body.spymaster-mode .card.revealed{border:none;box-shadow:inset 0 0 clamp(10px,2vmin,30px) rgba(0,0,0,0.3)}
+.card:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 clamp(6px,1vmin,14px) clamp(12px,2vmin,28px) rgba(0,0,0,0.4)}
+
+.is-red{--true:#e74c3c;--text:#fff}
+.is-blue{--true:#3498db;--text:#fff}
+.is-neutral{--true:#7f8c8d;--text:#fff}
+.is-assassin{--true:#1a1a1a;--text:#fff}
+
+.card.revealed{
+    background:var(--true);
+    color:var(--text);
+    cursor:default;
+    box-shadow:inset 0 0 clamp(15px,3vmin,40px) rgba(0,0,0,0.3);
+    text-shadow:2px 2px 4px rgba(0,0,0,0.5);
+}
+.card.revealed:hover{transform:none;box-shadow:inset 0 0 clamp(15px,3vmin,40px) rgba(0,0,0,0.3)}
+
+body.spymaster-mode .card{
+    border:clamp(4px,0.8vmin,10px) solid var(--true);
+    box-shadow:0 0 clamp(15px,3vmin,35px) var(--true);
+}
+body.spymaster-mode .card.revealed{border:none;box-shadow:inset 0 0 clamp(15px,3vmin,40px) rgba(0,0,0,0.3)}
+
+#status{
+    font-size:clamp(0.9rem,2.5vmin,2rem);
+    padding:clamp(5px,1vh,15px);
+    font-weight:bold;
+    flex-shrink:0;
+    background:#252525;
+}
+#status .team-red{color:#e74c3c}
+#status .team-blue{color:#3498db}
 
 /* OVERLAYS */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:999;padding:2vh 2vw;overflow-y:auto}
@@ -122,6 +200,12 @@ body.spymaster-mode .card.revealed{border:none;box-shadow:inset 0 0 clamp(10px,2
 .setting-row input,.setting-row select{padding:clamp(8px,1.5vmin,12px);font-size:clamp(0.95rem,2.2vmin,1.3rem);border-radius:clamp(5px,0.8vmin,10px);border:none;background:#333;color:#fff;width:clamp(100px,15vmin,150px);text-align:center}
 .button-group{display:flex;gap:clamp(10px,2vmin,20px);margin-top:2vh;flex-wrap:wrap}
 
+button{padding:clamp(10px,2vh,20px) clamp(20px,3vw,40px);font-size:clamp(1rem,2.5vmin,1.5rem);border:none;border-radius:clamp(8px,1vmin,15px);font-weight:bold;cursor:pointer;transition:transform .2s}
+button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
+.btn-new{background:#4CAF50;color:#fff}
+.btn-key{background:#FF9800;color:#fff}
+.btn-reset{background:#e74c3c;color:#fff}
+
 #endText{font-size:clamp(2rem,6vmin,5rem);animation:pop .6s ease;margin-bottom:3vh}
 @keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
 .confetti{position:fixed;top:-10px;width:clamp(8px,1.5vmin,15px);height:clamp(8px,1.5vmin,15px);animation:fall 3s linear forwards;pointer-events:none}
@@ -129,35 +213,26 @@ body.spymaster-mode .card.revealed{border:none;box-shadow:inset 0 0 clamp(10px,2
 
 /* MAŁE EKRANY (telefony) */
 @media(max-width:600px){
-.scoreboard{flex-direction:column;gap:1vh;align-items:center}
-.score-team{width:100%;max-width:300px;justify-content:space-between}
-.side-panel{width:12vw;min-width:35px}
-.side-card{width:100%;max-width:45px;height:auto;aspect-ratio:1.3/1}
-.grid-container{max-height:calc(100vh - 35vh)}
+.top-bar{flex-wrap:wrap;padding:5px 10px;gap:5px}
+.team-bar{max-width:100%;flex:1 1 45%;padding:8px 10px;gap:5px}
+.team-bar .team-name{display:none}
+.top-controls{order:-1;width:100%;justify-content:center;margin-bottom:5px}
+.icon-btn{width:45px;height:45px}
+#status{font-size:0.85rem;padding:5px}
 }
 
-/* NISKIE EKRANY */
+/* BARDZO MAŁE EKRANY */
 @media(max-height:500px){
-.game-header{padding:0}
-.game-header h1{font-size:1.2rem}
-#gameModeLabel{display:none}
-.scoreboard{margin-bottom:2px}
-.score-team{padding:5px 10px}
-.controls{margin-bottom:2px}
-.controls button{padding:5px 10px;margin:1px}
-#status{font-size:0.9rem;margin-bottom:2px}
-.grid-container{max-height:calc(100vh - 20vh)}
+.top-bar{padding:3px 10px}
+.team-bar{padding:5px 8px}
+#status{padding:3px;font-size:0.8rem}
+.board-container{padding:3px}
 }
 
-/* DUŻE EKRANY (TV, projektory) */
-@media(min-width:1200px) and (min-height:800px){
-.card{font-size:clamp(18px,3.2vmin,48px);border-radius:clamp(10px,1.2vmin,20px)}
-.side-card{border-radius:clamp(8px,1vmin,15px)}
-}
-@media(min-width:1800px){
-.game-header h1{font-size:clamp(2.5rem,4vh,5rem)}
-#gameModeLabel{font-size:clamp(1.2rem,2vh,2rem)}
-#status{font-size:clamp(1.5rem,3vh,3rem)}
+/* DUŻE EKRANY (TV) */
+@media(min-width:1400px) and (min-height:900px){
+.card{font-size:clamp(24px,4.5vmin,60px)}
+.icon-btn{width:clamp(60px,7vmin,90px);height:clamp(60px,7vmin,90px);font-size:clamp(2rem,4vmin,3.5rem)}
 }
 </style>
 </head>
@@ -247,24 +322,39 @@ body.spymaster-mode .card.revealed{border:none;box-shadow:inset 0 0 clamp(10px,2
 </div>
 
 <div id="gameScreen">
-<div class="game-header">
-<h1>🎯 TAJNIACY</h1>
-<div id="gameModeLabel">🎲 Tryb Klasyczny</div>
+<div class="top-bar">
+<div class="team-bar red">
+<span class="team-emoji" id="scoreRedEmoji">🐉</span>
+<span class="team-name" id="scoreRedName">Czerwoni</span>
+<span class="team-score" id="scoreRedPoints">0</span>
+<span class="team-remaining" id="redCounter">0</span>
 </div>
-<div class="scoreboard">
-<div class="score-team red"><div class="team-info"><div class="team-emoji" id="scoreRedEmoji">🐉</div><div class="team-name" id="scoreRedName">Czerwoni</div></div><div class="team-score" id="scoreRedPoints">0</div></div>
-<div class="score-team blue"><div class="team-info"><div class="team-emoji" id="scoreBlueEmoji">🦈</div><div class="team-name" id="scoreBlueName">Niebiescy</div></div><div class="team-score" id="scoreBluePoints">0</div></div>
+<div class="top-controls">
+<button class="icon-btn" onclick="confirmNewRound()" title="Nowa runda">🔄</button>
+<button class="icon-btn" id="keyBtn" onclick="toggleKey()" title="Pokaż klucz">👁️</button>
+<button class="icon-btn settings-btn" onclick="showO('gameSettings')" title="Ustawienia">⚙️</button>
 </div>
-<div class="controls">
-<button class="btn-new" onclick="confirmNewRound()">🔄 Nowa runda</button>
-<button class="btn-key" id="keyBtn" onclick="toggleKey()">👁️ Pokaż klucz</button>
-<button class="btn-reset" onclick="confirmBack()">🏠 Menu</button>
+<div class="team-bar blue">
+<span class="team-remaining" id="blueCounter">0</span>
+<span class="team-score" id="scoreBluePoints">0</span>
+<span class="team-name" id="scoreBlueName">Niebiescy</span>
+<span class="team-emoji" id="scoreBlueEmoji">🦈</span>
+</div>
+</div>
+<div class="board-container">
+<div class="grid-container" id="board"></div>
 </div>
 <div id="status">Zaczynają: ...</div>
-<div class="main-container">
-<div class="side-panel" id="redPanel"><div class="side-counter red" id="redCounter">0</div></div>
-<div class="center-area"><div class="grid-container" id="board"></div></div>
-<div class="side-panel" id="bluePanel"><div class="side-counter blue" id="blueCounter">0</div></div>
+</div>
+
+<div class="overlay" id="gameSettings">
+<div class="settings-container" style="max-width:400px">
+<h2 style="font-size:1.8rem;margin-bottom:20px">⚙️ Ustawienia</h2>
+<div style="display:flex;flex-direction:column;gap:15px">
+<button class="btn-new" onclick="hideO('gameSettings')" style="width:100%">▶️ Kontynuuj grę</button>
+<button class="btn-key" onclick="hideO('gameSettings');confirmNewRound()" style="width:100%">🔄 Nowa runda</button>
+<button class="btn-reset" onclick="hideO('gameSettings');confirmBack()" style="width:100%;padding:15px">🏠 Powrót do menu</button>
+</div>
 </div>
 </div>
 
@@ -380,7 +470,6 @@ function startClassic(){
     team.red.score=team.blue.score=0;
     hideO('classicSettings');
     $('gameScreen').style.display='flex';
-    $('gameModeLabel').textContent='🎲 Tryb Klasyczny';
     document.body.classList.add('game-active');
     updateScore();initRound();
 }
@@ -401,7 +490,6 @@ function startCrazy(){
     team.red.score=team.blue.score=0;
     hideO('crazySettings');
     $('gameScreen').style.display='flex';
-    $('gameModeLabel').textContent='🎪 Tryb Szalony';
     document.body.classList.add('game-active');
     updateScore();initRound();
 }
@@ -412,24 +500,11 @@ function updateScore(){
 }
 
 function createSideCards(){
-    ['red','blue'].forEach(c=>{
-        const panel=$(c+'Panel');
-        panel.querySelectorAll('.side-card').forEach(e=>e.remove());
-        sideCards[c]=[];
-        $(c+'Counter').textContent=remaining[c];
-        for(let i=0;i<remaining[c];i++){
-            const card=document.createElement('div');
-            card.className='side-card '+c;
-            card.textContent=team[c].emoji;
-            panel.appendChild(card);
-            sideCards[c].push(card);
-        }
-    });
+    $('redCounter').textContent=remaining.red;
+    $('blueCounter').textContent=remaining.blue;
 }
 
 function updateSideCard(c){
-    const unrevealed=sideCards[c].filter(e=>!e.classList.contains('revealed'));
-    if(unrevealed.length)unrevealed[0].classList.add('revealed');
     $(c+'Counter').textContent=remaining[c];
 }
 
@@ -450,7 +525,8 @@ function initRound(){
     board.innerHTML='';hideO('endOverlay');
     gameOver=false;isSpymaster=false;
     document.body.classList.remove('spymaster-mode');
-    $('keyBtn').textContent='👁️ Pokaż klucz';
+    $('keyBtn').textContent='👁️';
+    $('keyBtn').classList.remove('active');
     
     const redStarts=cfg.starter==='random'?Math.random()<.5:cfg.starter==='red';
     remaining={red:redStarts?cfg.startAgents:cfg.otherAgents,blue:redStarts?cfg.otherAgents:cfg.startAgents};
@@ -517,17 +593,19 @@ function assassinHit(loser){
 function toggleKey(){
     if(gameOver)return;
     if(!isSpymaster)showO('keyWarning');
-    else{isSpymaster=false;document.body.classList.remove('spymaster-mode');$('keyBtn').textContent='👁️ Pokaż klucz'}
+    else{isSpymaster=false;document.body.classList.remove('spymaster-mode');$('keyBtn').textContent='👁️';$('keyBtn').classList.remove('active')}
 }
 
 function showKey(){
     hideO('keyWarning');
     isSpymaster=true;
     document.body.classList.add('spymaster-mode');
-    $('keyBtn').textContent='❌ Ukryj klucz';
+    $('keyBtn').textContent='👁️';
+    $('keyBtn').classList.add('active');
 }
 
 function confirmNewRound(){
+    hideO('gameSettings');
     if(!gameOver&&$('board').children.length)showO('newRoundConfirm');
     else initRound();
 }
@@ -535,12 +613,11 @@ function confirmNewRound(){
 function confirmBack(){showO('backConfirm')}
 
 function resetMatch(){
-    hideO('backConfirm');hideO('endOverlay');
+    hideO('backConfirm');hideO('endOverlay');hideO('gameSettings');
     $('gameScreen').style.display='none';
     showO('homeScreen');
     document.body.classList.remove('game-active','spymaster-mode');
     $('board').innerHTML='';
-    ['red','blue'].forEach(c=>$(c+'Panel').querySelectorAll('.side-card').forEach(e=>e.remove()));
     team.red.score=team.blue.score=0;
     gameOver=false;isSpymaster=false;
 }
