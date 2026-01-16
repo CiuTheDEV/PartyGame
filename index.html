@@ -106,7 +106,6 @@ body.game-active{height:100vh;height:100dvh;overflow:hidden}
     stroke-dashoffset:1000;
 }
 .icon-btn:hover{background:#444}
-.icon-btn.settings-btn{background:#555}
 .icon-btn.active{background:#FF9800;box-shadow:0 0 15px rgba(255,152,0,0.5)}
 
 .board-container{
@@ -129,8 +128,44 @@ body.game-active{height:100vh;height:100dvh;overflow:hidden}
 }
 
 .card{
-    background:#f5f5f5;
-    color:#222;
+    perspective:1000px;
+    background:transparent;
+    border-radius:clamp(8px,1.5vmin,20px);
+    cursor:pointer;
+    user-select:none;
+    transition:transform .15s,box-shadow .15s;
+}
+.card:hover{transform:translateY(-3px) scale(1.02)}
+.card.keyboard-selected{
+    transform:translateY(-3px) scale(1.02);
+    outline:3px solid #FFD700;
+    outline-offset:2px;
+    box-shadow:0 0 20px rgba(255,215,0,0.5);
+}
+.card.holding{
+    transform:scale(0.95);
+    transition:transform 0.1s;
+}
+.card.holding .card-inner{
+    box-shadow:0 0 15px rgba(255,255,255,0.3);
+}
+
+.card-inner{
+    position:relative;
+    width:100%;
+    height:100%;
+    transform-style:preserve-3d;
+    transition:transform 0.6s ease;
+}
+.card.flipped .card-inner{
+    transform:rotateY(180deg);
+}
+
+.card-front,.card-back{
+    position:absolute;
+    inset:0;
+    backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
     border-radius:clamp(8px,1.5vmin,20px);
     display:flex;
     align-items:center;
@@ -138,34 +173,54 @@ body.game-active{height:100vh;height:100dvh;overflow:hidden}
     font-size:clamp(14px,4vmin,52px);
     font-weight:bold;
     text-transform:uppercase;
-    cursor:pointer;
-    user-select:none;
     padding:clamp(5px,1vmin,15px);
-    transition:transform .15s,box-shadow .15s,background .15s;
     text-align:center;
     word-break:break-word;
     overflow:hidden;
     box-shadow:0 clamp(2px,0.4vmin,6px) clamp(4px,0.8vmin,12px) rgba(0,0,0,0.3);
     letter-spacing:0.5px;
 }
-.card:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 clamp(4px,0.8vmin,10px) clamp(8px,1.5vmin,20px) rgba(0,0,0,0.4)}
 
-/* Style talii */
-.deck-white .card{background:#f5f5f5;color:#222}
-.deck-white .card:hover{background:#fff}
+.card-back{
+    background:linear-gradient(135deg,#3a3a3a,#2a2a2a);
+    border:2px solid #4a4a4a;
+}
+.card-back::before{
+    content:'?';
+    font-size:clamp(24px,6vmin,60px);
+    color:#555;
+    font-weight:bold;
+}
 
-.deck-classic .card{background:#2a2a2a;color:#f0f0f0;border:2px solid #3a3a3a}
-.deck-classic .card:hover{background:#333}
+.card-front{
+    transform:rotateY(180deg);
+    background:#f5f5f5;
+    color:#222;
+    border:2px solid transparent;
+}
 
-.deck-night .card{background:linear-gradient(145deg,#1a1a2e,#0d0d18);color:#d0d0f0;border:2px solid #2a2a4e}
-.deck-night .card:hover{background:linear-gradient(145deg,#252540,#12121f)}
+/* Style talii - awers */
+.deck-white .card-front{background:#f5f5f5;color:#222}
+.deck-classic .card-front{background:#2a2a2a;color:#f0f0f0;border:2px solid #3a3a3a}
+.deck-night .card-front{background:linear-gradient(145deg,#1a1a2e,#0d0d18);color:#d0d0f0;border:2px solid #2a2a4e}
+
+/* Obramówka zabójcy w białej talii */
+.deck-white .card.is-assassin .card-front{border:2px solid #ddd}
+
+/* Style talii - rewers */
+.deck-white .card-back{background:linear-gradient(135deg,#e8e8e8,#d0d0d0);border-color:#ccc}
+.deck-white .card-back::before{color:#aaa}
+.deck-classic .card-back{background:linear-gradient(135deg,#1a1a1a,#0a0a0a);border-color:#3a3a3a}
+.deck-classic .card-back::before{color:#444}
+.deck-night .card-back{background:linear-gradient(135deg,#0d0d18,#05050a);border-color:#2a2a4e}
+.deck-night .card-back::before{color:#3a3a5e}
 
 .is-red{--true:#e74c3c;--text:#fff;--soft:rgba(231,76,60,0.7)}
 .is-blue{--true:#3498db;--text:#fff;--soft:rgba(52,152,219,0.7)}
 .is-neutral{--true:#7f8c8d;--text:#fff;--soft:rgba(127,140,141,0.5)}
 .is-assassin{--true:#1a1a1a;--text:#fff;--soft:rgba(20,20,20,0.9)}
 
-.card.revealed{
+.card.revealed .card-front{
     background:var(--true)!important;
     color:var(--text)!important;
     cursor:default;
@@ -173,10 +228,10 @@ body.game-active{height:100vh;height:100dvh;overflow:hidden}
     text-shadow:2px 2px 4px rgba(0,0,0,0.5);
     border-color:var(--true)!important;
 }
-.card.revealed:hover{transform:none;box-shadow:inset 0 0 clamp(15px,3vmin,40px) rgba(0,0,0,0.3)}
+.card.revealed:hover{transform:none}
 
 /* Tryb klucza - pełne tło w stonowanych kolorach */
-body.spymaster-mode .card{
+body.spymaster-mode .card .card-front{
     background:var(--soft)!important;
     color:#fff!important;
     text-shadow:1px 1px 3px rgba(0,0,0,0.5);
@@ -184,21 +239,21 @@ body.spymaster-mode .card{
 body.spymaster-mode .card:hover{
     transform:none;
 }
-body.spymaster-mode .card.is-assassin{
+body.spymaster-mode .card.is-assassin .card-front{
     color:#e74c3c!important;
     text-shadow:0 0 10px rgba(0,0,0,0.8);
     flex-direction:column;
     gap:clamp(2px,0.5vmin,8px);
 }
-body.spymaster-mode .card.is-assassin::after{
+body.spymaster-mode .card.is-assassin .card-front::after{
     content:'☠';
     font-size:clamp(16px,3.5vmin,40px);
     opacity:0.9;
 }
-body.spymaster-mode .card.is-assassin.revealed::after{
+body.spymaster-mode .card.is-assassin.revealed .card-front::after{
     display:none;
 }
-body.spymaster-mode .card.revealed{
+body.spymaster-mode .card.revealed .card-front{
     background:var(--true)!important;
     box-shadow:inset 0 0 clamp(15px,3vmin,40px) rgba(0,0,0,0.3);
 }
@@ -260,7 +315,7 @@ body.spymaster-mode .card.revealed{
 .home-title{font-size:clamp(2.5rem,8vmin,5rem);margin-bottom:2vh;background:linear-gradient(135deg,#e74c3c,#3498db);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .home-subtitle{font-size:clamp(1rem,3vmin,2rem);color:#aaa;margin-bottom:4vh}
 .mode-selection{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,80vw),1fr));gap:clamp(15px,3vmin,40px);margin-bottom:3vh}
-.mode-card{background:linear-gradient(135deg,#2a2a2a,#1a1a1a);border-radius:clamp(15px,2vmin,25px);padding:clamp(20px,4vmin,50px);cursor:pointer;transition:all .3s;border:clamp(2px,0.4vmin,5px) solid transparent}
+.mode-card{background:linear-gradient(135deg,#2a2a2a,#1a1a1a);border-radius:clamp(15px,2vmin,25px);padding:clamp(20px,4vmin,50px);cursor:pointer;transition:all .3s;border:clamp(2px,0.4vmin,5px) solid transparent;position:relative}
 .mode-card:hover{transform:translateY(-5px);box-shadow:0 10px 30px rgba(0,0,0,.5)}
 .mode-card.classic{border-color:#4CAF50}.mode-card.crazy{border-color:#FF9800}
 .mode-icon{font-size:clamp(3rem,8vmin,6rem);margin-bottom:2vh}
@@ -270,24 +325,222 @@ body.spymaster-mode .card.revealed{
 .mode-features{margin-top:2vh;text-align:left;font-size:clamp(0.9rem,2.2vmin,1.3rem);color:#888;list-style:none;padding:0}
 .mode-features li{margin:clamp(4px,1vmin,10px) 0}
 
+/* Info button */
+.info-btn{
+    position:absolute;
+    bottom:clamp(10px,2vmin,20px);
+    right:clamp(10px,2vmin,20px);
+    width:clamp(28px,5vmin,40px);
+    height:clamp(28px,5vmin,40px);
+    border-radius:50%;
+    border:2px solid #666;
+    background:rgba(0,0,0,0.3);
+    color:#aaa;
+    font-size:clamp(0.9rem,2vmin,1.2rem);
+    font-weight:bold;
+    font-style:italic;
+    font-family:Georgia,serif;
+    cursor:pointer;
+    transition:all .2s;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+}
+.info-btn:hover{
+    background:rgba(255,255,255,0.1);
+    border-color:#aaa;
+    color:#fff;
+    transform:scale(1.1);
+}
+.mode-card.classic .info-btn:hover{border-color:#4CAF50;color:#4CAF50}
+.mode-card.crazy .info-btn:hover{border-color:#FF9800;color:#FF9800}
+
+/* Rules overlay */
+.rules-container{
+    background:#2a2a2a;
+    border-radius:clamp(15px,2vmin,25px);
+    padding:clamp(20px,4vmin,40px);
+    max-width:min(600px,90vw);
+    width:90%;
+    max-height:85vh;
+    overflow-y:auto;
+    text-align:left;
+}
+.rules-title{
+    font-size:clamp(1.5rem,4vmin,2.5rem);
+    margin-bottom:clamp(15px,3vmin,25px);
+    text-align:center;
+    background:linear-gradient(135deg,#e74c3c,#3498db);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+}
+.rules-content{
+    font-size:clamp(0.9rem,2.2vmin,1.1rem);
+    color:#ccc;
+    line-height:1.6;
+}
+.rules-content h3{
+    color:#fff;
+    font-size:clamp(1.1rem,2.5vmin,1.4rem);
+    margin:clamp(15px,2.5vmin,25px) 0 clamp(8px,1.5vmin,12px);
+}
+.rules-content h3:first-child{margin-top:0}
+.rules-content p{margin:clamp(8px,1.5vmin,12px) 0}
+.rules-content ul{
+    margin:clamp(8px,1.5vmin,12px) 0;
+    padding-left:clamp(20px,3vmin,30px);
+}
+.rules-content li{margin:clamp(4px,0.8vmin,8px) 0}
+.rules-content .highlight{
+    color:#4CAF50;
+    font-weight:bold;
+}
+.rules-content .danger{
+    color:#e74c3c;
+    font-weight:bold;
+}
+.rules-content .info{
+    color:#3498db;
+}
+.rules-container button{
+    display:block;
+    margin:clamp(20px,3vmin,30px) auto 0;
+}
+
 /* SETTINGS */
-.settings-container{background:#2a2a2a;border-radius:clamp(15px,2vmin,25px);padding:clamp(20px,4vmin,50px);max-width:min(800px,90vw);width:90%;max-height:90vh;overflow-y:auto}
-.settings-title{font-size:clamp(1.8rem,5vmin,3rem);margin-bottom:3vh;background:linear-gradient(135deg,#e74c3c,#3498db);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.team-setup{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,80vw),1fr));gap:clamp(15px,3vmin,30px);margin-bottom:3vh}
-.team-card{background:#1a1a1a;border-radius:clamp(10px,1.5vmin,20px);padding:clamp(15px,3vmin,30px);border:clamp(2px,0.4vmin,4px) solid}
+.settings-container{background:#2a2a2a;border-radius:clamp(15px,2vmin,25px);padding:clamp(15px,3vmin,40px);max-width:min(800px,95vw);width:95%;max-height:90vh;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.settings-container::-webkit-scrollbar{width:6px}
+.settings-container::-webkit-scrollbar-track{background:#1a1a1a;border-radius:3px}
+.settings-container::-webkit-scrollbar-thumb{background:#555;border-radius:3px}
+.settings-title{font-size:clamp(1.5rem,4vmin,2.5rem);margin-bottom:2vh;background:linear-gradient(135deg,#e74c3c,#3498db);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.team-setup{display:grid;grid-template-columns:1fr;gap:clamp(10px,2vmin,20px);margin-bottom:2vh}
+@media(min-width:600px){.team-setup{grid-template-columns:1fr 1fr}}
+.team-card{background:#1a1a1a;border-radius:clamp(8px,1.2vmin,15px);padding:clamp(12px,2vmin,25px);border:2px solid}
 .team-card.red{border-color:#e74c3c}.team-card.blue{border-color:#3498db}
-.team-card h3{margin:0 0 2vh;font-size:clamp(1.2rem,3vmin,2rem)}
+.team-card h3{margin:0 0 clamp(8px,1.5vmin,15px);font-size:clamp(1rem,2.5vmin,1.6rem)}
 .team-card.red h3{color:#e74c3c}.team-card.blue h3{color:#3498db}
-.avatar-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(6px,1vmin,12px);margin-bottom:1.5vh}
-.avatar-option{font-size:clamp(1.5rem,4vmin,3rem);padding:clamp(6px,1.2vmin,15px);background:#333;border-radius:clamp(8px,1vmin,15px);cursor:pointer;transition:all .2s;border:clamp(2px,0.4vmin,4px) solid transparent}
-.avatar-option:hover{transform:scale(1.1);background:#444}
+.avatar-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(4px,1vmin,10px);margin-bottom:clamp(8px,1.5vmin,15px)}
+.avatar-option{
+    font-size:clamp(1.2rem,3.5vmin,2.5rem);
+    aspect-ratio:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#333;
+    border-radius:clamp(6px,1vmin,12px);
+    cursor:pointer;
+    transition:all .2s;
+    border:2px solid transparent;
+    padding:0;
+}
+.avatar-option:hover{background:#444}
 .avatar-option.selected{border-color:#4CAF50;background:#2d5016}
-.team-card input{width:100%;padding:clamp(8px,1.5vmin,15px);font-size:clamp(1rem,2.5vmin,1.5rem);border-radius:clamp(6px,1vmin,12px);border:none;text-align:center;background:#333;color:#fff;margin-top:1vh}
-.game-settings{background:#1a1a1a;border-radius:clamp(10px,1.5vmin,20px);padding:clamp(15px,3vmin,30px);margin-bottom:2vh}
-.game-settings h3{color:#FF9800;margin-bottom:2vh;font-size:clamp(1.1rem,2.8vmin,1.8rem)}
-.setting-row{display:flex;justify-content:space-between;align-items:center;margin:clamp(8px,1.5vmin,15px) 0;padding:clamp(8px,1.5vmin,15px);background:#2a2a2a;border-radius:clamp(6px,1vmin,12px);flex-wrap:wrap;gap:10px}
-.setting-row label{font-size:clamp(1rem,2.5vmin,1.4rem);color:#ccc}
-.setting-row input,.setting-row select{padding:clamp(8px,1.5vmin,12px);font-size:clamp(0.95rem,2.2vmin,1.3rem);border-radius:clamp(5px,0.8vmin,10px);border:none;background:#333;color:#fff;width:clamp(100px,15vmin,150px);text-align:center}
+.team-card input{
+    width:100%;
+    padding:clamp(8px,1.2vmin,12px);
+    font-size:clamp(0.9rem,2vmin,1.2rem);
+    border-radius:clamp(6px,1vmin,10px);
+    border:none;
+    text-align:center;
+    background:#333;
+    color:#fff;
+    -webkit-appearance:none;
+    appearance:none;
+}
+.game-settings{background:#1a1a1a;border-radius:clamp(8px,1.2vmin,15px);padding:clamp(12px,2vmin,25px);margin-bottom:2vh}
+.game-settings h3{color:#FF9800;margin-bottom:clamp(10px,1.5vmin,15px);font-size:clamp(1rem,2.2vmin,1.4rem)}
+.setting-row{display:flex;justify-content:space-between;align-items:center;margin:clamp(6px,1vmin,12px) 0;padding:clamp(8px,1.2vmin,12px);background:#2a2a2a;border-radius:clamp(6px,1vmin,10px);flex-wrap:wrap;gap:8px}
+.setting-row label{font-size:clamp(0.85rem,2vmin,1.2rem);color:#ccc}
+.setting-row input,.setting-row select{
+    padding:clamp(6px,1vmin,10px);
+    font-size:clamp(0.85rem,1.8vmin,1.1rem);
+    border-radius:clamp(4px,0.6vmin,8px);
+    border:none;
+    background:#333;
+    color:#fff;
+    min-width:80px;
+    max-width:120px;
+    text-align:center;
+    -webkit-appearance:none;
+    appearance:none;
+}
+
+/* Toggle switch */
+.toggle-switch{
+    position:relative;
+    display:inline-block;
+    width:clamp(50px,8vmin,60px);
+    height:clamp(26px,4vmin,32px);
+    flex-shrink:0;
+}
+.toggle-switch input{
+    opacity:0;
+    width:0;
+    height:0;
+    position:absolute;
+}
+.toggle-slider{
+    position:absolute;
+    cursor:pointer;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    background:#555;
+    transition:.3s;
+    border-radius:clamp(13px,2vmin,16px);
+}
+.toggle-slider:before{
+    position:absolute;
+    content:"";
+    height:clamp(20px,3vmin,26px);
+    width:clamp(20px,3vmin,26px);
+    left:3px;
+    bottom:3px;
+    background:#fff;
+    transition:.3s;
+    border-radius:50%;
+}
+.toggle-switch input:checked + .toggle-slider{
+    background:#4CAF50;
+}
+.toggle-switch input:checked + .toggle-slider:before{
+    transform:translateX(clamp(24px,4vmin,28px));
+}
+
+/* Keymode toggle */
+.keymode-toggle{
+    display:flex;
+    align-items:center;
+    gap:clamp(8px,1.5vmin,12px);
+}
+.keymode-label{
+    font-size:clamp(1.2rem,3vmin,1.8rem);
+    opacity:0.5;
+    transition:opacity .3s;
+}
+.keymode-label.left.active,
+.keymode-label.right.active{
+    opacity:1;
+}
+.keymode-switch .toggle-slider{
+    background:#3498db;
+}
+.keymode-switch input:checked + .toggle-slider{
+    background:#FF9800;
+}
+
+.card-reveal-switch .toggle-slider{
+    background:#4CAF50;
+}
+.card-reveal-switch input:checked + .toggle-slider{
+    background:#9C27B0;
+}
+.card-reveal-label{
+    font-size:clamp(1rem,2.5vmin,1.5rem)!important;
+}
 
 /* Style picker */
 .style-row{flex-direction:column;align-items:stretch;padding:0;background:transparent}
@@ -308,16 +561,19 @@ body.spymaster-mode .card.revealed{
 .style-arrow{color:#888;font-size:0.8rem;transition:transform .3s}
 .style-row.open .style-arrow{transform:rotate(180deg)}
 .style-picker{
-    display:none;
+    display:flex;
     gap:clamp(8px,1.5vmin,15px);
-    margin-top:clamp(8px,1.5vmin,12px);
-    padding:clamp(10px,2vmin,15px);
     background:#222;
     border-radius:clamp(6px,1vmin,12px);
     flex-wrap:wrap;
     justify-content:center;
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .3s ease, padding .3s ease, margin .3s ease;
+    padding:0 clamp(10px,2vmin,15px);
+    margin-top:0;
 }
-.style-row.open .style-picker{display:flex}
+.style-row.open .style-picker{max-height:600px;padding:clamp(10px,2vmin,15px);margin-top:clamp(8px,1.5vmin,12px)}
 .style-option{
     cursor:pointer;
     padding:clamp(10px,1.5vmin,15px);
@@ -377,15 +633,18 @@ body.spymaster-mode .card.revealed{
 .deck-arrow{color:#888;font-size:0.8rem;transition:transform .3s}
 .deck-row.open .deck-arrow{transform:rotate(180deg)}
 .deck-picker{
-    display:none;
+    display:flex;
     flex-direction:column;
     gap:clamp(8px,1.5vmin,12px);
-    margin-top:clamp(8px,1.5vmin,12px);
-    padding:clamp(10px,2vmin,15px);
     background:#222;
     border-radius:clamp(6px,1vmin,12px);
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .3s ease, padding .3s ease, margin .3s ease;
+    padding:0 clamp(10px,2vmin,15px);
+    margin-top:0;
 }
-.deck-row.open .deck-picker{display:flex}
+.deck-row.open .deck-picker{max-height:300px;padding:clamp(10px,2vmin,15px);margin-top:clamp(8px,1.5vmin,12px)}
 .deck-option{
     cursor:pointer;
     padding:clamp(12px,2vmin,18px);
@@ -419,15 +678,18 @@ body.spymaster-mode .card.revealed{
 .rounds-arrow{color:#888;font-size:0.8rem;transition:transform .3s}
 .rounds-row.open .rounds-arrow{transform:rotate(180deg)}
 .rounds-picker{
-    display:none;
+    display:flex;
     flex-direction:column;
     gap:clamp(10px,1.5vmin,15px);
-    margin-top:clamp(8px,1.5vmin,12px);
-    padding:clamp(10px,2vmin,15px);
     background:#222;
     border-radius:clamp(6px,1vmin,12px);
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .3s ease, padding .3s ease, margin .3s ease;
+    padding:0 clamp(10px,2vmin,15px);
+    margin-top:0;
 }
-.rounds-row.open .rounds-picker{display:flex}
+.rounds-row.open .rounds-picker{max-height:200px;padding:clamp(10px,2vmin,15px);margin-top:clamp(8px,1.5vmin,12px)}
 .rounds-options{
     display:flex;
     gap:clamp(6px,1vmin,12px);
@@ -491,15 +753,18 @@ body.spymaster-mode .card.revealed{
 .picker-arrow{color:#888;font-size:0.8rem;transition:transform .3s}
 .picker-row.open .picker-arrow{transform:rotate(180deg)}
 .picker-panel{
-    display:none;
+    display:flex;
     flex-direction:column;
     gap:clamp(10px,1.5vmin,15px);
-    margin-top:clamp(8px,1.5vmin,12px);
-    padding:clamp(10px,2vmin,15px);
     background:#222;
     border-radius:clamp(6px,1vmin,12px);
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .3s ease, padding .3s ease, margin .3s ease;
+    padding:0 clamp(10px,2vmin,15px);
+    margin-top:0;
 }
-.picker-row.open .picker-panel{display:flex}
+.picker-row.open .picker-panel{max-height:200px;padding:clamp(10px,2vmin,15px);margin-top:clamp(8px,1.5vmin,12px)}
 .picker-options{
     display:flex;
     gap:clamp(6px,1vmin,12px);
@@ -524,6 +789,8 @@ body.spymaster-mode .card.revealed{
 }
 .picker-option:hover{border-color:#666;background:#252525}
 .picker-option.selected{border-color:#4CAF50;background:#1a2a1a}
+.picker-option.disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
+.keymode-options .picker-option{min-width:auto;padding:0 clamp(12px,2vmin,20px)}
 .starter-options .picker-option{min-width:auto;padding:0 clamp(15px,2vmin,25px)}
 .picker-info{
     text-align:center;
@@ -540,6 +807,206 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 .btn-new{background:#4CAF50;color:#fff}
 .btn-key{background:#FF9800;color:#fff}
 .btn-reset{background:#e74c3c;color:#fff}
+
+/* PIN OVERLAY */
+.pin-display{
+    font-size:clamp(3rem,10vmin,5rem);
+    font-weight:bold;
+    letter-spacing:clamp(10px,3vmin,20px);
+    color:#4CAF50;
+    background:#1a1a1a;
+    padding:clamp(15px,3vmin,30px) clamp(30px,5vmin,50px);
+    border-radius:clamp(10px,1.5vmin,20px);
+    border:3px solid #4CAF50;
+    margin:clamp(15px,3vmin,25px) 0;
+    text-align:center;
+    font-family:'Courier New',monospace;
+}
+.pin-input-section{
+    background:#1a1a1a;
+    padding:clamp(15px,2.5vmin,25px);
+    border-radius:clamp(10px,1.5vmin,20px);
+    margin-top:clamp(10px,2vmin,20px);
+}
+.pin-input-container{
+    display:flex;
+    justify-content:center;
+}
+#pinInput{
+    font-size:clamp(2rem,6vmin,3rem);
+    font-weight:bold;
+    letter-spacing:clamp(8px,2vmin,15px);
+    text-align:center;
+    width:clamp(150px,40vmin,200px);
+    padding:clamp(10px,2vmin,15px);
+    border:3px solid #555;
+    border-radius:clamp(8px,1vmin,12px);
+    background:#2a2a2a;
+    color:#fff;
+    font-family:'Courier New',monospace;
+    transition:border-color .2s;
+}
+#pinInput:focus{
+    outline:none;
+    border-color:#FF9800;
+}
+#pinInput.error{
+    border-color:#e74c3c;
+    animation:shake 0.3s;
+}
+#pinInput.success{
+    border-color:#4CAF50;
+}
+
+#captainPinInput{
+    font-size:clamp(2rem,7vmin,3.5rem);
+    font-weight:bold;
+    letter-spacing:clamp(5px,1.5vmin,12px);
+    text-align:center;
+    width:clamp(180px,50vmin,250px);
+    padding:clamp(12px,2.5vmin,20px) clamp(15px,3vmin,30px);
+    border:3px solid #4CAF50;
+    border-radius:clamp(10px,1.5vmin,20px);
+    background:#1a1a1a;
+    color:#4CAF50;
+    font-family:'Courier New',monospace;
+    transition:border-color .2s, color .2s;
+}
+#captainPinInput::placeholder{
+    color:#2d5a2d;
+}
+#captainPinInput:focus{
+    outline:none;
+    border-color:#5ddb5d;
+    color:#5ddb5d;
+}
+#captainPinInput.error{
+    border-color:#e74c3c;
+    color:#e74c3c;
+    animation:shake 0.3s;
+}
+#captainPinInput.success{
+    border-color:#4CAF50;
+    color:#4CAF50;
+}
+.pin-error{
+    color:#e74c3c;
+    font-size:clamp(0.85rem,2vmin,1rem);
+    margin-top:10px;
+    display:none;
+}
+.pin-error.visible{
+    display:block;
+}
+@keyframes shake{
+    0%,100%{transform:translateX(0)}
+    25%{transform:translateX(-10px)}
+    75%{transform:translateX(10px)}
+}
+
+/* CAPTAIN KEY */
+.home-bottom-buttons{
+    display:flex;
+    gap:clamp(10px,2vmin,20px);
+    margin-top:clamp(20px,4vmin,40px);
+    flex-wrap:wrap;
+    justify-content:center;
+}
+.home-btn{
+    background:transparent;
+    border:2px solid;
+    padding:clamp(10px,1.8vmin,16px) clamp(18px,3vmin,30px);
+    font-size:clamp(0.85rem,2.2vmin,1.1rem);
+    border-radius:clamp(8px,1.2vmin,12px);
+    cursor:pointer;
+    transition:all .2s;
+    font-weight:500;
+}
+.home-btn:hover{
+    transform:scale(1.05);
+}
+.home-btn.hub-btn{
+    border-color:#888;
+    color:#888;
+}
+.home-btn.hub-btn:hover{
+    background:#888;
+    color:#fff;
+}
+.home-btn.captain-btn{
+    border-color:#FF9800;
+    color:#FF9800;
+}
+.home-btn.captain-btn:hover{
+    background:#FF9800;
+    color:#fff;
+}
+.home-btn.settings-btn{
+    border-color:#3498db;
+    color:#3498db;
+}
+.home-btn.settings-btn:hover{
+    background:#3498db;
+    color:#fff;
+}
+.captain-board-container{
+    max-width:min(500px,95vw)!important;
+    width:95vw!important;
+    padding:clamp(10px,2vmin,25px)!important;
+    max-height:95vh;
+    overflow-y:auto;
+}
+.captain-board{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:clamp(3px,1vmin,8px);
+    margin:clamp(8px,1.5vmin,15px) 0;
+    width:100%;
+}
+.captain-card{
+    aspect-ratio:1;
+    border-radius:clamp(4px,0.8vmin,10px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:clamp(0.5rem,2.5vmin,0.9rem);
+    font-weight:bold;
+    text-transform:uppercase;
+    padding:clamp(2px,0.5vmin,6px);
+    text-align:center;
+    word-break:break-word;
+    line-height:1.1;
+    color:#fff;
+    text-shadow:1px 1px 2px rgba(0,0,0,0.5);
+    overflow:hidden;
+}
+.captain-card.is-red{background:#e74c3c}
+.captain-card.is-blue{background:#3498db}
+.captain-card.is-neutral{background:#7f8c8d}
+.captain-card.is-assassin{background:#1a1a1a;color:#e74c3c}
+.captain-legend{
+    display:flex;
+    justify-content:center;
+    gap:clamp(10px,2vmin,20px);
+    flex-wrap:wrap;
+    margin-top:clamp(10px,2vmin,15px);
+}
+.legend-item{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    font-size:clamp(0.75rem,1.8vmin,0.95rem);
+    color:#aaa;
+}
+.legend-color{
+    width:clamp(12px,2vmin,18px);
+    height:clamp(12px,2vmin,18px);
+    border-radius:4px;
+}
+.legend-color.red{background:#e74c3c}
+.legend-color.blue{background:#3498db}
+.legend-color.neutral{background:#7f8c8d}
+.legend-color.assassin{background:#1a1a1a;border:1px solid #e74c3c}
 
 #endText{font-size:clamp(2rem,6vmin,5rem);margin-bottom:3vh}
 .confetti{position:fixed;top:-20px;pointer-events:none;z-index:9999}
@@ -622,6 +1089,27 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 .end-scores{flex-direction:column;gap:10px}
 .end-team{width:100%;justify-content:space-between}
 .end-vs{display:none}
+.settings-container{padding:12px;max-height:95vh;width:98%}
+.settings-title{font-size:1.3rem;margin-bottom:10px}
+.team-card{padding:10px}
+.team-card h3{font-size:0.95rem;margin-bottom:8px}
+.avatar-picker{gap:4px}
+.avatar-option{font-size:1.1rem;border-radius:6px}
+.team-card input{padding:8px;font-size:0.9rem}
+.game-settings{padding:10px}
+.game-settings h3{font-size:0.95rem;margin-bottom:8px}
+.setting-row{padding:8px;margin:5px 0}
+.setting-row label{font-size:0.85rem}
+.picker-option{min-width:36px;height:36px;font-size:0.9rem}
+.rounds-option{width:36px;height:36px;font-size:1rem}
+.style-option{padding:8px}
+.preview-card{width:30px;height:40px;font-size:0.4rem}
+.style-name{font-size:0.8rem}
+.deck-option{padding:10px}
+.deck-title{font-size:0.9rem}
+.deck-desc{font-size:0.75rem}
+.button-group{gap:8px;margin-top:10px}
+.button-group button{padding:12px 15px;font-size:0.9rem}
 }
 
 /* MAŁE EKRANY (telefony) */
@@ -637,6 +1125,13 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 .remaining-card .card-emoji{font-size:0.7rem}
 .remaining-card .card-num{font-size:0.6rem}
 #status{font-size:0.8rem;order:-1;width:100%;text-align:center;padding:3px 0}
+.settings-container{padding:10px;border-radius:12px}
+.team-setup{gap:10px}
+.avatar-option{border-width:2px}
+.style-picker{gap:8px;padding:8px}
+.picker-panel{padding:10px}
+.rounds-picker{padding:10px}
+.deck-picker{padding:10px}
 }
 
 /* TABLETY (iPad) */
@@ -678,14 +1173,96 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 <div class="mode-title">KLASYCZNA</div>
 <div class="mode-description">Szybki start z tradycyjnymi zasadami</div>
 <ul class="mode-features"><li>Standardowa plansza 5x5</li><li>1 zabójca, 7 neutralnych</li><li>8/9 agentów</li></ul>
+<button class="info-btn" onclick="event.stopPropagation();showRules('classic')">i</button>
 </div>
 <div class="mode-card crazy" onclick="selectMode('crazy')">
 <div class="mode-icon">🎪</div>
 <div class="mode-title">SZALONA</div>
 <div class="mode-description">Więcej zabójców, więcej emocji!</div>
 <ul class="mode-features"><li>Od 1 do 7 zabójców</li><li>Mniej neutralnych kart</li><li>Wybierz kto zaczyna</li></ul>
+<button class="info-btn" onclick="event.stopPropagation();showRules('crazy')">i</button>
 </div>
 </div>
+<div class="home-bottom-buttons">
+<button class="home-btn hub-btn" onclick="goToHub()">🏠 Powrót do HUBu</button>
+<button class="home-btn captain-btn" onclick="showCaptainKeyOverlay()">🔑 Klucz kapitana</button>
+<button class="home-btn settings-btn" onclick="showGlobalSettings()">⚙️ Ustawienia</button>
+</div>
+</div>
+</div>
+
+<div class="overlay" id="rulesOverlay">
+<div class="rules-container">
+<h2 class="rules-title" id="rulesTitle">Zasady gry</h2>
+<div class="rules-content" id="rulesContent"></div>
+<button class="btn-new" onclick="hideO('rulesOverlay')">Rozumiem</button>
+</div>
+</div>
+
+<div class="overlay" id="globalSettingsOverlay">
+<div class="settings-container" style="max-width:500px">
+<h2 class="settings-title">⚙️ Ustawienia</h2>
+<div class="game-settings" style="margin-bottom:0">
+<div class="setting-row" style="margin:0 0 15px 0">
+<label>Dźwięki:</label>
+<label class="toggle-switch">
+<input type="checkbox" id="globalSoundToggle" onchange="updateSound(this.checked)">
+<span class="toggle-slider"></span>
+</label>
+</div>
+<div class="setting-row" style="margin:0 0 15px 0">
+<label>Odkrywanie kart:</label>
+<div class="keymode-toggle">
+<span class="keymode-label left card-reveal-label" title="Kliknięcie">👆</span>
+<label class="toggle-switch keymode-switch card-reveal-switch">
+<input type="checkbox" id="globalCardRevealToggle" onchange="updateCardRevealMode(this.checked)">
+<span class="toggle-slider"></span>
+</label>
+<span class="keymode-label right card-reveal-label" title="Przytrzymanie">👇</span>
+</div>
+</div>
+<div class="setting-row style-row" style="margin:0 0 15px 0">
+<div class="style-selector" id="globalStyleSelector" onclick="toggleStylePicker('global')">
+<label>Styl kart:</label>
+<div class="style-current">
+<span id="globalStyleName">Białe</span>
+<span class="style-arrow">▼</span>
+</div>
+</div>
+<div class="style-picker" id="globalStylePicker">
+<div class="style-option selected" data-style="white">
+<div class="style-preview deck-white">
+<div class="preview-card">Agent</div>
+<div class="preview-card revealed is-red">Red</div>
+<div class="preview-card revealed is-blue">Blue</div>
+</div>
+<span class="style-name">Białe</span>
+</div>
+<div class="style-option" data-style="classic">
+<div class="style-preview deck-classic">
+<div class="preview-card">Agent</div>
+<div class="preview-card revealed is-red">Red</div>
+<div class="preview-card revealed is-blue">Blue</div>
+</div>
+<span class="style-name">Ciemne</span>
+</div>
+<div class="style-option" data-style="night">
+<div class="style-preview deck-night">
+<div class="preview-card">Agent</div>
+<div class="preview-card revealed is-red">Red</div>
+<div class="preview-card revealed is-blue">Blue</div>
+</div>
+<span class="style-name">Noc</span>
+</div>
+</div>
+<input type="hidden" id="globalStyle" value="white">
+</div>
+<div class="setting-row" style="margin:0">
+<label>Wersja:</label>
+<span style="color:#888;font-size:0.9rem">1.0.0</span>
+</div>
+</div>
+<button class="btn-new" onclick="hideO('globalSettingsOverlay')" style="margin-top:20px;width:100%">Zamknij</button>
 </div>
 </div>
 
@@ -729,42 +1306,6 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 </div>
 <input type="hidden" id="classicDeck" value="standard">
 </div>
-<div class="setting-row style-row">
-<div class="style-selector" id="classicStyleSelector" onclick="toggleStylePicker('classic')">
-<label>Styl kart:</label>
-<div class="style-current">
-<span id="classicStyleName">Białe</span>
-<span class="style-arrow">▼</span>
-</div>
-</div>
-<div class="style-picker" id="classicStylePicker">
-<div class="style-option selected" data-style="white">
-<div class="style-preview deck-white">
-<div class="preview-card">Agent</div>
-<div class="preview-card revealed is-red">Red</div>
-<div class="preview-card revealed is-blue">Blue</div>
-</div>
-<span class="style-name">Białe</span>
-</div>
-<div class="style-option" data-style="classic">
-<div class="style-preview deck-classic">
-<div class="preview-card">Agent</div>
-<div class="preview-card revealed is-red">Red</div>
-<div class="preview-card revealed is-blue">Blue</div>
-</div>
-<span class="style-name">Ciemne</span>
-</div>
-<div class="style-option" data-style="night">
-<div class="style-preview deck-night">
-<div class="preview-card">Agent</div>
-<div class="preview-card revealed is-red">Red</div>
-<div class="preview-card revealed is-blue">Blue</div>
-</div>
-<span class="style-name">Noc</span>
-</div>
-</div>
-<input type="hidden" id="classicStyle" value="white">
-</div>
 <div class="setting-row rounds-row">
 <div class="rounds-selector" id="classicRoundsSelector" onclick="toggleRoundsPicker('classic')">
 <label>Rundy do wygranej:</label>
@@ -788,6 +1329,18 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 </div>
 </div>
 <input type="hidden" id="classicWinTarget" value="3">
+</div>
+<div class="setting-row" style="margin:0">
+<label>Tryb klucza:</label>
+<div class="keymode-toggle">
+<span class="keymode-label left">👁️</span>
+<label class="toggle-switch keymode-switch">
+<input type="checkbox" id="classicKeyModeToggle" onchange="updateKeyMode('classic', this.checked)">
+<span class="toggle-slider"></span>
+</label>
+<span class="keymode-label right">🔑</span>
+</div>
+<input type="hidden" id="classicKeyMode" value="preview">
 </div>
 </div>
 <div class="button-group">
@@ -837,42 +1390,6 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 </div>
 </div>
 <input type="hidden" id="crazyDeck" value="standard">
-</div>
-<div class="setting-row style-row">
-<div class="style-selector" id="crazyStyleSelector" onclick="toggleStylePicker('crazy')">
-<label>Styl kart:</label>
-<div class="style-current">
-<span id="crazyStyleName">Białe</span>
-<span class="style-arrow">▼</span>
-</div>
-</div>
-<div class="style-picker" id="crazyStylePicker">
-<div class="style-option selected" data-style="white">
-<div class="style-preview deck-white">
-<div class="preview-card">Agent</div>
-<div class="preview-card revealed is-red">Red</div>
-<div class="preview-card revealed is-blue">Blue</div>
-</div>
-<span class="style-name">Białe</span>
-</div>
-<div class="style-option" data-style="classic">
-<div class="style-preview deck-classic">
-<div class="preview-card">Agent</div>
-<div class="preview-card revealed is-red">Red</div>
-<div class="preview-card revealed is-blue">Blue</div>
-</div>
-<span class="style-name">Ciemne</span>
-</div>
-<div class="style-option" data-style="night">
-<div class="style-preview deck-night">
-<div class="preview-card">Agent</div>
-<div class="preview-card revealed is-red">Red</div>
-<div class="preview-card revealed is-blue">Blue</div>
-</div>
-<span class="style-name">Noc</span>
-</div>
-</div>
-<input type="hidden" id="crazyStyle" value="white">
 </div>
 <div class="setting-row picker-row">
 <div class="picker-selector" id="crazyAssassinsSelector" onclick="togglePicker('crazyAssassins')">
@@ -938,6 +1455,18 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 </div>
 <input type="hidden" id="crazyWinTarget" value="3">
 </div>
+<div class="setting-row" style="margin:0">
+<label>Tryb klucza:</label>
+<div class="keymode-toggle">
+<span class="keymode-label left">👁️</span>
+<label class="toggle-switch keymode-switch">
+<input type="checkbox" id="crazyKeyModeToggle" onchange="updateKeyMode('crazy', this.checked)">
+<span class="toggle-slider"></span>
+</label>
+<span class="keymode-label right">🔑</span>
+</div>
+<input type="hidden" id="crazyKeyMode" value="preview">
+</div>
 </div>
 <div class="button-group">
 <button class="btn-reset" onclick="backToHome()" style="flex:1">← Powrót</button>
@@ -980,10 +1509,10 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 <div style="display:flex;flex-direction:column;gap:15px">
 <div class="setting-row" style="margin:0">
 <label>Dźwięki:</label>
-<select id="gameSoundToggle" onchange="cfg.sound=this.value==='true'">
-<option value="true">Włączone</option>
-<option value="false">Wyłączone</option>
-</select>
+<label class="toggle-switch">
+<input type="checkbox" id="gameSoundToggle" onchange="updateSound(this.checked)">
+<span class="toggle-slider"></span>
+</label>
 </div>
 <button class="btn-new" onclick="hideO('gameSettings')" style="width:100%">Kontynuuj grę</button>
 <button class="btn-reset" onclick="hideO('gameSettings');confirmBack()" style="width:100%;padding:15px">Powrót do menu</button>
@@ -1032,6 +1561,59 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 </div>
 </div>
 
+<div class="overlay" id="pinOverlay">
+<div class="settings-container" style="max-width:400px">
+<h2 style="font-size:1.8rem;margin-bottom:10px">🔑 PIN do planszy</h2>
+<div class="pin-display" id="pinDisplay">1234</div>
+<p style="font-size:1rem;color:#aaa;margin:15px 0">Podaj ten kod kapitanom drużyn.<br>Mogą go wpisać w menu głównym gry.</p>
+<div style="display:flex;gap:15px;justify-content:center;margin-top:20px">
+<button class="btn-reset" onclick="hideO('pinOverlay')">Zamknij</button>
+</div>
+</div>
+</div>
+
+<div class="overlay" id="captainKeyOverlay">
+<div class="settings-container captain-board-container">
+<h2 style="font-size:1.3rem;margin-bottom:10px">🔑 Klucz kapitana</h2>
+<p style="font-size:0.95rem;color:#aaa;margin-bottom:15px">Wpisz PIN wyświetlony na ekranie z planszą</p>
+<div class="pin-input-section" style="background:transparent;padding:0">
+<div class="pin-input-container">
+<input type="text" id="captainPinInput" maxlength="4" placeholder="●●●●" autocomplete="off" inputmode="numeric">
+</div>
+<p class="pin-error" id="captainPinError">Nieprawidłowy PIN</p>
+</div>
+<div style="display:flex;gap:10px;justify-content:center;margin-top:15px;flex-wrap:wrap">
+<button class="btn-reset" onclick="hideCaptainKeyOverlay()">Anuluj</button>
+<button class="btn-key" onclick="verifyCaptainPin()">Pokaż klucz</button>
+</div>
+</div>
+</div>
+
+<div class="overlay" id="captainBoardOverlay">
+<div class="settings-container captain-board-container">
+<h2 style="font-size:1.3rem;margin-bottom:10px">🔑 Klucz planszy</h2>
+<div class="captain-board" id="captainBoard"></div>
+<div class="captain-legend">
+<span class="legend-item"><span class="legend-color red"></span>Czerwoni</span>
+<span class="legend-item"><span class="legend-color blue"></span>Niebiescy</span>
+<span class="legend-item"><span class="legend-color neutral"></span>Neutralni</span>
+<span class="legend-item"><span class="legend-color assassin"></span>Zabójca</span>
+</div>
+<button class="btn-reset" onclick="confirmCloseCaptainBoard()" style="margin-top:15px">Zamknij</button>
+</div>
+</div>
+
+<div class="overlay" id="closeCaptainConfirm">
+<div class="settings-container" style="max-width:400px">
+<h2 style="font-size:1.5rem;margin-bottom:15px">Zamknąć klucz?</h2>
+<p style="font-size:1rem;color:#f39c12;margin-bottom:20px">Aby ponownie zobaczyć klucz, będziesz musiał wpisać PIN.</p>
+<div style="display:flex;gap:15px;justify-content:center">
+<button class="btn-new" onclick="hideO('closeCaptainConfirm')">Zostań</button>
+<button class="btn-reset" onclick="hideO('closeCaptainConfirm');hideO('captainBoardOverlay')">Zamknij</button>
+</div>
+</div>
+</div>
+
 <div class="overlay" id="newRoundConfirm">
 <div class="settings-container" style="max-width:500px">
 <h2 style="font-size:2rem;margin-bottom:20px">Nowa runda?</h2>
@@ -1045,11 +1627,11 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 
 <div class="overlay" id="backConfirm">
 <div class="settings-container" style="max-width:500px">
-<h2 style="font-size:2rem;margin-bottom:20px">Powrót do menu?</h2>
+<h2 style="font-size:2rem;margin-bottom:20px">Czy chcesz powrócić do menu?</h2>
 <p style="font-size:1.2rem;color:#f39c12;margin-bottom:30px">Cały postęp meczu zostanie utracony!</p>
 <div style="display:flex;gap:15px;justify-content:center">
-<button class="btn-reset" onclick="hideO('backConfirm')">Anuluj</button>
-<button class="btn-key" style="background:#e74c3c" onclick="resetMatch()">Menu</button>
+<button class="btn-key" style="background:#e74c3c" onclick="resetMatch()">Tak</button>
+<button class="btn-reset" onclick="hideO('backConfirm')">Nie</button>
 </div>
 </div>
 </div>
@@ -1062,12 +1644,14 @@ const EMOJIS_BLUE=["🦈","🐺","❄️","🌊","🦋","🛸","⭐","🔮"];
 
 let wordList=WORDS,gameMode='classic',gameOver=false,isSpymaster=false,sideCards={red:[],blue:[]};
 const team={red:{name:"Czerwoni",emoji:"🐉",score:0},blue:{name:"Niebiescy",emoji:"🦈",score:0}};
-const cfg={winTarget:3,sound:true,assassins:1,starter:'random',startAgents:9,otherAgents:8,neutral:7,width:5,height:5,deckStyle:'white'};
+const cfg={winTarget:3,sound:true,assassins:1,starter:'random',startAgents:9,otherAgents:8,neutral:7,width:5,height:5,deckStyle:'white',keyMode:'preview',cardRevealHold:false};
 let remaining={red:0,blue:0};
+let currentPin='';
+let currentBoardData=null; // {words:[], roles:[]}
 
 const $=id=>document.getElementById(id);
-const showO=id=>$(id).style.display='flex';
-const hideO=id=>$(id).style.display='none';
+let showO=id=>$(id).style.display='flex';
+let hideO=id=>$(id).style.display='none';
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 
 function toggleStylePicker(mode){
@@ -1117,21 +1701,6 @@ function buildPickers(){
                 picker.appendChild(div);
             });
         });
-        
-        // Style picker
-        const stylePicker=$(mode+'StylePicker');
-        const styleNameEl=$(mode+'StyleName');
-        if(stylePicker){
-            stylePicker.querySelectorAll('.style-option').forEach(opt=>{
-                opt.onclick=()=>{
-                    stylePicker.querySelectorAll('.style-option').forEach(o=>o.classList.remove('selected'));
-                    opt.classList.add('selected');
-                    $(mode+'Style').value=opt.dataset.style;
-                    styleNameEl.textContent=opt.querySelector('.style-name').textContent;
-                    $(mode+'StyleSelector').closest('.style-row').classList.remove('open');
-                };
-            });
-        }
         
         // Deck picker
         const deckPicker=$(mode+'DeckPicker');
@@ -1199,6 +1768,42 @@ function buildPickers(){
             };
         });
     }
+    
+    // Inicjalizacja keymode toggles - ustaw domyślnie podgląd jako aktywny
+    ['classic','crazy'].forEach(mode=>{
+        const toggle = $(mode+'KeyModeToggle');
+        if(toggle){
+            const container = toggle.closest('.keymode-toggle');
+            if(container){
+                container.querySelector('.keymode-label.left').classList.add('active');
+            }
+        }
+    });
+    
+    // Global style picker
+    const globalStylePicker=$('globalStylePicker');
+    const globalStyleNameEl=$('globalStyleName');
+    if(globalStylePicker){
+        // Załaduj zapisany styl
+        const savedStyle = localStorage.getItem('tajniacy_style') || 'white';
+        $('globalStyle').value = savedStyle;
+        
+        globalStylePicker.querySelectorAll('.style-option').forEach(opt=>{
+            if(opt.dataset.style === savedStyle){
+                globalStylePicker.querySelectorAll('.style-option').forEach(o=>o.classList.remove('selected'));
+                opt.classList.add('selected');
+                globalStyleNameEl.textContent = opt.querySelector('.style-name').textContent;
+            }
+            opt.onclick=()=>{
+                globalStylePicker.querySelectorAll('.style-option').forEach(o=>o.classList.remove('selected'));
+                opt.classList.add('selected');
+                $('globalStyle').value=opt.dataset.style;
+                globalStyleNameEl.textContent=opt.querySelector('.style-name').textContent;
+                $('globalStyleSelector').closest('.style-row').classList.remove('open');
+                localStorage.setItem('tajniacy_style', opt.dataset.style);
+            };
+        });
+    }
 }
 
 function selectMode(mode){
@@ -1207,28 +1812,87 @@ function selectMode(mode){
     showO(mode==='classic'?'classicSettings':'crazySettings');
 }
 
+function showRules(mode){
+    const rules = {
+        classic: `
+            <h3>🎯 Cel gry</h3>
+            <p>Dwie drużyny rywalizują, aby jako pierwsze odnaleźć wszystkich swoich <span class="highlight">agentów</span> ukrytych pod kartami ze słowami.</p>
+            
+            <h3>👥 Drużyny</h3>
+            <p>Gracze dzielą się na dwie drużyny: <span class="danger">Czerwonych</span> i <span class="info">Niebieskich</span>. Każda drużyna wybiera <span class="highlight">Szpiega</span> (kapitana), który zna położenie wszystkich kart.</p>
+            
+            <h3>🎮 Rozgrywka</h3>
+            <ul>
+                <li><span class="highlight">Szpieg</span> podaje swojej drużynie jednowyrazową wskazówkę i liczbę kart, które pasują do tej wskazówki</li>
+                <li>Drużyna próbuje odgadnąć karty swoich agentów</li>
+                <li>Trafienie karty przeciwnika lub neutralnej kończy turę</li>
+                <li>Drużyna zaczynająca ma <span class="highlight">9 agentów</span>, druga ma <span class="highlight">8</span></li>
+            </ul>
+            
+            <h3>☠️ Zabójca</h3>
+            <p>Na planszy jest <span class="danger">1 zabójca</span>. Drużyna, która trafi na zabójcę, <span class="danger">natychmiast przegrywa</span> rundę!</p>
+            
+            <h3>🏆 Zwycięstwo</h3>
+            <p>Rundę wygrywa drużyna, która pierwsza odkryje wszystkich swoich agentów. Mecz wygrywa drużyna, która pierwsza wygra ustaloną liczbę rund.</p>
+        `,
+        crazy: `
+            <h3>🎯 Cel gry</h3>
+            <p>Takie same zasady jak w trybie klasycznym, ale z <span class="danger">większym ryzykiem</span>!</p>
+            
+            <h3>☠️ Wielu zabójców</h3>
+            <p>Możesz ustawić od <span class="danger">1 do 7 zabójców</span> na planszy! Im więcej zabójców, tym mniej neutralnych kart i większe emocje.</p>
+            <ul>
+                <li>1 zabójca = 7 neutralnych</li>
+                <li>3 zabójców = 5 neutralnych</li>
+                <li>7 zabójców = 1 neutralna</li>
+            </ul>
+            
+            <h3>🎲 Wybór startu</h3>
+            <p>W trybie szalonym możesz wybrać, która drużyna zaczyna grę, zamiast losowania.</p>
+            
+            <h3>⚡ Strategia</h3>
+            <p>Więcej zabójców oznacza:</p>
+            <ul>
+                <li>Większe ryzyko przy zgadywaniu</li>
+                <li>Krótsze, bardziej intensywne rundy</li>
+                <li>Ostrożniejsze wskazówki od Szpiega</li>
+            </ul>
+            
+            <h3>🏆 Zwycięstwo</h3>
+            <p>Zasady wygranej pozostają takie same - odkryj wszystkich swoich agentów lub poczekaj, aż przeciwnik trafi na zabójcę!</p>
+        `
+    };
+    
+    $('rulesTitle').textContent = mode === 'classic' ? 'Tryb Klasyczny' : 'Tryb Szalony';
+    $('rulesContent').innerHTML = rules[mode];
+    showO('rulesOverlay');
+}
+
 function backToHome(){hideO('classicSettings');hideO('crazySettings');showO('homeScreen')}
 
 function startClassic(){
     team.red.name=$('classicRedName').value||'Czerwoni';
     team.blue.name=$('classicBlueName').value||'Niebiescy';
     cfg.winTarget=Math.max(1,+$('classicWinTarget').value||3);
-    cfg.deckStyle=$('classicStyle').value;
+    cfg.deckStyle=$('globalStyle').value;
     wordList=$('classicDeck').value==='adult'?ADULT:WORDS;
     cfg.assassins=1;cfg.starter='random';cfg.startAgents=9;cfg.otherAgents=8;cfg.neutral=7;cfg.width=5;cfg.height=5;
+    cfg.keyMode=$('classicKeyMode').value;
     team.red.score=team.blue.score=0;
     hideO('classicSettings');
     $('gameScreen').style.display='flex';
     $('board').className='grid-container deck-'+cfg.deckStyle;
     document.body.classList.add('game-active');
-    updateScore();initRound();
+    updateKeyButtonIcon();
+    updateScore();
+    initRound();
 }
 
 function startCrazy(){
     team.red.name=$('crazyRedName').value||'Czerwoni';
     team.blue.name=$('crazyBlueName').value||'Niebiescy';
     wordList=$('crazyDeck').value==='adult'?ADULT:WORDS;
-    cfg.deckStyle=$('crazyStyle').value;
+    cfg.deckStyle=$('globalStyle').value;
     cfg.assassins=Math.max(1,Math.min(7,+$('crazyAssassins').value||1));
     cfg.starter=$('crazyStarter').value;
     cfg.startAgents=9;
@@ -1237,17 +1901,25 @@ function startCrazy(){
     cfg.width=5;
     cfg.height=5;
     cfg.winTarget=Math.max(1,+$('crazyWinTarget').value||3);
+    cfg.keyMode=$('crazyKeyMode').value;
     team.red.score=team.blue.score=0;
     hideO('crazySettings');
     $('gameScreen').style.display='flex';
     $('board').className='grid-container deck-'+cfg.deckStyle;
     document.body.classList.add('game-active');
-    updateScore();initRound();
+    updateKeyButtonIcon();
+    updateScore();
+    initRound();
 }
 
 function updateScore(){
     $('scoreRedEmoji').textContent=team.red.emoji;$('scoreRedName').textContent=team.red.name;$('scoreRedPoints').textContent=team.red.score;
     $('scoreBlueEmoji').textContent=team.blue.emoji;$('scoreBlueName').textContent=team.blue.name;$('scoreBluePoints').textContent=team.blue.score;
+}
+
+function updateKeyButtonIcon(){
+    const icon = cfg.keyMode === 'pin' ? '🔑' : '👁️';
+    $('keyBtn').querySelector('span').textContent = icon;
 }
 
 function createSideCards(){
@@ -1279,15 +1951,60 @@ function updateSideCard(c){
 }
 
 function genLayout(roles,w,h){
-    let attempts=0,result;
-    do{result=shuffle([...roles]);attempts++}while(!checkLayout(result,w,h)&&attempts<50);
-    return result;
+    let best = null;
+    let bestScore = -Infinity;
+    
+    // Mała szansa na "dziki" układ bez ograniczeń (może mieć 5 w linii)
+    if(Math.random() < 0.15){
+        return shuffle([...roles]);
+    }
+    
+    // Generuj układy i wybierz najlepszy
+    for(let attempt = 0; attempt < 40; attempt++){
+        const candidate = shuffle([...roles]);
+        const score = evaluateDispersion(candidate, w, h);
+        if(score > bestScore){
+            bestScore = score;
+            best = candidate;
+        }
+    }
+    return best;
 }
 
-function checkLayout(r,w,h){
-    for(let row=0;row<h;row++)for(let col=0;col<=w-3;col++){const i=row*w+col;if(r[i]!=='neutral'&&r[i]===r[i+1]&&r[i+1]===r[i+2])return false}
-    for(let col=0;col<w;col++)for(let row=0;row<=h-3;row++){const i=row*w+col;if(r[i]!=='neutral'&&r[i]===r[i+w]&&r[i+w]===r[i+2*w])return false}
-    return true;
+function evaluateDispersion(r, w, h){
+    let score = 0;
+    
+    // Duża kara za kwadraty 2x2 tego samego typu (czerwone, niebieskie, neutralne)
+    for(let row = 0; row < h - 1; row++){
+        for(let col = 0; col < w - 1; col++){
+            const i = row * w + col;
+            const type = r[i];
+            if((type === 'red' || type === 'blue' || type === 'neutral') && 
+               type === r[i+1] && type === r[i+w] && type === r[i+w+1]){
+                score -= 50;
+            }
+        }
+    }
+    
+    // Kara za skupiska w obszarze 3x3 (tylko 6+ kart)
+    for(let row = 0; row <= h - 3; row++){
+        for(let col = 0; col <= w - 3; col++){
+            let redCount = 0, blueCount = 0, neutralCount = 0;
+            for(let dr = 0; dr < 3; dr++){
+                for(let dc = 0; dc < 3; dc++){
+                    const type = r[(row+dr)*w + col+dc];
+                    if(type === 'red') redCount++;
+                    if(type === 'blue') blueCount++;
+                    if(type === 'neutral') neutralCount++;
+                }
+            }
+            if(redCount >= 6) score -= 40;
+            if(blueCount >= 6) score -= 40;
+            if(neutralCount >= 5) score -= 30;
+        }
+    }
+    
+    return score;
 }
 
 function initRound(){
@@ -1295,7 +2012,7 @@ function initRound(){
     board.innerHTML='';hideO('endOverlay');
     gameOver=false;isSpymaster=false;
     document.body.classList.remove('spymaster-mode');
-    $('keyBtn').querySelector('span').textContent='👁️';
+    updateKeyButtonIcon();
     $('keyBtn').classList.remove('active');
     
     const redStarts=cfg.starter==='random'?Math.random()<.5:cfg.starter==='red';
@@ -1309,32 +2026,109 @@ function initRound(){
     
     const words=shuffle([...wordList]).slice(0,cfg.width*cfg.height);
     
+    // Zapisz dane planszy dla kapitana
+    currentBoardData = {words: words, roles: roles};
+    
+    // Generuj PIN i zapisz do localStorage (po utworzeniu danych planszy)
+    generatePin();
+    
     words.forEach((word,i)=>{
         if(i>=roles.length)return;
         const card=document.createElement('div');
         card.className=`card is-${roles[i]}`;
-        card.textContent=word;
-        card.style.opacity='0';
-        card.onclick=()=>{
-            if(gameOver||isSpymaster||card.classList.contains('revealed'))return;
+        card.innerHTML=`
+            <div class="card-inner">
+                <div class="card-back"></div>
+                <div class="card-front">${word}</div>
+            </div>
+        `;
+        card.dataset.index = i;
+        
+        // Funkcja odkrywająca kartę
+        const revealCard = () => {
+            if(gameOver||isSpymaster||card.classList.contains('revealed')||!card.classList.contains('flipped'))return;
             card.classList.add('revealed');
-            animateCardReveal(card);
             playSound('click');
+            
             if(roles[i]==='assassin'){
+                // Animacja zabójcy - shake + flash
+                animateAssassinReveal(card);
                 gameOver=true;
-                $('assRedText').textContent=team.red.name;
-                $('assBlueText').textContent=team.blue.name;
-                showO('assassinOverlay');
+                setTimeout(()=>{
+                    $('assRedText').textContent=team.red.name;
+                    $('assBlueText').textContent=team.blue.name;
+                    showO('assassinOverlay');
+                },600);
                 return;
             }
-            if(roles[i]==='red'){remaining.red--;updateSideCard('red');if(!remaining.red)endRound(null,'red')}
-            if(roles[i]==='blue'){remaining.blue--;updateSideCard('blue');if(!remaining.blue)endRound(null,'blue')}
+            
+            // Zwykła karta - pulse
+            animateCardReveal(card);
+            
+            if(roles[i]==='red'){
+                remaining.red--;
+                updateSideCard('red');
+                if(!remaining.red){
+                    // Wygrana - burst
+                    setTimeout(()=>animateWinBurst('red'),300);
+                    setTimeout(()=>endRound(null,'red'),800);
+                }
+            }
+            if(roles[i]==='blue'){
+                remaining.blue--;
+                updateSideCard('blue');
+                if(!remaining.blue){
+                    // Wygrana - burst
+                    setTimeout(()=>animateWinBurst('blue'),300);
+                    setTimeout(()=>endRound(null,'blue'),800);
+                }
+            }
         };
+        
+        // Obsługa kliknięcia / przytrzymania
+        let cardHoldTimer = null;
+        const CARD_HOLD_TIME = 200;
+        
+        const startCardHold = (e) => {
+            if(gameOver||isSpymaster||card.classList.contains('revealed')||!card.classList.contains('flipped'))return;
+            
+            if(cfg.cardRevealHold){
+                e.preventDefault();
+                card.classList.add('holding');
+                cardHoldTimer = setTimeout(()=>{
+                    card.classList.remove('holding');
+                    revealCard();
+                    cardHoldTimer = null;
+                }, CARD_HOLD_TIME);
+            }
+        };
+        
+        const cancelCardHold = () => {
+            if(cardHoldTimer){
+                clearTimeout(cardHoldTimer);
+                cardHoldTimer = null;
+            }
+            card.classList.remove('holding');
+        };
+        
+        card.onclick = () => {
+            if(!cfg.cardRevealHold){
+                revealCard();
+            }
+        };
+        
+        card.addEventListener('mousedown', startCardHold);
+        card.addEventListener('touchstart', startCardHold, {passive: false});
+        card.addEventListener('mouseup', cancelCardHold);
+        card.addEventListener('mouseleave', cancelCardHold);
+        card.addEventListener('touchend', cancelCardHold);
+        card.addEventListener('touchcancel', cancelCardHold);
+        
         board.appendChild(card);
     });
     
-    // Animacja pojawiania się kart
-    setTimeout(()=>animateCardAppear(board.querySelectorAll('.card')),50);
+    // Animacja flip kart - rewers na awers
+    setTimeout(()=>animateCardsFlip(board.querySelectorAll('.card')),100);
 }
 
 function endRound(resultText,winner,isAssassin=false){
@@ -1362,7 +2156,7 @@ function endRound(resultText,winner,isAssassin=false){
         
         if(team[winner].score>=cfg.winTarget){
             // Wygrana meczu
-            confetti(winner==='red'?'#e74c3c':'#3498db');
+            showConfetti(winner==='red'?'#e74c3c':'#3498db');
             playSound('win');
             resultEl.textContent=`${team[winner].emoji} ${team[winner].name} WYGRYWAJĄ MECZ!`;
             resultEl.classList.add('match-won');
@@ -1394,16 +2188,157 @@ function assassinHit(loser){
 
 function toggleKey(){
     if(gameOver)return;
-    if(!isSpymaster)showO('keyWarning');
-    else{isSpymaster=false;document.body.classList.remove('spymaster-mode');$('keyBtn').querySelector('span').textContent='👁️';$('keyBtn').classList.remove('active')}
+    if(!isSpymaster){
+        if(cfg.keyMode === 'pin'){
+            showO('pinOverlay');
+        } else {
+            showO('keyWarning');
+        }
+    }
+    else{isSpymaster=false;document.body.classList.remove('spymaster-mode');updateKeyButtonIcon();$('keyBtn').classList.remove('active')}
 }
 
 function showKey(){
     hideO('keyWarning');
+    hideO('pinOverlay');
     isSpymaster=true;
     document.body.classList.add('spymaster-mode');
-    $('keyBtn').querySelector('span').textContent='👁️';
+    updateKeyButtonIcon();
     $('keyBtn').classList.add('active');
+}
+
+function generatePin(){
+    currentPin = String(Math.floor(1000 + Math.random() * 9000));
+    $('pinDisplay').textContent = currentPin;
+    
+    // Zapisz do localStorage aby inne karty mogły odczytać
+    localStorage.setItem('tajniacy_pin', currentPin);
+    localStorage.setItem('tajniacy_board', JSON.stringify(currentBoardData));
+}
+
+function showCaptainKeyOverlay(){
+    $('captainPinInput').value = '';
+    $('captainPinInput').classList.remove('error','success');
+    $('captainPinError').classList.remove('visible');
+    showO('captainKeyOverlay');
+    setTimeout(()=>$('captainPinInput').focus(), 300);
+}
+
+function goToHub(){
+    // Placeholder - do implementacji później
+    alert('Funkcja powrotu do HUBu będzie dostępna wkrótce!');
+}
+
+function updateSound(enabled){
+    cfg.sound = enabled;
+    localStorage.setItem('tajniacy_sound', enabled);
+    // Synchronizuj oba togglee
+    if($('globalSoundToggle')) $('globalSoundToggle').checked = enabled;
+    if($('gameSoundToggle')) $('gameSoundToggle').checked = enabled;
+}
+
+function updateKeyMode(mode, isPin){
+    const value = isPin ? 'pin' : 'preview';
+    $(mode + 'KeyMode').value = value;
+    
+    // Aktualizuj wizualne podświetlenie emoji
+    const toggle = $(mode + 'KeyModeToggle').closest('.keymode-toggle');
+    if(toggle){
+        toggle.querySelector('.keymode-label.left').classList.toggle('active', !isPin);
+        toggle.querySelector('.keymode-label.right').classList.toggle('active', isPin);
+    }
+}
+
+function updateCardRevealMode(isHold){
+    cfg.cardRevealHold = isHold;
+    localStorage.setItem('tajniacy_cardRevealHold', isHold);
+    
+    // Aktualizuj wizualne podświetlenie emoji
+    const toggle = $('globalCardRevealToggle').closest('.keymode-toggle');
+    if(toggle){
+        toggle.querySelector('.keymode-label.left').classList.toggle('active', !isHold);
+        toggle.querySelector('.keymode-label.right').classList.toggle('active', isHold);
+    }
+}
+
+function showGlobalSettings(){
+    $('globalSoundToggle').checked = cfg.sound;
+    $('globalCardRevealToggle').checked = cfg.cardRevealHold;
+    
+    // Aktualizuj wizualne podświetlenie emoji dla card reveal
+    const toggle = $('globalCardRevealToggle').closest('.keymode-toggle');
+    if(toggle){
+        toggle.querySelector('.keymode-label.left').classList.toggle('active', !cfg.cardRevealHold);
+        toggle.querySelector('.keymode-label.right').classList.toggle('active', cfg.cardRevealHold);
+    }
+    
+    showO('globalSettingsOverlay');
+}
+
+function hideCaptainKeyOverlay(){
+    hideO('captainKeyOverlay');
+    $('captainPinInput').value = '';
+    $('captainPinInput').classList.remove('error','success');
+    $('captainPinError').classList.remove('visible');
+}
+
+function verifyCaptainPin(){
+    const input = $('captainPinInput');
+    const error = $('captainPinError');
+    
+    // Odczytaj dane z localStorage (mogą być z innej karty)
+    const savedPin = localStorage.getItem('tajniacy_pin');
+    const savedBoard = localStorage.getItem('tajniacy_board');
+    
+    if(!savedPin || !savedBoard){
+        error.textContent = 'Brak aktywnej gry';
+        error.classList.add('visible');
+        input.classList.add('error');
+        setTimeout(()=>input.classList.remove('error'), 300);
+        return;
+    }
+    
+    if(input.value === savedPin){
+        input.classList.remove('error');
+        input.classList.add('success');
+        error.classList.remove('visible');
+        
+        try {
+            // Załaduj dane planszy z localStorage
+            const boardData = JSON.parse(savedBoard);
+            
+            // Najpierw przygotuj planszę
+            buildCaptainBoard(boardData);
+            
+            // Ukryj input overlay i pokaż planszę
+            $('captainKeyOverlay').style.display = 'none';
+            $('captainBoardOverlay').style.display = 'flex';
+        } catch(e) {
+            error.textContent = 'Błąd wczytywania planszy';
+            error.classList.add('visible');
+        }
+    } else {
+        error.textContent = 'Nieprawidłowy PIN';
+        input.classList.add('error');
+        error.classList.add('visible');
+        setTimeout(()=>input.classList.remove('error'), 300);
+    }
+}
+
+function buildCaptainBoard(boardData){
+    const board = $('captainBoard');
+    board.innerHTML = '';
+    
+    boardData.words.forEach((word, i) => {
+        const card = document.createElement('div');
+        card.className = `captain-card is-${boardData.roles[i]}`;
+        card.textContent = word;
+        board.appendChild(card);
+    });
+}
+
+function confirmCloseCaptainBoard(){
+    showO('closeCaptainConfirm');
 }
 
 function confirmNewRound(){
@@ -1426,7 +2361,7 @@ function resetMatch(){
     gameOver=false;isSpymaster=false;
 }
 
-function confetti(color){
+function showConfetti(color){
     const colors = color === '#e74c3c' ? ['#e74c3c','#c0392b','#ff6b6b','#ee5a24'] : ['#3498db','#2980b9','#74b9ff','#0984e3'];
     for(let i=0;i<80;i++){
         const c=document.createElement('div');
@@ -1454,23 +2389,96 @@ function confetti(color){
 
 // Animacje Anime.js
 function animateCardReveal(card){
+    // Pulse + scale
     anime({
         targets:card,
-        scale:[1,1.1,1],
-        rotateY:[0,10,0],
-        duration:400,
+        scale:[1,1.15,1],
+        boxShadow:['0 4px 12px rgba(0,0,0,0.3)','0 8px 30px rgba(0,0,0,0.5)','0 4px 12px rgba(0,0,0,0.3)'],
+        duration:350,
         easing:'easeOutBack'
     });
 }
 
-function animateCardAppear(cards){
+function animateAssassinReveal(card){
+    // Shake + flash
     anime({
-        targets:cards,
-        scale:[0.8,1],
-        opacity:[0,1],
-        delay:anime.stagger(30,{grid:[5,5],from:'center'}),
+        targets:card,
+        translateX:[0,-8,8,-8,8,-4,4,0],
         duration:400,
-        easing:'easeOutBack'
+        easing:'easeInOutQuad'
+    });
+    
+    // Flash effect na card-front
+    const cardFront = card.querySelector('.card-front');
+    if(cardFront){
+        anime({
+            targets:cardFront,
+            boxShadow:['inset 0 0 20px rgba(0,0,0,0.3)','0 0 40px rgba(255,0,0,0.8)','inset 0 0 20px rgba(0,0,0,0.3)'],
+            duration:600,
+            easing:'easeOutQuad'
+        });
+    }
+    
+    playSound('assassin');
+}
+
+function animateWinBurst(color){
+    const boardRect=$('board').getBoundingClientRect();
+    const centerX=boardRect.left+boardRect.width/2;
+    const centerY=boardRect.top+boardRect.height/2;
+    const burstColor=color==='red'?'#e74c3c':'#3498db';
+    const burstColorLight=color==='red'?'#ff6b6b':'#74b9ff';
+    
+    // Duży burst z centrum planszy
+    for(let i=0;i<50;i++){
+        const particle=document.createElement('div');
+        const size=10+Math.random()*15;
+        particle.style.cssText=`
+            position:fixed;
+            left:${centerX}px;
+            top:${centerY}px;
+            width:${size}px;
+            height:${size}px;
+            background:${Math.random()>0.5?burstColor:burstColorLight};
+            border-radius:50%;
+            pointer-events:none;
+            z-index:9999;
+            transform:translate(-50%,-50%);
+        `;
+        document.body.appendChild(particle);
+        
+        const angle=Math.random()*Math.PI*2;
+        const distance=150+Math.random()*200;
+        
+        anime({
+            targets:particle,
+            translateX:Math.cos(angle)*distance,
+            translateY:Math.sin(angle)*distance,
+            scale:[0,1.5,0],
+            opacity:[1,1,0],
+            duration:800+Math.random()*400,
+            easing:'easeOutCubic',
+            complete:()=>particle.remove()
+        });
+    }
+}
+
+function animateCardsFlip(cards){
+    // Karty pojawiają się najpierw (rewersem)
+    cards.forEach(card => {
+        card.style.opacity = '1';
+    });
+    
+    // Flip z opóźnieniem dla każdej karty
+    cards.forEach((card, i) => {
+        const row = Math.floor(i / 5);
+        const col = i % 5;
+        // Delay bazowany na odległości od lewego górnego rogu
+        const delay = (row + col) * 120 + 300;
+        
+        setTimeout(() => {
+            card.classList.add('flipped');
+        }, delay);
     });
 }
 
@@ -1496,14 +2504,120 @@ function animateTokensAppear(tokens){
 }
 
 function animateOverlayShow(overlay){
-    const container=overlay.querySelector('.settings-container, .home-container, #endText');
+    const id = overlay.id;
     anime.set(overlay,{display:'flex'});
     anime({
         targets:overlay,
         opacity:[0,1],
-        duration:200,
+        duration:250,
         easing:'easeOutQuad'
     });
+    
+    // Home screen - animacje tytułu i kart trybów
+    if(id === 'homeScreen'){
+        const title = overlay.querySelector('.home-title');
+        const subtitle = overlay.querySelector('.home-subtitle');
+        const modeCards = overlay.querySelectorAll('.mode-card');
+        
+        if(title){
+            anime({
+                targets:title,
+                translateY:[-30,0],
+                opacity:[0,1],
+                duration:500,
+                easing:'easeOutBack'
+            });
+        }
+        if(subtitle){
+            anime({
+                targets:subtitle,
+                translateY:[-20,0],
+                opacity:[0,1],
+                duration:400,
+                delay:100,
+                easing:'easeOutQuad'
+            });
+        }
+        if(modeCards.length){
+            anime({
+                targets:modeCards,
+                translateY:[40,0],
+                opacity:[0,1],
+                delay:anime.stagger(100,{start:200}),
+                duration:500,
+                easing:'easeOutBack'
+            });
+        }
+        return;
+    }
+    
+    // Settings screens - prosta animacja
+    if(id === 'classicSettings' || id === 'crazySettings'){
+        const container = overlay.querySelector('.settings-container');
+        if(container){
+            anime({
+                targets:container,
+                translateY:[20,0],
+                opacity:[0,1],
+                duration:300,
+                easing:'easeOutQuad'
+            });
+        }
+        return;
+    }
+    
+    // End overlay - animacja wyniku
+    if(id === 'endOverlay'){
+        const container = overlay.querySelector('.end-container');
+        const result = overlay.querySelector('.end-result');
+        const scores = overlay.querySelector('.end-scores');
+        const target = overlay.querySelector('.end-target');
+        const btns = overlay.querySelectorAll('.end-container button');
+        
+        if(container) anime.set(container,{opacity:1});
+        if(result){
+            anime({
+                targets:result,
+                scale:[0.5,1],
+                opacity:[0,1],
+                duration:500,
+                easing:'easeOutBack'
+            });
+        }
+        if(scores){
+            anime({
+                targets:scores,
+                translateY:[30,0],
+                opacity:[0,1],
+                delay:200,
+                duration:400,
+                easing:'easeOutQuad'
+            });
+        }
+        if(target){
+            anime({
+                targets:target,
+                opacity:[0,1],
+                delay:350,
+                duration:300,
+                easing:'easeOutQuad'
+            });
+        }
+        if(btns.length){
+            anime({
+                targets:btns,
+                translateY:[20,0],
+                opacity:[0,1],
+                delay:anime.stagger(100,{start:450}),
+                duration:350,
+                easing:'easeOutBack'
+            });
+        }
+        return;
+    }
+    
+    // Domyślna animacja dla pozostałych overlay (confirmy, warnings)
+    const container = overlay.querySelector('.settings-container');
     if(container){
         anime({
             targets:container,
@@ -1568,6 +2682,19 @@ function playSound(type){
 }
 
 buildPickers();
+
+// Załaduj ustawienia dźwięku z localStorage
+const savedSound = localStorage.getItem('tajniacy_sound');
+if(savedSound !== null){
+    cfg.sound = savedSound === 'true';
+}
+
+// Załaduj ustawienia odkrywania kart z localStorage
+const savedCardRevealHold = localStorage.getItem('tajniacy_cardRevealHold');
+if(savedCardRevealHold !== null){
+    cfg.cardRevealHold = savedCardRevealHold === 'true';
+}
+
 showO('homeScreen');
 
 // Obsługa przytrzymania przycisków z animacją
@@ -1575,7 +2702,7 @@ let holdTimer=null;
 let holdAnimation=null;
 const HOLD_TIME=500;
 
-function setupHoldButton(btnId,action){
+function setupHoldButton(btnId,action,condition){
     const btn=$(btnId);
     if(!btn)return;
     
@@ -1587,6 +2714,11 @@ function setupHoldButton(btnId,action){
     }
     
     const startHold=(e)=>{
+        // Sprawdź warunek - jeśli false, nie uruchamiaj animacji
+        if(condition && !condition()){
+            return;
+        }
+        
         e.preventDefault();
         btn.classList.add('holding');
         
@@ -1648,14 +2780,27 @@ setupHoldButton('newRoundBtn',()=>{
     else initRound();
 });
 
+// keyBtn - hold tylko dla trybu preview, click dla PIN
 setupHoldButton('keyBtn',()=>{
     if(gameOver)return;
-    if(!isSpymaster)showO('keyWarning');
+    if(cfg.keyMode === 'preview' && !isSpymaster){
+        showO('keyWarning');
+    }
+}, ()=> cfg.keyMode === 'preview' && !isSpymaster);
+
+// Obsługa kliknięcia keyBtn
+$('keyBtn').addEventListener('click',()=>{
+    if(gameOver)return;
+    if(isSpymaster){
+        toggleKey();
+    } else if(cfg.keyMode === 'pin'){
+        showO('pinOverlay');
+    }
 });
 
-// Natychmiastowe wyjście z trybu klucza
-$('keyBtn').addEventListener('click',()=>{
-    if(isSpymaster)toggleKey();
+// Obsługa Enter w polu PIN kapitana
+$('captainPinInput').addEventListener('keyup',(e)=>{
+    if(e.key === 'Enter') verifyCaptainPin();
 });
 
 // Animowane przejścia overlay
@@ -1666,7 +2811,7 @@ showO=id=>{
         animateOverlayShow(overlay);
     }
     if(id==='gameSettings'){
-        $('gameSoundToggle').value=cfg.sound?'true':'false';
+        $('gameSoundToggle').checked=cfg.sound;
     }
 };
 
@@ -1677,6 +2822,538 @@ hideO=id=>{
         animateOverlayHide(overlay);
     }
 };
+
+// ==================== OBSŁUGA KLAWIATURY ====================
+let selectedCardIndex = -1;
+let keyboardMode = false;
+
+function getVisibleCards(){
+    return Array.from($('board').querySelectorAll('.card:not(.revealed)'));
+}
+
+function getAllCards(){
+    return Array.from($('board').querySelectorAll('.card'));
+}
+
+function updateCardSelection(newIndex){
+    const allCards = getAllCards();
+    if(allCards.length === 0) return;
+    
+    // Usuń poprzednie zaznaczenie
+    allCards.forEach(c => c.classList.remove('keyboard-selected'));
+    
+    // Ogranicz indeks
+    if(newIndex < 0) newIndex = 0;
+    if(newIndex >= allCards.length) newIndex = allCards.length - 1;
+    
+    selectedCardIndex = newIndex;
+    allCards[selectedCardIndex].classList.add('keyboard-selected');
+    
+    // Przewiń do widoczności jeśli trzeba
+    allCards[selectedCardIndex].scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function moveSelection(dx, dy){
+    if(!keyboardMode || $('gameScreen').style.display === 'none') return;
+    
+    const cols = 5;
+    const allCards = getAllCards();
+    if(allCards.length === 0) return;
+    
+    if(selectedCardIndex < 0) {
+        updateCardSelection(0);
+        return;
+    }
+    
+    let newIndex = selectedCardIndex;
+    const row = Math.floor(selectedCardIndex / cols);
+    const col = selectedCardIndex % cols;
+    
+    if(dx !== 0){
+        const newCol = col + dx;
+        if(newCol >= 0 && newCol < cols){
+            newIndex = row * cols + newCol;
+        }
+    }
+    if(dy !== 0){
+        const newRow = row + dy;
+        if(newRow >= 0 && newRow < Math.ceil(allCards.length / cols)){
+            newIndex = newRow * cols + col;
+            if(newIndex >= allCards.length) newIndex = allCards.length - 1;
+        }
+    }
+    
+    updateCardSelection(newIndex);
+}
+
+function activateSelectedCard(){
+    if(selectedCardIndex < 0) return;
+    const allCards = getAllCards();
+    const card = allCards[selectedCardIndex];
+    if(card && !card.classList.contains('revealed') && card.classList.contains('flipped')){
+        // Dla klawiatury/gamepada - bezpośrednie odkrycie (pomijamy hold)
+        // Symulujemy zdarzenie mousedown + mouseup z opóźnieniem lub bezpośredni click
+        if(cfg.cardRevealHold){
+            // Symuluj przytrzymanie
+            const mousedown = new MouseEvent('mousedown', {bubbles: true});
+            card.dispatchEvent(mousedown);
+            setTimeout(() => {
+                const mouseup = new MouseEvent('mouseup', {bubbles: true});
+                card.dispatchEvent(mouseup);
+            }, 250); // trochę dłużej niż CARD_HOLD_TIME
+        } else {
+            card.click();
+        }
+    }
+}
+
+function enableKeyboardMode(){
+    if(!keyboardMode){
+        keyboardMode = true;
+        if(selectedCardIndex < 0 && $('gameScreen').style.display !== 'none'){
+            updateCardSelection(0);
+        }
+    }
+}
+
+function disableKeyboardMode(){
+    keyboardMode = false;
+    const allCards = getAllCards();
+    allCards.forEach(c => c.classList.remove('keyboard-selected'));
+    selectedCardIndex = -1;
+}
+
+function getActiveOverlay(){
+    const overlays = ['endOverlay','assassinOverlay','keyWarning','pinOverlay','captainKeyOverlay',
+                      'captainBoardOverlay','closeCaptainConfirm','newRoundConfirm','backConfirm',
+                      'gameSettings','globalSettingsOverlay','rulesOverlay','classicSettings','crazySettings'];
+    for(const id of overlays){
+        const el = $(id);
+        if(el && el.style.display === 'flex') return id;
+    }
+    return null;
+}
+
+// Przytrzymanie klawiszy
+let keyHoldTimers = {};
+
+document.addEventListener('keydown', (e) => {
+    const activeOverlay = getActiveOverlay();
+    const onGameScreen = $('gameScreen').style.display !== 'none' && !activeOverlay;
+    
+    // Escape - zamknij overlay lub wyjdź z trybu klucza
+    if(e.key === 'Escape'){
+        if(activeOverlay){
+            // Specjalna obsługa dla niektórych overlayów
+            if(activeOverlay === 'assassinOverlay') return; // nie zamykaj
+            if(activeOverlay === 'captainBoardOverlay'){
+                confirmCloseCaptainBoard();
+                return;
+            }
+            // Ustawienia trybu - wróć do menu głównego
+            if(activeOverlay === 'classicSettings' || activeOverlay === 'crazySettings'){
+                backToHome();
+                return;
+            }
+            hideO(activeOverlay);
+        } else if(isSpymaster){
+            toggleKey();
+        } else if(keyboardMode){
+            disableKeyboardMode();
+        }
+        return;
+    }
+    
+    // Na ekranie gry
+    if(onGameScreen && !gameOver){
+        // Nawigacja strzałkami / WASD
+        if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(e.key)){
+            e.preventDefault();
+            enableKeyboardMode();
+            
+            switch(e.key.toLowerCase()){
+                case 'arrowup': case 'w': moveSelection(0, -1); break;
+                case 'arrowdown': case 's': moveSelection(0, 1); break;
+                case 'arrowleft': case 'a': moveSelection(-1, 0); break;
+                case 'arrowright': case 'd': moveSelection(1, 0); break;
+            }
+            return;
+        }
+        
+        // Enter / Spacja - odkryj kartę
+        if((e.key === 'Enter' || e.key === ' ') && keyboardMode && !isSpymaster){
+            e.preventDefault();
+            activateSelectedCard();
+            return;
+        }
+        
+        // K - klucz (przytrzymaj w trybie preview)
+        if(e.key.toLowerCase() === 'k' && !e.repeat){
+            e.preventDefault();
+            if(cfg.keyMode === 'pin'){
+                showO('pinOverlay');
+            } else if(!isSpymaster){
+                // Przytrzymanie dla trybu preview
+                if(!keyHoldTimers['k']){
+                    keyHoldTimers['k'] = setTimeout(()=>{
+                        showO('keyWarning');
+                        keyHoldTimers['k'] = null;
+                    }, HOLD_TIME);
+                }
+            } else {
+                toggleKey();
+            }
+            return;
+        }
+        
+        // N - nowa runda (przytrzymaj)
+        if(e.key.toLowerCase() === 'n' && !e.repeat){
+            e.preventDefault();
+            if(!keyHoldTimers['n']){
+                keyHoldTimers['n'] = setTimeout(()=>{
+                    if(!gameOver && $('board').children.length){
+                        showO('newRoundConfirm');
+                    } else {
+                        initRound();
+                    }
+                    keyHoldTimers['n'] = null;
+                }, HOLD_TIME);
+            }
+            return;
+        }
+        
+        // P - ustawienia
+        if(e.key.toLowerCase() === 'p'){
+            e.preventDefault();
+            showO('gameSettings');
+            return;
+        }
+    }
+    
+    // Na overlayach - Enter potwierdza główną akcję
+    if(activeOverlay && e.key === 'Enter'){
+        e.preventDefault();
+        switch(activeOverlay){
+            case 'keyWarning':
+                showKey();
+                break;
+            case 'newRoundConfirm':
+                hideO('newRoundConfirm');
+                initRound();
+                break;
+            case 'backConfirm':
+                resetMatch();
+                break;
+            case 'captainKeyOverlay':
+                verifyCaptainPin();
+                break;
+            case 'closeCaptainConfirm':
+                hideO('closeCaptainConfirm');
+                hideO('captainBoardOverlay');
+                break;
+            case 'gameSettings':
+                hideO('gameSettings');
+                break;
+            case 'globalSettingsOverlay':
+                hideO('globalSettingsOverlay');
+                break;
+            case 'rulesOverlay':
+                hideO('rulesOverlay');
+                break;
+        }
+    }
+    
+    // Na ekranie głównym
+    if($('homeScreen').style.display === 'flex' && !activeOverlay){
+        if(e.key === '1'){
+            selectMode('classic');
+        } else if(e.key === '2'){
+            selectMode('crazy');
+        }
+    }
+});
+
+document.addEventListener('keyup', (e) => {
+    // Anuluj hold timery
+    if(e.key.toLowerCase() === 'k' && keyHoldTimers['k']){
+        clearTimeout(keyHoldTimers['k']);
+        keyHoldTimers['k'] = null;
+    }
+    if(e.key.toLowerCase() === 'n' && keyHoldTimers['n']){
+        clearTimeout(keyHoldTimers['n']);
+        keyHoldTimers['n'] = null;
+    }
+});
+
+// Wyłącz tryb klawiatury przy kliknięciu myszą
+document.addEventListener('mousedown', () => {
+    if(keyboardMode) disableKeyboardMode();
+});
+
+// Reset zaznaczenia przy nowej rundzie
+const origInitRound = initRound;
+initRound = function(){
+    disableKeyboardMode();
+    origInitRound.apply(this, arguments);
+};
+
+// ==================== OBSŁUGA GAMEPADA ====================
+let gamepadIndex = null;
+let gamepadPrevState = {};
+let gamepadHoldTimers = {};
+let gamepadAxisCooldown = {x: 0, y: 0};
+const AXIS_THRESHOLD = 0.5;
+const AXIS_COOLDOWN = 150; // ms między ruchami
+
+window.addEventListener('gamepadconnected', (e) => {
+    console.log('Gamepad connected:', e.gamepad.id);
+    gamepadIndex = e.gamepad.index;
+    gamepadPrevState = {};
+});
+
+window.addEventListener('gamepaddisconnected', (e) => {
+    console.log('Gamepad disconnected');
+    if(gamepadIndex === e.gamepad.index){
+        gamepadIndex = null;
+        gamepadPrevState = {};
+    }
+});
+
+function pollGamepad(){
+    if(gamepadIndex === null){
+        requestAnimationFrame(pollGamepad);
+        return;
+    }
+    
+    const gamepads = navigator.getGamepads();
+    const gp = gamepads[gamepadIndex];
+    
+    if(!gp){
+        requestAnimationFrame(pollGamepad);
+        return;
+    }
+    
+    const now = Date.now();
+    const activeOverlay = getActiveOverlay();
+    const onGameScreen = $('gameScreen').style.display !== 'none' && !activeOverlay;
+    const onHomeScreen = $('homeScreen').style.display === 'flex' && !activeOverlay;
+    
+    // Mapowanie przycisków (Xbox / PlayStation):
+    // 0 = A / X (potwierdź)
+    // 1 = B / O (anuluj)
+    // 2 = X / □ 
+    // 3 = Y / △ (klucz)
+    // 4 = LB / L1
+    // 5 = RB / R1
+    // 6 = LT / L2
+    // 7 = RT / R2
+    // 8 = Back/Select / Share
+    // 9 = Start / Options (ustawienia)
+    // 12 = D-pad Up
+    // 13 = D-pad Down
+    // 14 = D-pad Left
+    // 15 = D-pad Right
+    
+    // Helper: sprawdź czy przycisk został właśnie wciśnięty
+    const justPressed = (btnIndex) => {
+        const pressed = gp.buttons[btnIndex]?.pressed;
+        const wasPressed = gamepadPrevState[`btn${btnIndex}`];
+        gamepadPrevState[`btn${btnIndex}`] = pressed;
+        return pressed && !wasPressed;
+    };
+    
+    // Helper: sprawdź czy przycisk jest trzymany
+    const isHeld = (btnIndex) => gp.buttons[btnIndex]?.pressed;
+    
+    // D-pad / lewy analog - nawigacja
+    let dx = 0, dy = 0;
+    
+    // D-pad
+    if(justPressed(12)) dy = -1; // Up
+    if(justPressed(13)) dy = 1;  // Down
+    if(justPressed(14)) dx = -1; // Left
+    if(justPressed(15)) dx = 1;  // Right
+    
+    // Lewy analog (z cooldown)
+    const axisX = gp.axes[0] || 0;
+    const axisY = gp.axes[1] || 0;
+    
+    if(Math.abs(axisX) > AXIS_THRESHOLD && now > gamepadAxisCooldown.x){
+        dx = axisX > 0 ? 1 : -1;
+        gamepadAxisCooldown.x = now + AXIS_COOLDOWN;
+    }
+    if(Math.abs(axisY) > AXIS_THRESHOLD && now > gamepadAxisCooldown.y){
+        dy = axisY > 0 ? 1 : -1;
+        gamepadAxisCooldown.y = now + AXIS_COOLDOWN;
+    }
+    
+    // Reset cooldown gdy analog wraca do środka
+    if(Math.abs(axisX) < 0.2) gamepadAxisCooldown.x = 0;
+    if(Math.abs(axisY) < 0.2) gamepadAxisCooldown.y = 0;
+    
+    // Na planszy gry
+    if(onGameScreen && !gameOver){
+        // Nawigacja
+        if(dx !== 0 || dy !== 0){
+            enableKeyboardMode();
+            moveSelection(dx, dy);
+        }
+        
+        // A / X - odkryj kartę
+        if(justPressed(0) && keyboardMode && !isSpymaster){
+            activateSelectedCard();
+        }
+        
+        // B / O - wyjdź z trybu klucza
+        if(justPressed(1)){
+            if(isSpymaster){
+                toggleKey();
+            } else if(keyboardMode){
+                disableKeyboardMode();
+            }
+        }
+        
+        // Y / △ - klucz (przytrzymaj w trybie preview)
+        if(justPressed(3)){
+            if(cfg.keyMode === 'pin'){
+                showO('pinOverlay');
+            } else if(isSpymaster){
+                toggleKey();
+            } else {
+                // Rozpocznij timer dla hold
+                if(!gamepadHoldTimers['y']){
+                    gamepadHoldTimers['y'] = setTimeout(()=>{
+                        if(isHeld(3)){
+                            showO('keyWarning');
+                        }
+                        gamepadHoldTimers['y'] = null;
+                    }, HOLD_TIME);
+                }
+            }
+        }
+        if(!isHeld(3) && gamepadHoldTimers['y']){
+            clearTimeout(gamepadHoldTimers['y']);
+            gamepadHoldTimers['y'] = null;
+        }
+        
+        // X / □ - nowa runda (przytrzymaj)
+        if(justPressed(2)){
+            if(!gamepadHoldTimers['x']){
+                gamepadHoldTimers['x'] = setTimeout(()=>{
+                    if(isHeld(2)){
+                        if(!gameOver && $('board').children.length){
+                            showO('newRoundConfirm');
+                        } else {
+                            initRound();
+                        }
+                    }
+                    gamepadHoldTimers['x'] = null;
+                }, HOLD_TIME);
+            }
+        }
+        if(!isHeld(2) && gamepadHoldTimers['x']){
+            clearTimeout(gamepadHoldTimers['x']);
+            gamepadHoldTimers['x'] = null;
+        }
+        
+        // Start - ustawienia
+        if(justPressed(9)){
+            showO('gameSettings');
+        }
+    }
+    
+    // Na overlayach
+    if(activeOverlay){
+        // A - potwierdź
+        if(justPressed(0)){
+            switch(activeOverlay){
+                case 'keyWarning':
+                    showKey();
+                    break;
+                case 'newRoundConfirm':
+                    hideO('newRoundConfirm');
+                    initRound();
+                    break;
+                case 'backConfirm':
+                    resetMatch();
+                    break;
+                case 'closeCaptainConfirm':
+                    hideO('closeCaptainConfirm');
+                    hideO('captainBoardOverlay');
+                    break;
+                case 'gameSettings':
+                    hideO('gameSettings');
+                    break;
+                case 'globalSettingsOverlay':
+                    hideO('globalSettingsOverlay');
+                    break;
+                case 'rulesOverlay':
+                    hideO('rulesOverlay');
+                    break;
+                case 'endOverlay':
+                    if($('nextRoundBtn').style.display !== 'none'){
+                        hideO('endOverlay');
+                        initRound();
+                    } else {
+                        resetMatch();
+                    }
+                    break;
+            }
+        }
+        
+        // B - anuluj/zamknij
+        if(justPressed(1)){
+            if(activeOverlay === 'assassinOverlay') {
+                // Nie zamykaj - trzeba wybrać drużynę
+            } else if(activeOverlay === 'captainBoardOverlay'){
+                confirmCloseCaptainBoard();
+            } else if(activeOverlay === 'closeCaptainConfirm'){
+                hideO('closeCaptainConfirm');
+            } else if(activeOverlay === 'classicSettings' || activeOverlay === 'crazySettings'){
+                backToHome();
+            } else {
+                hideO(activeOverlay);
+            }
+        }
+        
+        // Assassin overlay - LB/RB do wyboru drużyny
+        if(activeOverlay === 'assassinOverlay'){
+            if(justPressed(4)){ // LB - czerwoni
+                assassinHit('red');
+            }
+            if(justPressed(5)){ // RB - niebiescy
+                assassinHit('blue');
+            }
+        }
+    }
+    
+    // Na ekranie głównym
+    if(onHomeScreen){
+        // A lub nawigacja w prawo - tryb klasyczny (lewy kafelek)
+        // Nawigacja do wyboru trybu
+        if(justPressed(0) || justPressed(14)){ // A lub D-pad Left
+            selectMode('classic');
+        }
+        if(justPressed(15)){ // D-pad Right
+            selectMode('crazy');
+        }
+        
+        // Start - ustawienia
+        if(justPressed(9)){
+            showGlobalSettings();
+        }
+        
+        // Y - klucz kapitana
+        if(justPressed(3)){
+            showCaptainKeyOverlay();
+        }
+    }
+    
+    requestAnimationFrame(pollGamepad);
+}
+
+// Rozpocznij nasłuchiwanie gamepada
+requestAnimationFrame(pollGamepad);
 </script>
 </body>
 </html>
