@@ -1949,10 +1949,10 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 <div class="overlay" id="closeCaptainConfirm">
 <div class="settings-container" style="max-width:400px">
 <h2 style="font-size:1.5rem;margin-bottom:15px">Zamknąć klucz?</h2>
-<p style="font-size:1rem;color:#f39c12;margin-bottom:20px">Aby ponownie zobaczyć klucz, będziesz musiał wpisać PIN.</p>
+<p style="font-size:1rem;color:#f39c12;margin-bottom:20px">Aby ponownie zobaczyć klucz, będziesz musiał wpisać kod gry i PIN.</p>
 <div style="display:flex;gap:15px;justify-content:center">
 <button class="btn-new" onclick="hideO('closeCaptainConfirm')">Zostań</button>
-<button class="btn-reset" onclick="hideO('closeCaptainConfirm');hideO('captainBoardOverlay')">Zamknij</button>
+<button class="btn-reset" onclick="closeCaptainBoardAndReturn()">Zamknij</button>
 </div>
 </div>
 </div>
@@ -2635,11 +2635,26 @@ function generateSessionCode() {
 }
 
 function showCaptainKeyOverlay(){
+    // Wyczyść wszystkie pola
     $('captainPinInput').value = '';
     $('captainPinInput').classList.remove('error','success');
-    $('captainPinError').classList.remove('visible');
+    if($('sessionCodeInput')) $('sessionCodeInput').value = '';
+    
+    // Resetuj komunikat błędu
+    const error = $('captainPinError');
+    error.textContent = '';
+    error.classList.remove('visible');
+    error.style.color = '#e74c3c';
+    
+    // Upewnij się że inne overlaye kapitana są zamknięte
+    hideO('captainBoardOverlay');
+    hideO('closeCaptainConfirm');
+    
     showO('captainKeyOverlay');
-    setTimeout(()=>$('captainPinInput').focus(), 300);
+    setTimeout(()=>{
+        if($('sessionCodeInput')) $('sessionCodeInput').focus();
+        else $('captainPinInput').focus();
+    }, 300);
 }
 
 function goToHub(){
@@ -2802,6 +2817,13 @@ function buildCaptainBoard(boardData){
 
 function confirmCloseCaptainBoard(){
     showO('closeCaptainConfirm');
+}
+
+function closeCaptainBoardAndReturn(){
+    hideO('closeCaptainConfirm');
+    hideO('captainBoardOverlay');
+    // Upewnij się że homeScreen jest widoczny
+    showO('homeScreen');
 }
 
 function confirmNewRound(){
