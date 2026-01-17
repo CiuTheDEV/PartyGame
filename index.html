@@ -385,30 +385,23 @@ body.spymaster-mode .card.revealed .card-front{
 .mode-card.open .mode-arrow{transform:rotate(180deg)}
 
 .mode-content{
-    display:grid;
-    grid-template-rows:0fr;
-    transition:grid-template-rows .3s ease;
+    max-height:0;
+    overflow:hidden;
+    transition:max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     border-top:1px solid transparent;
 }
 .mode-card.open .mode-content{
-    grid-template-rows:1fr;
+    max-height:500px;
     border-top-color:#333;
 }
 .mode-content-inner{
-    overflow:hidden;
     display:flex;
     flex-direction:row;
     align-items:flex-end;
     justify-content:space-between;
     gap:clamp(15px,3vmin,25px);
-}
-.mode-card.open .mode-content-inner{
     padding:clamp(12px,2vmin,20px) clamp(15px,3vmin,30px);
     background:rgba(0,0,0,0.2);
-}
-.mode-content-inner{
-    padding:0 clamp(15px,3vmin,30px);
-    transition:padding .3s ease, background .3s ease;
 }
 
 .mode-details{
@@ -416,7 +409,7 @@ body.spymaster-mode .card.revealed .card-front{
     min-width:0;
     opacity:0;
     transform:translateY(-10px);
-    transition:opacity .3s ease .1s, transform .3s ease .1s;
+    transition:opacity 0.4s ease 0.15s, transform 0.4s ease 0.15s;
 }
 .mode-card.open .mode-details{
     opacity:1;
@@ -430,7 +423,7 @@ body.spymaster-mode .card.revealed .card-front{
     align-self:flex-end;
     opacity:0;
     transform:translateX(10px);
-    transition:opacity .3s ease .15s, transform .3s ease .15s;
+    transition:opacity 0.4s ease 0.2s, transform 0.4s ease 0.2s;
 }
 .mode-card.open .mode-buttons{
     opacity:1;
@@ -598,7 +591,9 @@ body.spymaster-mode .card.revealed .card-front{
 }
 .game-settings{background:#1a1a1a;border-radius:clamp(8px,1.2vmin,15px);padding:clamp(12px,2vmin,25px);margin-bottom:2vh;overflow:hidden}
 .game-settings h3{color:#FF9800;margin-bottom:clamp(10px,1.5vmin,15px);font-size:clamp(1rem,2.2vmin,1.4rem)}
-.setting-row{display:flex;justify-content:space-between;align-items:center;margin:clamp(6px,1vmin,12px) 0;padding:clamp(8px,1.2vmin,12px);background:#2a2a2a;border-radius:clamp(6px,1vmin,10px);flex-wrap:wrap;gap:8px;box-sizing:border-box;max-width:100%}
+.setting-row{display:flex;justify-content:space-between;align-items:center;margin:6px 0;padding:clamp(8px,1.2vmin,12px);background:#2a2a2a;border-radius:clamp(6px,1vmin,10px);flex-wrap:wrap;gap:8px;box-sizing:border-box;max-width:100%}
+.setting-row:first-child{margin-top:0}
+.setting-row:last-child{margin-bottom:0}
 .setting-row label{font-size:clamp(0.85rem,2vmin,1.2rem);color:#ccc}
 .setting-row input,.setting-row select{
     padding:clamp(6px,1vmin,10px);
@@ -705,19 +700,31 @@ body.spymaster-mode .card.revealed .card-front{
 .style-selector label{font-size:clamp(1rem,2.5vmin,1.4rem);color:#ccc;pointer-events:none}
 .style-current{display:flex;align-items:center;gap:10px}
 .style-current span:first-child{color:#fff;font-size:clamp(0.95rem,2.2vmin,1.3rem)}
-.style-arrow{color:#888;font-size:0.8rem;transition:transform .3s}
+.style-arrow{color:#888;font-size:0.8rem;transition:transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)}
 .style-row.open .style-arrow{transform:rotate(180deg)}
 .style-picker{
-    display:none;
-    gap:clamp(8px,1.5vmin,15px);
-    background:#222;
-    border-radius:clamp(6px,1vmin,12px);
+    display:flex;
+    gap:0;
     flex-wrap:wrap;
     justify-content:center;
-    padding:clamp(10px,2vmin,15px);
-    margin-top:clamp(8px,1.5vmin,12px);
+    padding:0;
+    max-height:0;
+    overflow:hidden;
+    opacity:0;
+    visibility:hidden;
+    transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background:#222;
+    border-radius:clamp(6px,1vmin,12px);
+    margin:0;
 }
-.style-row.open .style-picker{display:flex}
+.style-row.open .style-picker{
+    max-height:400px;
+    padding:clamp(10px,2vmin,15px);
+    margin-top:8px;
+    gap:clamp(8px,1.5vmin,15px);
+    opacity:1;
+    visibility:visible;
+}
 .style-option{
     cursor:pointer;
     padding:clamp(10px,1.5vmin,15px);
@@ -774,18 +781,30 @@ body.spymaster-mode .card.revealed .card-front{
 .deck-selector label{font-size:clamp(1rem,2.5vmin,1.4rem);color:#ccc;pointer-events:none}
 .deck-current{display:flex;align-items:center;gap:10px}
 .deck-current span:first-child{color:#fff;font-size:clamp(0.95rem,2.2vmin,1.3rem)}
-.deck-arrow{color:#888;font-size:0.8rem;transition:transform .3s}
+.deck-arrow{color:#888;font-size:0.8rem;transition:transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)}
 .deck-row.open .deck-arrow{transform:rotate(180deg)}
 .deck-picker{
-    display:none;
+    display:flex;
     flex-direction:column;
-    gap:clamp(8px,1.5vmin,12px);
+    gap:0;
+    padding:0;
+    max-height:0;
+    overflow:hidden;
+    opacity:0;
+    visibility:hidden;
+    transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     background:#222;
     border-radius:clamp(6px,1vmin,12px);
-    padding:clamp(10px,2vmin,15px);
-    margin-top:clamp(8px,1.5vmin,12px);
+    margin:0;
 }
-.deck-row.open .deck-picker{display:flex}
+.deck-row.open .deck-picker{
+    max-height:400px;
+    padding:clamp(10px,2vmin,15px);
+    margin-top:8px;
+    gap:clamp(8px,1.5vmin,12px);
+    opacity:1;
+    visibility:visible;
+}
 .deck-option{
     cursor:pointer;
     padding:clamp(12px,2vmin,18px);
@@ -816,18 +835,30 @@ body.spymaster-mode .card.revealed .card-front{
 .rounds-selector label{font-size:clamp(1rem,2.5vmin,1.4rem);color:#ccc;pointer-events:none}
 .rounds-current{display:flex;align-items:center;gap:10px}
 .rounds-current span:first-child{color:#fff;font-size:clamp(0.95rem,2.2vmin,1.3rem)}
-.rounds-arrow{color:#888;font-size:0.8rem;transition:transform .3s}
+.rounds-arrow{color:#888;font-size:0.8rem;transition:transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)}
 .rounds-row.open .rounds-arrow{transform:rotate(180deg)}
 .rounds-picker{
-    display:none;
+    display:flex;
     flex-direction:column;
-    gap:clamp(10px,1.5vmin,15px);
+    gap:0;
+    padding:0;
+    max-height:0;
+    overflow:hidden;
+    opacity:0;
+    visibility:hidden;
+    transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     background:#222;
     border-radius:clamp(6px,1vmin,12px);
-    padding:clamp(10px,2vmin,15px);
-    margin-top:clamp(8px,1.5vmin,12px);
+    margin:0;
 }
-.rounds-row.open .rounds-picker{display:flex}
+.rounds-row.open .rounds-picker{
+    max-height:300px;
+    padding:clamp(10px,2vmin,15px);
+    margin-top:8px;
+    gap:clamp(10px,1.5vmin,15px);
+    opacity:1;
+    visibility:visible;
+}
 .rounds-options{
     display:flex;
     gap:clamp(6px,1vmin,12px);
@@ -888,18 +919,30 @@ body.spymaster-mode .card.revealed .card-front{
 .picker-selector label{font-size:clamp(1rem,2.5vmin,1.4rem);color:#ccc;pointer-events:none}
 .picker-current{display:flex;align-items:center;gap:10px}
 .picker-current span:first-child{color:#fff;font-size:clamp(0.95rem,2.2vmin,1.3rem)}
-.picker-arrow{color:#888;font-size:0.8rem;transition:transform .3s}
+.picker-arrow{color:#888;font-size:0.8rem;transition:transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)}
 .picker-row.open .picker-arrow{transform:rotate(180deg)}
 .picker-panel{
-    display:none;
+    display:flex;
     flex-direction:column;
-    gap:clamp(10px,1.5vmin,15px);
+    gap:0;
+    padding:0;
+    max-height:0;
+    overflow:hidden;
+    opacity:0;
+    visibility:hidden;
+    transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     background:#222;
     border-radius:clamp(6px,1vmin,12px);
-    padding:clamp(10px,2vmin,15px);
-    margin-top:clamp(8px,1.5vmin,12px);
+    margin:0;
 }
-.picker-row.open .picker-panel{display:flex}
+.picker-row.open .picker-panel{
+    max-height:300px;
+    padding:clamp(10px,2vmin,15px);
+    margin-top:8px;
+    gap:clamp(10px,1.5vmin,15px);
+    opacity:1;
+    visibility:visible;
+}
 .picker-options{
     display:flex;
     gap:clamp(6px,1vmin,12px);
@@ -965,7 +1008,8 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 }
 .pin-input-container{
     display:flex;
-    justify-content:center;
+    flex-direction:column;
+    align-items:center;
 }
 #pinInput{
     font-size:clamp(2rem,6vmin,3rem);
@@ -1447,7 +1491,6 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 <div class="overlay" id="homeScreen" style="display:flex">
 <div class="home-container">
 <h1 class="home-title">TAJNIACY</h1>
-<p class="home-subtitle">Gra towarzyska</p>
 <div class="mode-selection">
 <div class="mode-card classic">
 <div class="mode-header" onclick="toggleModeCard(this.parentElement)">
@@ -1915,12 +1958,12 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 <h2 style="font-size:1.3rem;margin-bottom:10px">🔑 Klucz kapitana</h2>
 <p style="font-size:0.95rem;color:#aaa;margin-bottom:15px">Wpisz kod gry i PIN z ekranu z planszą</p>
 <div class="pin-input-section" style="background:transparent;padding:0">
-<div style="margin-bottom:15px">
-<label style="display:block;font-size:0.85rem;color:#888;margin-bottom:5px">Kod gry (4 znaki)</label>
-<input type="text" id="sessionCodeInput" maxlength="4" placeholder="XXXX" autocomplete="off" style="width:100%;padding:12px;font-size:1.5rem;text-align:center;letter-spacing:0.3em;text-transform:uppercase;border-radius:8px;border:2px solid #444;background:#1a1a1a;color:#4CAF50;font-family:monospace">
+<div style="margin-bottom:15px;display:flex;flex-direction:column;align-items:center">
+<label style="display:block;font-size:0.85rem;color:#888;margin-bottom:8px;width:100%;text-align:center">Kod gry (4 znaki)</label>
+<input type="text" id="sessionCodeInput" maxlength="4" placeholder="XXXX" autocomplete="off" style="width:100%;max-width:200px;padding:12px;font-size:1.5rem;text-align:center;letter-spacing:0.3em;text-transform:uppercase;border-radius:8px;border:2px solid #444;background:#1a1a1a;color:#4CAF50;font-family:monospace">
 </div>
-<div class="pin-input-container">
-<label style="display:block;font-size:0.85rem;color:#888;margin-bottom:5px">PIN (4 cyfry)</label>
+<div style="display:flex;flex-direction:column;align-items:center">
+<label style="display:block;font-size:0.85rem;color:#888;margin-bottom:8px;width:100%;text-align:center">PIN (4 cyfry)</label>
 <input type="text" id="captainPinInput" maxlength="4" placeholder="●●●●" autocomplete="off" inputmode="numeric">
 </div>
 <p class="pin-error" id="captainPinError">Nieprawidłowy PIN</p>
@@ -1949,10 +1992,10 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 <div class="overlay" id="closeCaptainConfirm">
 <div class="settings-container" style="max-width:400px">
 <h2 style="font-size:1.5rem;margin-bottom:15px">Zamknąć klucz?</h2>
-<p style="font-size:1rem;color:#f39c12;margin-bottom:20px">Aby ponownie zobaczyć klucz, będziesz musiał wpisać PIN.</p>
+<p style="font-size:1rem;color:#f39c12;margin-bottom:20px">Aby ponownie zobaczyć klucz, będziesz musiał wpisać kod gry i PIN.</p>
 <div style="display:flex;gap:15px;justify-content:center">
 <button class="btn-new" onclick="hideO('closeCaptainConfirm')">Zostań</button>
-<button class="btn-reset" onclick="hideO('closeCaptainConfirm');hideO('captainBoardOverlay')">Zamknij</button>
+<button class="btn-reset" onclick="closeCaptainBoardAndReturn()">Zamknij</button>
 </div>
 </div>
 </div>
@@ -2536,7 +2579,6 @@ function endRound(resultText,winner,isAssassin=false){
         if(team[winner].score>=cfg.winTarget){
             // Wygrana meczu
             showConfetti(winner==='red'?'#e74c3c':'#3498db');
-            playSound('win');
             resultEl.textContent=`${team[winner].emoji} ${team[winner].name} WYGRYWAJĄ MECZ!`;
             resultEl.classList.add('match-won');
             $('nextRoundBtn').style.display='none';
@@ -2554,6 +2596,19 @@ function endRound(resultText,winner,isAssassin=false){
             $('nextRoundBtn').style.display='inline-block';
             $('matchWonBtn').style.display='none';
         }
+        
+        // Animacja wyników na ekranie wygranej
+        setTimeout(() => {
+            const winnerScoreEl = winner === 'red' ? $('endRedScore') : $('endBlueScore');
+            if(winnerScoreEl){
+                anime({
+                    targets: winnerScoreEl,
+                    scale: [1, 1.4, 1],
+                    duration: 500,
+                    easing: 'easeOutBack'
+                });
+            }
+        }, 300);
     }
     
     showO('endOverlay');
@@ -2635,11 +2690,28 @@ function generateSessionCode() {
 }
 
 function showCaptainKeyOverlay(){
+    // Wyczyść wszystkie pola
     $('captainPinInput').value = '';
     $('captainPinInput').classList.remove('error','success');
-    $('captainPinError').classList.remove('visible');
+    if($('sessionCodeInput')) $('sessionCodeInput').value = '';
+    
+    // Resetuj komunikat błędu
+    const error = $('captainPinError');
+    error.textContent = '';
+    error.classList.remove('visible');
+    error.style.color = '#e74c3c';
+    
+    // Upewnij się że inne overlaye kapitana są zamknięte (bez animacji)
+    $('captainBoardOverlay').style.display = 'none';
+    $('captainBoardOverlay').style.opacity = '1';
+    $('closeCaptainConfirm').style.display = 'none';
+    $('closeCaptainConfirm').style.opacity = '1';
+    
     showO('captainKeyOverlay');
-    setTimeout(()=>$('captainPinInput').focus(), 300);
+    setTimeout(()=>{
+        if($('sessionCodeInput')) $('sessionCodeInput').focus();
+        else $('captainPinInput').focus();
+    }, 300);
 }
 
 function goToHub(){
@@ -2804,6 +2876,17 @@ function confirmCloseCaptainBoard(){
     showO('closeCaptainConfirm');
 }
 
+function closeCaptainBoardAndReturn(){
+    // Ukryj overlaye i zresetuj opacity
+    $('closeCaptainConfirm').style.display = 'none';
+    $('closeCaptainConfirm').style.opacity = '1';
+    $('captainBoardOverlay').style.display = 'none';
+    $('captainBoardOverlay').style.opacity = '1';
+    
+    // Upewnij się że homeScreen jest widoczny
+    showO('homeScreen');
+}
+
 function confirmNewRound(){
     hideO('gameSettings');
     if(!gameOver&&$('board').children.length)showO('newRoundConfirm');
@@ -2822,31 +2905,141 @@ function resetMatch(){
     $('bluePanel').innerHTML='';
     team.red.score=team.blue.score=0;
     gameOver=false;isSpymaster=false;
+    
+    // Zatrzymaj confetti
+    stopConfetti();
+}
+
+let confettiInterval = null;
+
+function stopConfetti(){
+    if(confettiInterval){
+        clearInterval(confettiInterval);
+        confettiInterval = null;
+    }
+    // Usuń wszystkie istniejące confetti
+    document.querySelectorAll('.confetti').forEach(c => c.remove());
 }
 
 function showConfetti(color){
-    const colors = color === '#e74c3c' ? ['#e74c3c','#c0392b','#ff6b6b','#ee5a24'] : ['#3498db','#2980b9','#74b9ff','#0984e3'];
-    for(let i=0;i<80;i++){
-        const c=document.createElement('div');
-        c.className='confetti';
-        c.style.left=Math.random()*100+'vw';
-        c.style.background=colors[Math.floor(Math.random()*colors.length)];
-        c.style.width=(8+Math.random()*10)+'px';
-        c.style.height=(8+Math.random()*10)+'px';
-        c.style.borderRadius=Math.random()>0.5?'50%':'0';
+    // Zatrzymaj poprzednie confetti
+    stopConfetti();
+    
+    const teamColors = color === '#e74c3c' 
+        ? ['#e74c3c','#c0392b','#ff6b6b','#ee5a24'] 
+        : ['#3498db','#2980b9','#74b9ff','#0984e3'];
+    const goldColors = ['#FFD700','#FFC107','#FFEB3B','#FFA000'];
+    const allColors = [...teamColors, ...goldColors];
+    
+    // Confetti przez 10 sekund
+    const duration = 10000;
+    const interval = 100; // co 100ms nowa porcja
+    let elapsed = 0;
+    
+    const spawnConfetti = () => {
+        for(let i = 0; i < 8; i++){
+            const c = document.createElement('div');
+            c.className = 'confetti';
+            c.style.left = Math.random() * 100 + 'vw';
+            c.style.background = allColors[Math.floor(Math.random() * allColors.length)];
+            c.style.width = (8 + Math.random() * 12) + 'px';
+            c.style.height = (8 + Math.random() * 12) + 'px';
+            c.style.borderRadius = Math.random() > 0.5 ? '50%' : Math.random() > 0.5 ? '0' : '2px';
+            document.body.appendChild(c);
+            
+            anime({
+                targets: c,
+                translateY: [0, window.innerHeight + 100],
+                translateX: () => anime.random(-150, 150),
+                rotate: () => anime.random(0, 1080),
+                scale: [1, anime.random(0.3, 1.5)],
+                opacity: [1, 0.8, 0],
+                duration: anime.random(3000, 5000),
+                easing: 'easeOutQuad',
+                complete: () => c.remove()
+            });
+        }
+    };
+    
+    // Początkowy wybuch
+    for(let i = 0; i < 100; i++){
+        const c = document.createElement('div');
+        c.className = 'confetti';
+        c.style.left = Math.random() * 100 + 'vw';
+        c.style.background = allColors[Math.floor(Math.random() * allColors.length)];
+        c.style.width = (10 + Math.random() * 15) + 'px';
+        c.style.height = (10 + Math.random() * 15) + 'px';
+        c.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
         document.body.appendChild(c);
         
         anime({
-            targets:c,
-            translateY:[0,window.innerHeight+100],
-            translateX:()=>anime.random(-100,100),
-            rotate:()=>anime.random(0,720),
-            scale:[1,anime.random(0.5,1.5)],
-            opacity:[1,0],
-            duration:anime.random(2000,4000),
-            easing:'easeOutQuad',
-            complete:()=>c.remove()
+            targets: c,
+            translateY: [0, window.innerHeight + 100],
+            translateX: () => anime.random(-200, 200),
+            rotate: () => anime.random(0, 1440),
+            scale: [1.5, anime.random(0.5, 1)],
+            opacity: [1, 0],
+            duration: anime.random(2500, 4500),
+            easing: 'easeOutQuad',
+            complete: () => c.remove()
         });
+    }
+    
+    // Ciągłe confetti przez 10 sekund
+    confettiInterval = setInterval(() => {
+        elapsed += interval;
+        if(elapsed >= duration){
+            clearInterval(confettiInterval);
+            confettiInterval = null;
+            return;
+        }
+        spawnConfetti();
+    }, interval);
+    
+    // Fanfary
+    playFanfare();
+}
+
+function playFanfare(){
+    if(!cfg.sound) return;
+    try {
+        if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Fanfarowa melodia - C E G C(wysoki) G E C
+        const notes = [
+            {freq: 523, time: 0, dur: 0.15},      // C5
+            {freq: 659, time: 0.15, dur: 0.15},   // E5
+            {freq: 784, time: 0.3, dur: 0.15},    // G5
+            {freq: 1047, time: 0.45, dur: 0.3},   // C6
+            {freq: 784, time: 0.8, dur: 0.15},    // G5
+            {freq: 659, time: 0.95, dur: 0.15},   // E5
+            {freq: 523, time: 1.1, dur: 0.4},     // C5
+            // Drugi akord
+            {freq: 587, time: 1.6, dur: 0.15},    // D5
+            {freq: 740, time: 1.75, dur: 0.15},   // F#5
+            {freq: 880, time: 1.9, dur: 0.15},    // A5
+            {freq: 1175, time: 2.05, dur: 0.5},   // D6
+        ];
+        
+        notes.forEach(note => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.type = 'triangle';
+            osc.frequency.value = note.freq;
+            
+            const startTime = audioCtx.currentTime + note.time;
+            gain.gain.setValueAtTime(0, startTime);
+            gain.gain.linearRampToValueAtTime(0.25, startTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.01, startTime + note.dur);
+            
+            osc.start(startTime);
+            osc.stop(startTime + note.dur + 0.1);
+        });
+    } catch(e) {
+        console.log('Audio error:', e);
     }
 }
 
