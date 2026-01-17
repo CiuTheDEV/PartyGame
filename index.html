@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tajniacy</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <style>
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
@@ -314,32 +316,161 @@ body.spymaster-mode .card.revealed .card-front{
 .home-container{max-width:min(900px,90vw);width:90%}
 .home-title{font-size:clamp(2.5rem,8vmin,5rem);margin-bottom:2vh;background:linear-gradient(135deg,#e74c3c,#3498db);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .home-subtitle{font-size:clamp(1rem,3vmin,2rem);color:#aaa;margin-bottom:4vh}
-.mode-selection{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,80vw),1fr));gap:clamp(15px,3vmin,40px);margin-bottom:3vh}
-.mode-card{background:linear-gradient(135deg,#2a2a2a,#1a1a1a);border-radius:clamp(15px,2vmin,25px);padding:clamp(20px,4vmin,50px);cursor:pointer;transition:all .3s;border:clamp(2px,0.4vmin,5px) solid transparent;position:relative}
-.mode-card:hover{transform:translateY(-5px);box-shadow:0 10px 30px rgba(0,0,0,.5)}
-.mode-card.classic{border-color:#4CAF50}.mode-card.crazy{border-color:#FF9800}
-.mode-icon{font-size:clamp(3rem,8vmin,6rem);margin-bottom:2vh}
-.mode-title{font-size:clamp(1.5rem,4vmin,3rem);margin-bottom:1.5vh;font-weight:bold}
-.mode-card.classic .mode-title{color:#4CAF50}.mode-card.crazy .mode-title{color:#FF9800}
-.mode-description{font-size:clamp(1rem,2.5vmin,1.5rem);color:#aaa}
-.mode-features{margin-top:2vh;text-align:left;font-size:clamp(0.9rem,2.2vmin,1.3rem);color:#888;list-style:none;padding:0}
-.mode-features li{margin:clamp(4px,1vmin,10px) 0}
+.mode-selection{display:flex;flex-direction:column;gap:clamp(10px,2vmin,20px);margin-bottom:3vh}
+.mode-card{
+    background:linear-gradient(135deg,#2a2a2a,#1a1a1a);
+    border-radius:clamp(12px,2vmin,20px);
+    transition:all .3s;
+    border:2px solid transparent;
+    overflow:hidden;
+}
+.mode-card:hover{box-shadow:0 5px 20px rgba(0,0,0,.4)}
+.mode-card.classic{border-color:#4CAF50}
+.mode-card.crazy{border-color:#FF9800}
+.mode-card.wip{border-color:#9E9E9E}
 
-/* Info button */
-.info-btn{
+.mode-header{
+    display:flex;
+    align-items:center;
+    padding:clamp(12px,2.5vmin,25px) clamp(15px,3vmin,30px);
+    position:relative;
+    cursor:pointer;
+}
+.mode-icon{
+    font-size:clamp(2rem,5vmin,3.5rem);
     position:absolute;
-    bottom:clamp(10px,2vmin,20px);
-    right:clamp(10px,2vmin,20px);
-    width:clamp(28px,5vmin,40px);
-    height:clamp(28px,5vmin,40px);
+    left:clamp(15px,3vmin,30px);
+}
+.mode-title-wrapper{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:clamp(8px,1.5vmin,15px);
+}
+.mode-title{
+    font-size:clamp(1.3rem,3.5vmin,2.2rem);
+    font-weight:bold;
+}
+.mode-card.classic .mode-title{color:#4CAF50}
+.mode-card.crazy .mode-title{color:#FF9800}
+.mode-card.wip .mode-title{color:#9E9E9E}
+
+.mode-arrow{
+    position:absolute;
+    right:clamp(15px,3vmin,30px);
+    font-size:clamp(0.8rem,2vmin,1.2rem);
+    color:#666;
+    transition:transform .3s;
+}
+.mode-card.open .mode-arrow{transform:rotate(180deg)}
+
+.mode-wip-badge{
+    background:#9E9E9E;
+    color:#1a1a1a;
+    font-size:clamp(0.6rem,1.5vmin,0.8rem);
+    font-weight:bold;
+    padding:clamp(3px,0.5vmin,5px) clamp(8px,1.2vmin,12px);
+    border-radius:clamp(4px,0.8vmin,8px);
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+.mode-arrow{
+    position:absolute;
+    right:clamp(15px,3vmin,30px);
+    font-size:clamp(0.8rem,2vmin,1.2rem);
+    color:#666;
+    transition:transform .3s ease;
+}
+.mode-card.open .mode-arrow{transform:rotate(180deg)}
+
+.mode-content{
+    display:grid;
+    grid-template-rows:0fr;
+    transition:grid-template-rows .3s ease;
+    border-top:1px solid transparent;
+}
+.mode-card.open .mode-content{
+    grid-template-rows:1fr;
+    border-top-color:#333;
+}
+.mode-content-inner{
+    overflow:hidden;
+    display:flex;
+    flex-direction:row;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:clamp(15px,3vmin,25px);
+}
+.mode-card.open .mode-content-inner{
+    padding:clamp(12px,2vmin,20px) clamp(15px,3vmin,30px);
+    background:rgba(0,0,0,0.2);
+}
+.mode-content-inner{
+    padding:0 clamp(15px,3vmin,30px);
+    transition:padding .3s ease, background .3s ease;
+}
+
+.mode-details{
+    flex:1;
+    min-width:0;
+    opacity:0;
+    transform:translateY(-10px);
+    transition:opacity .3s ease .1s, transform .3s ease .1s;
+}
+.mode-card.open .mode-details{
+    opacity:1;
+    transform:translateY(0);
+}
+
+.mode-buttons{
+    display:flex;
+    gap:clamp(8px,1.5vmin,12px);
+    flex-shrink:0;
+    align-self:flex-end;
+    opacity:0;
+    transform:translateX(10px);
+    transition:opacity .3s ease .15s, transform .3s ease .15s;
+}
+.mode-card.open .mode-buttons{
+    opacity:1;
+    transform:translateX(0);
+}
+
+.mode-description{
+    font-size:clamp(0.9rem,2vmin,1.1rem);
+    color:#aaa;
+    margin-bottom:clamp(6px,1vmin,10px);
+}
+.mode-features{
+    text-align:left;
+    font-size:clamp(0.8rem,1.8vmin,1rem);
+    color:#888;
+    list-style:none;
+    padding:0;
+    margin:0;
+}
+.mode-features li{
+    margin:clamp(2px,0.5vmin,5px) 0;
+    padding-left:1em;
+    position:relative;
+}
+.mode-features li::before{
+    content:'•';
+    position:absolute;
+    left:0;
+    color:#666;
+}
+
+.mode-btn{
+    width:clamp(40px,7vmin,55px);
+    height:clamp(40px,7vmin,55px);
     border-radius:50%;
     border:2px solid #666;
     background:rgba(0,0,0,0.3);
     color:#aaa;
-    font-size:clamp(0.9rem,2vmin,1.2rem);
+    font-size:clamp(1.1rem,2.5vmin,1.5rem);
     font-weight:bold;
-    font-style:italic;
-    font-family:Georgia,serif;
     cursor:pointer;
     transition:all .2s;
     display:flex;
@@ -347,14 +478,30 @@ body.spymaster-mode .card.revealed .card-front{
     justify-content:center;
     padding:0;
 }
-.info-btn:hover{
+.mode-btn.info{
+    font-style:italic;
+    font-family:Georgia,serif;
+}
+.mode-btn:hover{
     background:rgba(255,255,255,0.1);
     border-color:#aaa;
     color:#fff;
     transform:scale(1.1);
 }
-.mode-card.classic .info-btn:hover{border-color:#4CAF50;color:#4CAF50}
-.mode-card.crazy .info-btn:hover{border-color:#FF9800;color:#FF9800}
+.mode-card.classic .mode-btn.play{border-color:#4CAF50;color:#4CAF50}
+.mode-card.classic .mode-btn.play:hover{background:#4CAF50;color:#fff}
+.mode-card.crazy .mode-btn.play{border-color:#FF9800;color:#FF9800}
+.mode-card.crazy .mode-btn.play:hover{background:#FF9800;color:#fff}
+.mode-card.wip .mode-btn.play{border-color:#9E9E9E;color:#9E9E9E}
+.mode-card.wip .mode-btn.play:hover{background:#9E9E9E;color:#fff}
+.mode-btn.disabled{
+    opacity:0.4;
+    cursor:not-allowed;
+}
+.mode-btn.disabled:hover{
+    transform:none;
+    background:rgba(0,0,0,0.3);
+}
 
 /* Rules overlay */
 .rules-container{
@@ -449,9 +596,9 @@ body.spymaster-mode .card.revealed .card-front{
     -webkit-appearance:none;
     appearance:none;
 }
-.game-settings{background:#1a1a1a;border-radius:clamp(8px,1.2vmin,15px);padding:clamp(12px,2vmin,25px);margin-bottom:2vh}
+.game-settings{background:#1a1a1a;border-radius:clamp(8px,1.2vmin,15px);padding:clamp(12px,2vmin,25px);margin-bottom:2vh;overflow:hidden}
 .game-settings h3{color:#FF9800;margin-bottom:clamp(10px,1.5vmin,15px);font-size:clamp(1rem,2.2vmin,1.4rem)}
-.setting-row{display:flex;justify-content:space-between;align-items:center;margin:clamp(6px,1vmin,12px) 0;padding:clamp(8px,1.2vmin,12px);background:#2a2a2a;border-radius:clamp(6px,1vmin,10px);flex-wrap:wrap;gap:8px}
+.setting-row{display:flex;justify-content:space-between;align-items:center;margin:clamp(6px,1vmin,12px) 0;padding:clamp(8px,1.2vmin,12px);background:#2a2a2a;border-radius:clamp(6px,1vmin,10px);flex-wrap:wrap;gap:8px;box-sizing:border-box;max-width:100%}
 .setting-row label{font-size:clamp(0.85rem,2vmin,1.2rem);color:#ccc}
 .setting-row input,.setting-row select{
     padding:clamp(6px,1vmin,10px);
@@ -543,7 +690,7 @@ body.spymaster-mode .card.revealed .card-front{
 }
 
 /* Style picker */
-.style-row{flex-direction:column;align-items:stretch;padding:0;background:transparent}
+.style-row{flex-direction:column;align-items:stretch;padding:0;background:transparent;overflow:hidden;max-width:100%}
 .style-selector{
     display:flex;
     justify-content:space-between;
@@ -561,19 +708,16 @@ body.spymaster-mode .card.revealed .card-front{
 .style-arrow{color:#888;font-size:0.8rem;transition:transform .3s}
 .style-row.open .style-arrow{transform:rotate(180deg)}
 .style-picker{
-    display:flex;
+    display:none;
     gap:clamp(8px,1.5vmin,15px);
     background:#222;
     border-radius:clamp(6px,1vmin,12px);
     flex-wrap:wrap;
     justify-content:center;
-    max-height:0;
-    overflow:hidden;
-    transition:max-height .3s ease, padding .3s ease, margin .3s ease;
-    padding:0 clamp(10px,2vmin,15px);
-    margin-top:0;
+    padding:clamp(10px,2vmin,15px);
+    margin-top:clamp(8px,1.5vmin,12px);
 }
-.style-row.open .style-picker{max-height:600px;padding:clamp(10px,2vmin,15px);margin-top:clamp(8px,1.5vmin,12px)}
+.style-row.open .style-picker{display:flex}
 .style-option{
     cursor:pointer;
     padding:clamp(10px,1.5vmin,15px);
@@ -615,7 +759,7 @@ body.spymaster-mode .card.revealed .card-front{
 .style-name{font-size:clamp(0.9rem,1.8vmin,1.1rem);color:#ccc}
 
 /* Deck picker */
-.deck-row{flex-direction:column;align-items:stretch;padding:0;background:transparent}
+.deck-row{flex-direction:column;align-items:stretch;padding:0;background:transparent;overflow:hidden;max-width:100%}
 .deck-selector{
     display:flex;
     justify-content:space-between;
@@ -633,18 +777,15 @@ body.spymaster-mode .card.revealed .card-front{
 .deck-arrow{color:#888;font-size:0.8rem;transition:transform .3s}
 .deck-row.open .deck-arrow{transform:rotate(180deg)}
 .deck-picker{
-    display:flex;
+    display:none;
     flex-direction:column;
     gap:clamp(8px,1.5vmin,12px);
     background:#222;
     border-radius:clamp(6px,1vmin,12px);
-    max-height:0;
-    overflow:hidden;
-    transition:max-height .3s ease, padding .3s ease, margin .3s ease;
-    padding:0 clamp(10px,2vmin,15px);
-    margin-top:0;
+    padding:clamp(10px,2vmin,15px);
+    margin-top:clamp(8px,1.5vmin,12px);
 }
-.deck-row.open .deck-picker{max-height:300px;padding:clamp(10px,2vmin,15px);margin-top:clamp(8px,1.5vmin,12px)}
+.deck-row.open .deck-picker{display:flex}
 .deck-option{
     cursor:pointer;
     padding:clamp(12px,2vmin,18px);
@@ -660,7 +801,7 @@ body.spymaster-mode .card.revealed .card-front{
 .deck-desc{font-size:clamp(0.8rem,1.6vmin,1rem);color:#888;line-height:1.4}
 
 /* Rounds picker */
-.rounds-row{flex-direction:column;align-items:stretch;padding:0;background:transparent}
+.rounds-row{flex-direction:column;align-items:stretch;padding:0;background:transparent;overflow:hidden;max-width:100%}
 .rounds-selector{
     display:flex;
     justify-content:space-between;
@@ -678,18 +819,15 @@ body.spymaster-mode .card.revealed .card-front{
 .rounds-arrow{color:#888;font-size:0.8rem;transition:transform .3s}
 .rounds-row.open .rounds-arrow{transform:rotate(180deg)}
 .rounds-picker{
-    display:flex;
+    display:none;
     flex-direction:column;
     gap:clamp(10px,1.5vmin,15px);
     background:#222;
     border-radius:clamp(6px,1vmin,12px);
-    max-height:0;
-    overflow:hidden;
-    transition:max-height .3s ease, padding .3s ease, margin .3s ease;
-    padding:0 clamp(10px,2vmin,15px);
-    margin-top:0;
+    padding:clamp(10px,2vmin,15px);
+    margin-top:clamp(8px,1.5vmin,12px);
 }
-.rounds-row.open .rounds-picker{max-height:200px;padding:clamp(10px,2vmin,15px);margin-top:clamp(8px,1.5vmin,12px)}
+.rounds-row.open .rounds-picker{display:flex}
 .rounds-options{
     display:flex;
     gap:clamp(6px,1vmin,12px);
@@ -735,7 +873,7 @@ body.spymaster-mode .card.revealed .card-front{
 }
 
 /* Generic picker */
-.picker-row{flex-direction:column;align-items:stretch;padding:0;background:transparent}
+.picker-row{flex-direction:column;align-items:stretch;padding:0;background:transparent;overflow:hidden;max-width:100%}
 .picker-selector{
     display:flex;
     justify-content:space-between;
@@ -753,18 +891,15 @@ body.spymaster-mode .card.revealed .card-front{
 .picker-arrow{color:#888;font-size:0.8rem;transition:transform .3s}
 .picker-row.open .picker-arrow{transform:rotate(180deg)}
 .picker-panel{
-    display:flex;
+    display:none;
     flex-direction:column;
     gap:clamp(10px,1.5vmin,15px);
     background:#222;
     border-radius:clamp(6px,1vmin,12px);
-    max-height:0;
-    overflow:hidden;
-    transition:max-height .3s ease, padding .3s ease, margin .3s ease;
-    padding:0 clamp(10px,2vmin,15px);
-    margin-top:0;
+    padding:clamp(10px,2vmin,15px);
+    margin-top:clamp(8px,1.5vmin,12px);
 }
-.picker-row.open .picker-panel{max-height:200px;padding:clamp(10px,2vmin,15px);margin-top:clamp(8px,1.5vmin,12px)}
+.picker-row.open .picker-panel{display:flex}
 .picker-options{
     display:flex;
     gap:clamp(6px,1vmin,12px);
@@ -1159,6 +1294,152 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 .card{font-size:clamp(24px,4.5vmin,60px)}
 .icon-btn{width:clamp(60px,7vmin,90px);height:clamp(60px,7vmin,90px);font-size:clamp(2rem,4vmin,3.5rem)}
 }
+
+/* SYSTEM POKOI / LOBBY */
+.room-container{
+    background:#2a2a2a;
+    border-radius:clamp(15px,2vmin,25px);
+    padding:clamp(20px,4vmin,40px);
+    max-width:min(500px,90vw);
+    width:90%;
+}
+.room-title{
+    font-size:clamp(1.5rem,4vmin,2.5rem);
+    margin-bottom:clamp(15px,3vmin,25px);
+    background:linear-gradient(135deg,#e74c3c,#3498db);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+.room-code-display{
+    font-size:clamp(2.5rem,8vmin,4rem);
+    font-weight:bold;
+    letter-spacing:0.3em;
+    padding:clamp(15px,3vmin,25px);
+    background:#1a1a1a;
+    border-radius:clamp(10px,1.5vmin,15px);
+    margin:clamp(15px,3vmin,25px) 0;
+    font-family:'Courier New',monospace;
+    color:#4CAF50;
+    border:2px solid #4CAF50;
+}
+.room-input{
+    width:100%;
+    padding:clamp(12px,2vmin,18px);
+    font-size:clamp(1.2rem,3vmin,1.8rem);
+    border-radius:clamp(8px,1vmin,12px);
+    border:2px solid #444;
+    background:#1a1a1a;
+    color:#fff;
+    text-align:center;
+    letter-spacing:0.2em;
+    font-family:'Courier New',monospace;
+    margin-bottom:clamp(10px,2vmin,15px);
+    text-transform:uppercase;
+}
+.room-input:focus{
+    outline:none;
+    border-color:#4CAF50;
+}
+.room-input::placeholder{
+    color:#666;
+    letter-spacing:normal;
+}
+.pin-input{
+    width:100%;
+    padding:clamp(12px,2vmin,18px);
+    font-size:clamp(1.5rem,4vmin,2rem);
+    border-radius:clamp(8px,1vmin,12px);
+    border:2px solid #444;
+    background:#1a1a1a;
+    color:#fff;
+    text-align:center;
+    letter-spacing:0.5em;
+    font-family:'Courier New',monospace;
+    margin-bottom:clamp(10px,2vmin,15px);
+}
+.pin-input:focus{
+    outline:none;
+    border-color:#FF9800;
+}
+.room-buttons{
+    display:flex;
+    flex-direction:column;
+    gap:clamp(10px,2vmin,15px);
+    margin-top:clamp(15px,3vmin,20px);
+}
+.room-btn{
+    padding:clamp(12px,2vmin,18px) clamp(20px,4vmin,30px);
+    font-size:clamp(1rem,2.5vmin,1.3rem);
+    font-weight:bold;
+    border:none;
+    border-radius:clamp(8px,1vmin,12px);
+    cursor:pointer;
+    transition:all .2s;
+}
+.room-btn:hover{transform:scale(1.02)}
+.room-btn.primary{background:#4CAF50;color:#fff}
+.room-btn.secondary{background:#333;color:#aaa}
+.room-btn.secondary:hover{background:#444;color:#fff}
+.room-btn.danger{background:#e74c3c;color:#fff}
+.room-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.room-status{
+    font-size:clamp(0.9rem,2vmin,1.1rem);
+    color:#888;
+    margin:clamp(10px,2vmin,15px) 0;
+}
+.room-status.error{color:#e74c3c}
+.room-status.success{color:#4CAF50}
+.room-divider{
+    display:flex;
+    align-items:center;
+    margin:clamp(15px,3vmin,25px) 0;
+    color:#666;
+    font-size:clamp(0.9rem,2vmin,1.1rem);
+}
+.room-divider::before,.room-divider::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background:#444;
+}
+.room-divider span{
+    padding:0 clamp(10px,2vmin,15px);
+}
+.room-players{
+    background:#1a1a1a;
+    border-radius:clamp(8px,1vmin,12px);
+    padding:clamp(10px,2vmin,15px);
+    margin:clamp(10px,2vmin,15px) 0;
+    text-align:left;
+}
+.room-player{
+    display:flex;
+    align-items:center;
+    gap:clamp(8px,1.5vmin,12px);
+    padding:clamp(6px,1vmin,10px) 0;
+    border-bottom:1px solid #333;
+}
+.room-player:last-child{border-bottom:none}
+.room-player-icon{font-size:clamp(1.2rem,3vmin,1.8rem)}
+.room-player-name{flex:1;color:#ccc}
+.room-player-role{
+    font-size:clamp(0.75rem,1.8vmin,0.9rem);
+    padding:clamp(3px,0.5vmin,5px) clamp(8px,1vmin,12px);
+    border-radius:clamp(4px,0.6vmin,6px);
+    font-weight:bold;
+}
+.room-player-role.captain{background:#FF9800;color:#fff}
+.room-player-role.player{background:#333;color:#888}
+.copy-btn{
+    background:none;
+    border:none;
+    font-size:clamp(1.2rem,3vmin,1.5rem);
+    cursor:pointer;
+    padding:clamp(5px,1vmin,10px);
+    opacity:0.7;
+    transition:opacity .2s;
+}
+.copy-btn:hover{opacity:1}
 </style>
 </head>
 <body>
@@ -1168,19 +1449,69 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 <h1 class="home-title">TAJNIACY</h1>
 <p class="home-subtitle">Gra towarzyska</p>
 <div class="mode-selection">
-<div class="mode-card classic" onclick="selectMode('classic')">
+<div class="mode-card classic">
+<div class="mode-header" onclick="toggleModeCard(this.parentElement)">
 <div class="mode-icon">🎲</div>
+<div class="mode-title-wrapper">
 <div class="mode-title">KLASYCZNA</div>
+</div>
+<div class="mode-arrow">▼</div>
+</div>
+<div class="mode-content">
+<div class="mode-content-inner">
+<div class="mode-details">
 <div class="mode-description">Szybki start z tradycyjnymi zasadami</div>
 <ul class="mode-features"><li>Standardowa plansza 5x5</li><li>1 zabójca, 7 neutralnych</li><li>8/9 agentów</li></ul>
-<button class="info-btn" onclick="event.stopPropagation();showRules('classic')">i</button>
 </div>
-<div class="mode-card crazy" onclick="selectMode('crazy')">
+<div class="mode-buttons">
+<button class="mode-btn info" onclick="event.stopPropagation();showRules('classic')">i</button>
+<button class="mode-btn play" onclick="event.stopPropagation();selectMode('classic')">▶</button>
+</div>
+</div>
+</div>
+</div>
+<div class="mode-card crazy">
+<div class="mode-header" onclick="toggleModeCard(this.parentElement)">
 <div class="mode-icon">🎪</div>
+<div class="mode-title-wrapper">
 <div class="mode-title">SZALONA</div>
+</div>
+<div class="mode-arrow">▼</div>
+</div>
+<div class="mode-content">
+<div class="mode-content-inner">
+<div class="mode-details">
 <div class="mode-description">Więcej zabójców, więcej emocji!</div>
 <ul class="mode-features"><li>Od 1 do 7 zabójców</li><li>Mniej neutralnych kart</li><li>Wybierz kto zaczyna</li></ul>
-<button class="info-btn" onclick="event.stopPropagation();showRules('crazy')">i</button>
+</div>
+<div class="mode-buttons">
+<button class="mode-btn info" onclick="event.stopPropagation();showRules('crazy')">i</button>
+<button class="mode-btn play" onclick="event.stopPropagation();selectMode('crazy')">▶</button>
+</div>
+</div>
+</div>
+</div>
+<div class="mode-card wip">
+<div class="mode-header" onclick="toggleModeCard(this.parentElement)">
+<div class="mode-icon">⚡</div>
+<div class="mode-title-wrapper">
+<div class="mode-title">RUSH</div>
+<div class="mode-wip-badge">WIP</div>
+</div>
+<div class="mode-arrow">▼</div>
+</div>
+<div class="mode-content">
+<div class="mode-content-inner">
+<div class="mode-details">
+<div class="mode-description">Wyścig z czasem!</div>
+<ul class="mode-features"><li>Limit czasu na turę</li><li>Bonusy za szybkie odpowiedzi</li><li>Tryb błyskawiczny</li></ul>
+</div>
+<div class="mode-buttons">
+<button class="mode-btn info" onclick="event.stopPropagation()">i</button>
+<button class="mode-btn play disabled" onclick="event.stopPropagation()">▶</button>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="home-bottom-buttons">
@@ -1649,6 +1980,15 @@ let remaining={red:0,blue:0};
 let currentPin='';
 let currentBoardData=null; // {words:[], roles:[]}
 
+// Funkcja hashowania PIN-u (SHA-256)
+async function hashPin(pin) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(pin + 'tajniacy_salt_2024');
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 const $=id=>document.getElementById(id);
 let showO=id=>$(id).style.display='flex';
 let hideO=id=>$(id).style.display='none';
@@ -1806,9 +2146,26 @@ function buildPickers(){
     }
 }
 
+function toggleModeCard(card){
+    // Jeśli kliknięto w przycisk, nie przełączaj
+    if(event.target.closest('.mode-buttons')) return;
+    
+    const wasOpen = card.classList.contains('open');
+    
+    // Zamknij wszystkie karty
+    document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('open'));
+    
+    // Otwórz klikniętą kartę (jeśli była zamknięta)
+    if(!wasOpen){
+        card.classList.add('open');
+    }
+}
+
 function selectMode(mode){
     gameMode=mode;
     hideO('homeScreen');
+    // Zamknij karty przy wyjściu
+    document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('open'));
     showO(mode==='classic'?'classicSettings':'crazySettings');
 }
 
@@ -2069,6 +2426,7 @@ function initRound(){
                 remaining.red--;
                 updateSideCard('red');
                 if(!remaining.red){
+                    gameOver=true; // Blokuj natychmiast
                     // Wygrana - burst
                     setTimeout(()=>animateWinBurst('red'),300);
                     setTimeout(()=>endRound(null,'red'),800);
@@ -2078,6 +2436,7 @@ function initRound(){
                 remaining.blue--;
                 updateSideCard('blue');
                 if(!remaining.blue){
+                    gameOver=true; // Blokuj natychmiast
                     // Wygrana - burst
                     setTimeout(()=>animateWinBurst('blue'),300);
                     setTimeout(()=>endRound(null,'blue'),800);
@@ -2207,12 +2566,15 @@ function showKey(){
     $('keyBtn').classList.add('active');
 }
 
-function generatePin(){
+async function generatePin(){
     currentPin = String(Math.floor(1000 + Math.random() * 9000));
     $('pinDisplay').textContent = currentPin;
     
-    // Zapisz do localStorage aby inne karty mogły odczytać
-    localStorage.setItem('tajniacy_pin', currentPin);
+    // Hashuj PIN przed zapisaniem
+    const pinHash = await hashPin(currentPin);
+    
+    // Zapisz hash do localStorage aby inne karty mogły weryfikować
+    localStorage.setItem('tajniacy_pin_hash', pinHash);
     localStorage.setItem('tajniacy_board', JSON.stringify(currentBoardData));
 }
 
@@ -2282,15 +2644,15 @@ function hideCaptainKeyOverlay(){
     $('captainPinError').classList.remove('visible');
 }
 
-function verifyCaptainPin(){
+async function verifyCaptainPin(){
     const input = $('captainPinInput');
     const error = $('captainPinError');
     
     // Odczytaj dane z localStorage (mogą być z innej karty)
-    const savedPin = localStorage.getItem('tajniacy_pin');
+    const savedPinHash = localStorage.getItem('tajniacy_pin_hash');
     const savedBoard = localStorage.getItem('tajniacy_board');
     
-    if(!savedPin || !savedBoard){
+    if(!savedPinHash || !savedBoard){
         error.textContent = 'Brak aktywnej gry';
         error.classList.add('visible');
         input.classList.add('error');
@@ -2298,7 +2660,10 @@ function verifyCaptainPin(){
         return;
     }
     
-    if(input.value === savedPin){
+    // Hashuj wpisany PIN i porównaj
+    const inputHash = await hashPin(input.value);
+    
+    if(inputHash === savedPinHash){
         input.classList.remove('error');
         input.classList.add('success');
         error.classList.remove('visible');
@@ -3354,6 +3719,30 @@ function pollGamepad(){
 
 // Rozpocznij nasłuchiwanie gamepada
 requestAnimationFrame(pollGamepad);
+
+// ==========================================
+// FIREBASE - KONFIGURACJA (na przyszłość dla trybu online)
+// ==========================================
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBYFHH9yP_0N0X14_2ooRyhZeXGhR36wIs",
+    authDomain: "partyhub-6e16c.firebaseapp.com",
+    databaseURL: "https://partyhub-6e16c-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "partyhub-6e16c",
+    storageBucket: "partyhub-6e16c.firebasestorage.app",
+    messagingSenderId: "58335201591",
+    appId: "1:58335201591:web:7c8ab8298ff12beb3cb2b2"
+};
+
+// Inicjalizacja Firebase (gotowe do użycia w trybie online)
+let db = null;
+try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    console.log('Firebase gotowy');
+} catch(e) {
+    console.log('Firebase niedostępny - tryb offline');
+}
 </script>
 </body>
 </html>
