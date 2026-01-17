@@ -1894,9 +1894,16 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 
 <div class="overlay" id="pinOverlay">
 <div class="settings-container" style="max-width:400px">
-<h2 style="font-size:1.8rem;margin-bottom:10px">🔑 PIN do planszy</h2>
-<div class="pin-display" id="pinDisplay">1234</div>
-<p style="font-size:1rem;color:#aaa;margin:15px 0">Podaj ten kod kapitanom drużyn.<br>Mogą go wpisać w menu głównym gry.</p>
+<h2 style="font-size:1.5rem;margin-bottom:15px">🔑 Dane do klucza</h2>
+<div style="background:#1a1a1a;border-radius:12px;padding:15px;margin-bottom:15px">
+<p style="font-size:0.85rem;color:#888;margin-bottom:5px">Kod gry</p>
+<div id="sessionCodeDisplay" style="font-size:2rem;font-weight:bold;color:#4CAF50;letter-spacing:0.3em;font-family:monospace">----</div>
+</div>
+<div style="background:#1a1a1a;border-radius:12px;padding:15px">
+<p style="font-size:0.85rem;color:#888;margin-bottom:5px">PIN</p>
+<div class="pin-display" id="pinDisplay" style="margin:0">1234</div>
+</div>
+<p style="font-size:0.9rem;color:#aaa;margin:15px 0">Podaj te dane kapitanom drużyn.<br>Mogą je wpisać w menu głównym → Klucz kapitana</p>
 <div style="display:flex;gap:15px;justify-content:center;margin-top:20px">
 <button class="btn-reset" onclick="hideO('pinOverlay')">Zamknij</button>
 </div>
@@ -1906,9 +1913,14 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 <div class="overlay" id="captainKeyOverlay">
 <div class="settings-container captain-board-container">
 <h2 style="font-size:1.3rem;margin-bottom:10px">🔑 Klucz kapitana</h2>
-<p style="font-size:0.95rem;color:#aaa;margin-bottom:15px">Wpisz PIN wyświetlony na ekranie z planszą</p>
+<p style="font-size:0.95rem;color:#aaa;margin-bottom:15px">Wpisz kod gry i PIN z ekranu z planszą</p>
 <div class="pin-input-section" style="background:transparent;padding:0">
+<div style="margin-bottom:15px">
+<label style="display:block;font-size:0.85rem;color:#888;margin-bottom:5px">Kod gry (4 znaki)</label>
+<input type="text" id="sessionCodeInput" maxlength="4" placeholder="XXXX" autocomplete="off" style="width:100%;padding:12px;font-size:1.5rem;text-align:center;letter-spacing:0.3em;text-transform:uppercase;border-radius:8px;border:2px solid #444;background:#1a1a1a;color:#4CAF50;font-family:monospace">
+</div>
 <div class="pin-input-container">
+<label style="display:block;font-size:0.85rem;color:#888;margin-bottom:5px">PIN (4 cyfry)</label>
 <input type="text" id="captainPinInput" maxlength="4" placeholder="●●●●" autocomplete="off" inputmode="numeric">
 </div>
 <p class="pin-error" id="captainPinError">Nieprawidłowy PIN</p>
@@ -2236,6 +2248,10 @@ function startClassic(){
     cfg.assassins=1;cfg.starter='random';cfg.startAgents=9;cfg.otherAgents=8;cfg.neutral=7;cfg.width=5;cfg.height=5;
     cfg.keyMode=$('classicKeyMode').value;
     team.red.score=team.blue.score=0;
+    
+    // Nowa gra = nowy kod sesji
+    localStorage.removeItem('tajniacy_session_id');
+    
     hideO('classicSettings');
     $('gameScreen').style.display='flex';
     $('board').className='grid-container deck-'+cfg.deckStyle;
@@ -2260,6 +2276,10 @@ function startCrazy(){
     cfg.winTarget=Math.max(1,+$('crazyWinTarget').value||3);
     cfg.keyMode=$('crazyKeyMode').value;
     team.red.score=team.blue.score=0;
+    
+    // Nowa gra = nowy kod sesji
+    localStorage.removeItem('tajniacy_session_id');
+    
     hideO('crazySettings');
     $('gameScreen').style.display='flex';
     $('board').className='grid-container deck-'+cfg.deckStyle;
@@ -2573,9 +2593,45 @@ async function generatePin(){
     // Hashuj PIN przed zapisaniem
     const pinHash = await hashPin(currentPin);
     
-    // Zapisz hash do localStorage aby inne karty mogły weryfikować
+    // Zapisz do localStorage (dla tej samej przeglądarki)
     localStorage.setItem('tajniacy_pin_hash', pinHash);
     localStorage.setItem('tajniacy_board', JSON.stringify(currentBoardData));
+    
+    // Zapisz do Firebase (dla innych urządzeń)
+    if(db) {
+        try {
+            // Generuj unikalny ID sesji (lub użyj istniejącego)
+            let sessionId = localStorage.getItem('tajniacy_session_id');
+            if(!sessionId) {
+                sessionId = generateSessionCode();
+                localStorage.setItem('tajniacy_session_id', sessionId);
+            }
+            
+            await db.ref('games/' + sessionId).set({
+                pinHash: pinHash,
+                board: currentBoardData,
+                createdAt: Date.now()
+            });
+            
+            // Pokaż kod sesji na ekranie z PIN-em
+            if($('sessionCodeDisplay')) {
+                $('sessionCodeDisplay').textContent = sessionId;
+            }
+            console.log('Gra zapisana w Firebase, kod:', sessionId);
+        } catch(e) {
+            console.log('Firebase niedostępny, działa tylko lokalnie');
+        }
+    }
+}
+
+// Generuj 4-znakowy kod sesji
+function generateSessionCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for(let i = 0; i < 4; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
 }
 
 function showCaptainKeyOverlay(){
@@ -2647,13 +2703,56 @@ function hideCaptainKeyOverlay(){
 async function verifyCaptainPin(){
     const input = $('captainPinInput');
     const error = $('captainPinError');
+    const sessionInput = $('sessionCodeInput');
     
-    // Odczytaj dane z localStorage (mogą być z innej karty)
-    const savedPinHash = localStorage.getItem('tajniacy_pin_hash');
-    const savedBoard = localStorage.getItem('tajniacy_board');
+    // Pobierz kod sesji (jeśli wpisany)
+    const sessionCode = sessionInput ? sessionInput.value.toUpperCase().trim() : '';
+    
+    let savedPinHash = null;
+    let savedBoard = null;
+    
+    // Jeśli jest kod sesji, szukaj w Firebase
+    if(sessionCode && sessionCode.length === 4 && db) {
+        try {
+            error.textContent = 'Szukam gry...';
+            error.classList.add('visible');
+            error.style.color = '#888';
+            
+            const snapshot = await db.ref('games/' + sessionCode).once('value');
+            if(snapshot.exists()) {
+                const data = snapshot.val();
+                savedPinHash = data.pinHash;
+                savedBoard = data.board;
+                error.classList.remove('visible');
+            } else {
+                error.textContent = 'Nie znaleziono gry o kodzie ' + sessionCode;
+                error.style.color = '#e74c3c';
+                error.classList.add('visible');
+                input.classList.add('error');
+                setTimeout(()=>input.classList.remove('error'), 300);
+                return;
+            }
+        } catch(e) {
+            console.log('Błąd Firebase:', e);
+            error.textContent = 'Błąd połączenia';
+            error.style.color = '#e74c3c';
+            error.classList.add('visible');
+            return;
+        }
+    } else {
+        // Brak kodu sesji - szukaj w localStorage
+        savedPinHash = localStorage.getItem('tajniacy_pin_hash');
+        const savedBoardStr = localStorage.getItem('tajniacy_board');
+        if(savedBoardStr) {
+            try {
+                savedBoard = JSON.parse(savedBoardStr);
+            } catch(e) {}
+        }
+    }
     
     if(!savedPinHash || !savedBoard){
-        error.textContent = 'Brak aktywnej gry';
+        error.textContent = 'Wpisz kod gry lub uruchom grę na tym urządzeniu';
+        error.style.color = '#e74c3c';
         error.classList.add('visible');
         input.classList.add('error');
         setTimeout(()=>input.classList.remove('error'), 300);
@@ -2669,21 +2768,20 @@ async function verifyCaptainPin(){
         error.classList.remove('visible');
         
         try {
-            // Załaduj dane planszy z localStorage
-            const boardData = JSON.parse(savedBoard);
-            
             // Najpierw przygotuj planszę
-            buildCaptainBoard(boardData);
+            buildCaptainBoard(savedBoard);
             
             // Ukryj input overlay i pokaż planszę
             $('captainKeyOverlay').style.display = 'none';
             $('captainBoardOverlay').style.display = 'flex';
         } catch(e) {
             error.textContent = 'Błąd wczytywania planszy';
+            error.style.color = '#e74c3c';
             error.classList.add('visible');
         }
     } else {
         error.textContent = 'Nieprawidłowy PIN';
+        error.style.color = '#e74c3c';
         input.classList.add('error');
         error.classList.add('visible');
         setTimeout(()=>input.classList.remove('error'), 300);
