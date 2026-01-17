@@ -577,6 +577,43 @@ body.spymaster-mode .card.revealed .card-front{
 }
 .avatar-option:hover{background:#444}
 .avatar-option.selected{border-color:#4CAF50;background:#2d5016}
+.avatar-option.avatar-plus{
+    font-size:clamp(1.5rem,4vmin,2.8rem);
+    color:#888;
+    font-weight:300;
+}
+.avatar-option.avatar-plus:hover{color:#fff;background:#555}
+
+/* Emoji picker grid */
+.emoji-grid{
+    display:grid;
+    grid-template-columns:repeat(8,1fr);
+    gap:clamp(4px,1vmin,8px);
+    max-height:50vh;
+    overflow-y:auto;
+    padding:clamp(10px,2vmin,15px);
+    background:#1a1a1a;
+    border-radius:clamp(8px,1vmin,12px);
+}
+.emoji-grid-item{
+    font-size:clamp(1.3rem,3.5vmin,2rem);
+    aspect-ratio:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#333;
+    border-radius:clamp(6px,0.8vmin,10px);
+    cursor:pointer;
+    transition:all .15s;
+    border:2px solid transparent;
+}
+.emoji-grid-item:hover{background:#444;transform:scale(1.1)}
+.emoji-grid-item.selected{border-color:#4CAF50;background:#2d5016}
+
+@media(max-width:500px){
+    .emoji-grid{grid-template-columns:repeat(6,1fr)}
+}
+
 .team-card input{
     width:100%;
     padding:clamp(8px,1.2vmin,12px);
@@ -700,30 +737,25 @@ body.spymaster-mode .card.revealed .card-front{
 .style-selector label{font-size:clamp(1rem,2.5vmin,1.4rem);color:#ccc;pointer-events:none}
 .style-current{display:flex;align-items:center;gap:10px}
 .style-current span:first-child{color:#fff;font-size:clamp(0.95rem,2.2vmin,1.3rem)}
-.style-arrow{color:#888;font-size:0.8rem;transition:transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)}
+.style-arrow{color:#888;font-size:0.8rem;transition:transform 0.3s ease}
 .style-row.open .style-arrow{transform:rotate(180deg)}
 .style-picker{
-    display:flex;
-    gap:0;
-    flex-wrap:wrap;
-    justify-content:center;
-    padding:0;
     max-height:0;
     overflow:hidden;
-    opacity:0;
-    visibility:hidden;
-    transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    background:#222;
-    border-radius:clamp(6px,1vmin,12px);
-    margin:0;
+    transition:max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .style-row.open .style-picker{
-    max-height:400px;
+    max-height:500px;
+}
+.style-picker-content{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:clamp(8px,1.5vmin,15px);
     padding:clamp(10px,2vmin,15px);
     margin-top:8px;
-    gap:clamp(8px,1.5vmin,15px);
-    opacity:1;
-    visibility:visible;
+    background:#222;
+    border-radius:clamp(6px,1vmin,12px);
 }
 .style-option{
     cursor:pointer;
@@ -781,29 +813,24 @@ body.spymaster-mode .card.revealed .card-front{
 .deck-selector label{font-size:clamp(1rem,2.5vmin,1.4rem);color:#ccc;pointer-events:none}
 .deck-current{display:flex;align-items:center;gap:10px}
 .deck-current span:first-child{color:#fff;font-size:clamp(0.95rem,2.2vmin,1.3rem)}
-.deck-arrow{color:#888;font-size:0.8rem;transition:transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)}
+.deck-arrow{color:#888;font-size:0.8rem;transition:transform 0.3s ease}
 .deck-row.open .deck-arrow{transform:rotate(180deg)}
 .deck-picker{
-    display:flex;
-    flex-direction:column;
-    gap:0;
-    padding:0;
     max-height:0;
     overflow:hidden;
-    opacity:0;
-    visibility:hidden;
-    transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    background:#222;
-    border-radius:clamp(6px,1vmin,12px);
-    margin:0;
+    transition:max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .deck-row.open .deck-picker{
     max-height:400px;
+}
+.deck-picker-content{
+    display:flex;
+    flex-direction:column;
+    gap:clamp(8px,1.5vmin,12px);
     padding:clamp(10px,2vmin,15px);
     margin-top:8px;
-    gap:clamp(8px,1.5vmin,12px);
-    opacity:1;
-    visibility:visible;
+    background:#222;
+    border-radius:clamp(6px,1vmin,12px);
 }
 .deck-option{
     cursor:pointer;
@@ -835,29 +862,24 @@ body.spymaster-mode .card.revealed .card-front{
 .rounds-selector label{font-size:clamp(1rem,2.5vmin,1.4rem);color:#ccc;pointer-events:none}
 .rounds-current{display:flex;align-items:center;gap:10px}
 .rounds-current span:first-child{color:#fff;font-size:clamp(0.95rem,2.2vmin,1.3rem)}
-.rounds-arrow{color:#888;font-size:0.8rem;transition:transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)}
+.rounds-arrow{color:#888;font-size:0.8rem;transition:transform 0.3s ease}
 .rounds-row.open .rounds-arrow{transform:rotate(180deg)}
 .rounds-picker{
-    display:flex;
-    flex-direction:column;
-    gap:0;
-    padding:0;
     max-height:0;
     overflow:hidden;
-    opacity:0;
-    visibility:hidden;
-    transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    background:#222;
-    border-radius:clamp(6px,1vmin,12px);
-    margin:0;
+    transition:max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .rounds-row.open .rounds-picker{
     max-height:300px;
+}
+.rounds-picker-content{
+    display:flex;
+    flex-direction:column;
+    gap:clamp(10px,1.5vmin,15px);
     padding:clamp(10px,2vmin,15px);
     margin-top:8px;
-    gap:clamp(10px,1.5vmin,15px);
-    opacity:1;
-    visibility:visible;
+    background:#222;
+    border-radius:clamp(6px,1vmin,12px);
 }
 .rounds-options{
     display:flex;
@@ -919,29 +941,24 @@ body.spymaster-mode .card.revealed .card-front{
 .picker-selector label{font-size:clamp(1rem,2.5vmin,1.4rem);color:#ccc;pointer-events:none}
 .picker-current{display:flex;align-items:center;gap:10px}
 .picker-current span:first-child{color:#fff;font-size:clamp(0.95rem,2.2vmin,1.3rem)}
-.picker-arrow{color:#888;font-size:0.8rem;transition:transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)}
+.picker-arrow{color:#888;font-size:0.8rem;transition:transform 0.3s ease}
 .picker-row.open .picker-arrow{transform:rotate(180deg)}
 .picker-panel{
-    display:flex;
-    flex-direction:column;
-    gap:0;
-    padding:0;
     max-height:0;
     overflow:hidden;
-    opacity:0;
-    visibility:hidden;
-    transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    background:#222;
-    border-radius:clamp(6px,1vmin,12px);
-    margin:0;
+    transition:max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .picker-row.open .picker-panel{
     max-height:300px;
+}
+.picker-panel-content{
+    display:flex;
+    flex-direction:column;
+    gap:clamp(10px,1.5vmin,15px);
     padding:clamp(10px,2vmin,15px);
     margin-top:8px;
-    gap:clamp(10px,1.5vmin,15px);
-    opacity:1;
-    visibility:visible;
+    background:#222;
+    border-radius:clamp(6px,1vmin,12px);
 }
 .picker-options{
     display:flex;
@@ -988,17 +1005,15 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 
 /* PIN OVERLAY */
 .pin-display{
-    font-size:clamp(3rem,10vmin,5rem);
+    font-size:clamp(2.5rem,8vmin,4rem);
     font-weight:bold;
-    letter-spacing:clamp(10px,3vmin,20px);
+    letter-spacing:clamp(8px,2vmin,15px);
     color:#4CAF50;
-    background:#1a1a1a;
-    padding:clamp(15px,3vmin,30px) clamp(30px,5vmin,50px);
-    border-radius:clamp(10px,1.5vmin,20px);
-    border:3px solid #4CAF50;
-    margin:clamp(15px,3vmin,25px) 0;
+    padding:clamp(10px,2vmin,15px) clamp(15px,3vmin,25px);
     text-align:center;
     font-family:'Courier New',monospace;
+    display:inline-block;
+    padding-right:calc(clamp(15px,3vmin,25px) - clamp(8px,2vmin,15px));
 }
 .pin-input-section{
     background:#1a1a1a;
@@ -1083,6 +1098,99 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
     75%{transform:translateX(10px)}
 }
 
+/* ASSASSIN OVERLAY */
+.assassin-container{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:clamp(20px,4vmin,40px);
+    max-width:min(500px,90vw);
+}
+.assassin-skull{
+    font-size:clamp(4rem,15vmin,10rem);
+    animation:assassinPulse 1s ease-in-out infinite, assassinFloat 3s ease-in-out infinite;
+    filter:drop-shadow(0 0 20px rgba(255,0,0,0.5));
+}
+.assassin-title{
+    font-size:clamp(2.5rem,8vmin,5rem);
+    color:#e74c3c;
+    text-shadow:0 0 20px rgba(231,76,60,0.8), 0 0 40px rgba(231,76,60,0.5);
+    margin:clamp(10px,2vmin,20px) 0;
+    letter-spacing:0.1em;
+    animation:assassinGlow 1.5s ease-in-out infinite alternate;
+}
+.assassin-subtitle{
+    font-size:clamp(1rem,3vmin,1.5rem);
+    color:#aaa;
+    margin-bottom:clamp(15px,3vmin,30px);
+    text-align:center;
+}
+.assassin-question{
+    font-size:clamp(1.1rem,3vmin,1.6rem);
+    color:#fff;
+    margin-bottom:clamp(20px,4vmin,35px);
+    text-align:center;
+}
+.assassin-buttons{
+    display:flex;
+    gap:clamp(15px,3vmin,30px);
+    flex-wrap:wrap;
+    justify-content:center;
+}
+.assassin-btn{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:clamp(8px,1.5vmin,15px);
+    padding:clamp(15px,3vmin,30px) clamp(25px,5vmin,50px);
+    border-radius:clamp(12px,2vmin,20px);
+    border:3px solid;
+    cursor:pointer;
+    transition:all .2s;
+    min-width:clamp(120px,25vmin,180px);
+}
+.assassin-btn.red{
+    background:linear-gradient(145deg,rgba(231,76,60,0.2),rgba(231,76,60,0.1));
+    border-color:#e74c3c;
+}
+.assassin-btn.blue{
+    background:linear-gradient(145deg,rgba(52,152,219,0.2),rgba(52,152,219,0.1));
+    border-color:#3498db;
+}
+.assassin-btn:hover{
+    transform:scale(1.05);
+}
+.assassin-btn.red:hover{
+    background:linear-gradient(145deg,rgba(231,76,60,0.4),rgba(231,76,60,0.2));
+    box-shadow:0 0 30px rgba(231,76,60,0.5);
+}
+.assassin-btn.blue:hover{
+    background:linear-gradient(145deg,rgba(52,152,219,0.4),rgba(52,152,219,0.2));
+    box-shadow:0 0 30px rgba(52,152,219,0.5);
+}
+.assassin-btn-emoji{
+    font-size:clamp(2rem,6vmin,4rem);
+}
+.assassin-btn-text{
+    font-size:clamp(1rem,2.5vmin,1.5rem);
+    font-weight:bold;
+    color:#fff;
+}
+
+@keyframes assassinPulse{
+    0%,100%{transform:scale(1)}
+    50%{transform:scale(1.1)}
+}
+@keyframes assassinFloat{
+    0%,100%{transform:translateY(0) scale(1)}
+    25%{transform:translateY(-10px) scale(1.05)}
+    75%{transform:translateY(5px) scale(0.98)}
+}
+@keyframes assassinGlow{
+    0%{text-shadow:0 0 20px rgba(231,76,60,0.8), 0 0 40px rgba(231,76,60,0.5)}
+    100%{text-shadow:0 0 30px rgba(231,76,60,1), 0 0 60px rgba(231,76,60,0.8), 0 0 80px rgba(231,76,60,0.5)}
+}
+
 /* CAPTAIN KEY */
 .home-bottom-buttons{
     display:flex;
@@ -1134,6 +1242,37 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
     padding:clamp(10px,2vmin,25px)!important;
     max-height:95vh;
     overflow-y:auto;
+}
+.captain-starter{
+    margin-bottom:clamp(8px,1.5vmin,15px);
+}
+.starter-info{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:clamp(8px,1.5vmin,15px);
+    padding:clamp(8px,1.5vmin,12px) clamp(12px,2vmin,20px);
+    background:rgba(0,0,0,0.3);
+    border-radius:clamp(8px,1vmin,12px);
+    border:2px solid;
+    flex-wrap:wrap;
+}
+.starter-label{
+    font-size:clamp(0.85rem,2vmin,1rem);
+    color:#aaa;
+}
+.starter-team{
+    font-size:clamp(1rem,2.5vmin,1.3rem);
+    font-weight:bold;
+}
+.starter-counts{
+    display:flex;
+    align-items:center;
+    gap:clamp(5px,1vmin,10px);
+    font-size:clamp(0.9rem,2.2vmin,1.1rem);
+    font-weight:bold;
+    padding-left:clamp(8px,1.5vmin,15px);
+    border-left:1px solid #444;
 }
 .captain-board{
     display:grid;
@@ -1604,6 +1743,7 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 </div>
 </div>
 <div class="style-picker" id="globalStylePicker">
+<div class="style-picker-content">
 <div class="style-option selected" data-style="white">
 <div class="style-preview deck-white">
 <div class="preview-card">Agent</div>
@@ -1627,6 +1767,7 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 <div class="preview-card revealed is-blue">Blue</div>
 </div>
 <span class="style-name">Noc</span>
+</div>
 </div>
 </div>
 <input type="hidden" id="globalStyle" value="white">
@@ -1665,6 +1806,7 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 </div>
 </div>
 <div class="deck-picker" id="classicDeckPicker">
+<div class="deck-picker-content">
 <div class="deck-option selected" data-deck="standard">
 <div class="deck-info">
 <span class="deck-title">Standardowa</span>
@@ -1675,6 +1817,7 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 <div class="deck-info">
 <span class="deck-title">Dla dorosłych (18+)</span>
 <span class="deck-desc">Hasła z motywami dla dorosłych: alkohol, imprezy, kasyno i więcej.</span>
+</div>
 </div>
 </div>
 </div>
@@ -1689,6 +1832,7 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 </div>
 </div>
 <div class="rounds-picker" id="classicRoundsPicker">
+<div class="rounds-picker-content">
 <div class="rounds-options">
 <div class="rounds-option" data-rounds="1">1</div>
 <div class="rounds-option" data-rounds="2">2</div>
@@ -1700,6 +1844,7 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 <div class="rounds-custom" id="classicRoundsCustom" style="display:none">
 <label>Własna liczba:</label>
 <input type="number" id="classicRoundsInput" min="1" max="99" value="6" onchange="updateCustomRounds('classic')">
+</div>
 </div>
 </div>
 <input type="hidden" id="classicWinTarget" value="3">
@@ -1750,6 +1895,7 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 </div>
 </div>
 <div class="deck-picker" id="crazyDeckPicker">
+<div class="deck-picker-content">
 <div class="deck-option selected" data-deck="standard">
 <div class="deck-info">
 <span class="deck-title">Standardowa</span>
@@ -1760,6 +1906,7 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 <div class="deck-info">
 <span class="deck-title">Dla dorosłych (18+)</span>
 <span class="deck-desc">Hasła z motywami dla dorosłych: alkohol, imprezy, kasyno i więcej.</span>
+</div>
 </div>
 </div>
 </div>
@@ -1774,6 +1921,7 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 </div>
 </div>
 <div class="picker-panel" id="crazyAssassinsPanel">
+<div class="picker-panel-content">
 <div class="picker-options">
 <div class="picker-option selected" data-value="1">1</div>
 <div class="picker-option" data-value="2">2</div>
@@ -1784,6 +1932,7 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 <div class="picker-option" data-value="7">7</div>
 </div>
 <div class="picker-info">Neutralne: <span id="crazyNeutralDisplay">7</span></div>
+</div>
 </div>
 <input type="hidden" id="crazyAssassins" value="1">
 <input type="hidden" id="crazyNeutral" value="7">
@@ -1797,10 +1946,12 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 </div>
 </div>
 <div class="picker-panel" id="crazyStarterPanel">
+<div class="picker-panel-content">
 <div class="picker-options starter-options">
 <div class="picker-option selected" data-value="random">🎲 Losowo</div>
 <div class="picker-option" data-value="red">🔴 Czerwoni</div>
 <div class="picker-option" data-value="blue">🔵 Niebiescy</div>
+</div>
 </div>
 </div>
 <input type="hidden" id="crazyStarter" value="random">
@@ -1814,6 +1965,7 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 </div>
 </div>
 <div class="rounds-picker" id="crazyRoundsPicker">
+<div class="rounds-picker-content">
 <div class="rounds-options">
 <div class="rounds-option" data-rounds="1">1</div>
 <div class="rounds-option" data-rounds="2">2</div>
@@ -1825,6 +1977,7 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 <div class="rounds-custom" id="crazyRoundsCustom" style="display:none">
 <label>Własna liczba:</label>
 <input type="number" id="crazyRoundsInput" min="1" max="99" value="6" onchange="updateCustomRounds('crazy')">
+</div>
 </div>
 </div>
 <input type="hidden" id="crazyWinTarget" value="3">
@@ -1917,10 +2070,22 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 </div>
 
 <div class="overlay" id="assassinOverlay">
-<h2>ZABÓJCA!</h2>
-<p style="font-size:1.2rem;margin:20px 0">Która drużyna trafiła na zabójcę?</p>
-<button class="btn-new" style="background:#e74c3c;margin:10px" onclick="assassinHit('red')"><span id="assRedText">Czerwoni</span></button>
-<button class="btn-new" style="background:#3498db;margin:10px" onclick="assassinHit('blue')"><span id="assBlueText">Niebiescy</span></button>
+<div class="assassin-container">
+<div class="assassin-skull">☠️</div>
+<h2 class="assassin-title">ZABÓJCA!</h2>
+<div class="assassin-subtitle">Ktoś natknął się na zabójcę...</div>
+<div class="assassin-question">Która drużyna przegrała rundę?</div>
+<div class="assassin-buttons">
+<button class="assassin-btn red" onclick="assassinHit('red')">
+<span class="assassin-btn-emoji" id="assRedEmoji">🐉</span>
+<span class="assassin-btn-text" id="assRedText">Czerwoni</span>
+</button>
+<button class="assassin-btn blue" onclick="assassinHit('blue')">
+<span class="assassin-btn-emoji" id="assBlueEmoji">🦈</span>
+<span class="assassin-btn-text" id="assBlueText">Niebiescy</span>
+</button>
+</div>
+</div>
 </div>
 
 <div class="overlay" id="keyWarning">
@@ -1936,18 +2101,18 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 </div>
 
 <div class="overlay" id="pinOverlay">
-<div class="settings-container" style="max-width:400px">
-<h2 style="font-size:1.5rem;margin-bottom:15px">🔑 Dane do klucza</h2>
-<div style="background:#1a1a1a;border-radius:12px;padding:15px;margin-bottom:15px">
-<p style="font-size:0.85rem;color:#888;margin-bottom:5px">Kod gry</p>
-<div id="sessionCodeDisplay" style="font-size:2rem;font-weight:bold;color:#4CAF50;letter-spacing:0.3em;font-family:monospace">----</div>
+<div class="settings-container" style="max-width:350px">
+<h2 style="font-size:1.4rem;margin-bottom:12px">🔑 Dane do klucza</h2>
+<div style="background:#1a1a1a;border-radius:10px;padding:10px 15px;margin-bottom:10px;text-align:center">
+<p style="font-size:0.8rem;color:#888;margin:0 0 5px 0">Kod gry</p>
+<div id="sessionCodeDisplay" style="font-size:1.8rem;font-weight:bold;color:#4CAF50;letter-spacing:0.25em;font-family:monospace;padding-right:0.25em">----</div>
 </div>
-<div style="background:#1a1a1a;border-radius:12px;padding:15px">
-<p style="font-size:0.85rem;color:#888;margin-bottom:5px">PIN</p>
-<div class="pin-display" id="pinDisplay" style="margin:0">1234</div>
+<div style="background:#1a1a1a;border-radius:10px;padding:10px 15px;text-align:center">
+<p style="font-size:0.8rem;color:#888;margin:0 0 5px 0">PIN</p>
+<div class="pin-display" id="pinDisplay">1234</div>
 </div>
-<p style="font-size:0.9rem;color:#aaa;margin:15px 0">Podaj te dane kapitanom drużyn.<br>Mogą je wpisać w menu głównym → Klucz kapitana</p>
-<div style="display:flex;gap:15px;justify-content:center;margin-top:20px">
+<p style="font-size:0.85rem;color:#aaa;margin:12px 0;text-align:center">Podaj te dane kapitanom drużyn.<br>Mogą je wpisać w menu głównym → Klucz kapitana</p>
+<div style="display:flex;justify-content:center;margin-top:15px">
 <button class="btn-reset" onclick="hideO('pinOverlay')">Zamknij</button>
 </div>
 </div>
@@ -1978,6 +2143,7 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 <div class="overlay" id="captainBoardOverlay">
 <div class="settings-container captain-board-container">
 <h2 style="font-size:1.3rem;margin-bottom:10px">🔑 Klucz planszy</h2>
+<div class="captain-starter" id="captainStarter"></div>
 <div class="captain-board" id="captainBoard"></div>
 <div class="captain-legend">
 <span class="legend-item"><span class="legend-color red"></span>Czerwoni</span>
@@ -2022,11 +2188,23 @@ button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
 </div>
 </div>
 
+<div class="overlay" id="emojiPickerOverlay">
+<div class="settings-container" style="max-width:500px">
+<h2 style="font-size:1.8rem;margin-bottom:20px">Wybierz emoji</h2>
+<div class="emoji-grid" id="emojiGrid"></div>
+<div style="display:flex;gap:15px;justify-content:center;margin-top:20px">
+<button class="btn-reset" onclick="hideO('emojiPickerOverlay')">Anuluj</button>
+<button class="btn-new" onclick="confirmEmojiSelection()">Wybierz</button>
+</div>
+</div>
+</div>
+
 <script>
 const WORDS=["Dinozaur","Lód","Szpieg","Zamek","Księżyc","Pies","Dźwig","Afryka","Piramida","Pilot","Szpital","Oko","Niedźwiedź","Orzeł","Trawa","Bombowiec","Pociąg","Doktor","Ziemia","Wieloryb","Szkoła","Góra","But","Bank","Ryba","Anioł","Pająk","Klucz","Złoto","Papier","Jabłko","Ogień","Samolot","Kod","Mecz","Tort","Gwiazda","Policja","Woda","Mur","Królowa","Rycerz","Wiatr","Radio","Las","Duch","Zegarek","Rzeka","Komputer","Książka","Kawa","Cukier","Miasto","Most","Grom","Słońce","Chmura","Śnieg","Deszcz","Burza","Sztorm","Ocean","Plaża","Wyspa","Dżungla","Pustynia","Lawina","Wulkan","Trzęsienie","Robot","Laser","Rakieta","Planeta","Kometa","Satelita","Astronauta","Mars","Gitara","Pianino","Bęben","Trąbka","Skrzypce","Opera","Koncert","Muzyka","Malarz","Rzeźba","Galeria","Obraz","Farba","Pędzel","Paleta","Muzeum","Piłka","Stadion","Bramka","Sędzia","Mistrz","Medal","Puchar","Olimpiada","Smok","Czarodziej","Elf","Krasnolud","Troll","Goblin","Mag","Kapitan","Statek","Kotwica","Żagiel","Pirat","Skarb","Mapa","Kompas","Telefon","Ekran","Mysz","Klawiatura","Monitor","Drukarka","Kamera","Mikrofon"];
 const ADULT=["Kamasutra","Orgazm","Seks","Erotyka","Striptiz","Kochanek","Gangster","Mafioso","Grzech","Piekło","Szatan","Demon","Alkohol","Wódka","Narkotyk","Dealer","Przemyt","Zabójca","Morderca","Trucizna","Broń","Rewolwer","Karabin","Granat","Dynamit","Poker","Kasyno","Hazard","Ruletka","Oszust","Kanciarz","Więzienie","Kraty","Kajdanki","Policjant","Areszt","Cela","Wyrok","Whisky","Piwo","Wino","Kac","Impreza","Disco","Klub","Jackpot","Stawka","Blef","Hip-Hop","Rap","Skandal"];
-const EMOJIS_RED=["🐉","🦁","🔥","🌶️","🦅","🚀","⚡","💎"];
-const EMOJIS_BLUE=["🦈","🐺","❄️","🌊","🦋","🛸","⭐","🔮"];
+const EMOJIS_RED=["🐉","🦁","🔥","🌶️","🦅","🚀","⚡"];
+const EMOJIS_BLUE=["🦈","🐺","❄️","🌊","🦋","🛸","⭐"];
+const EMOJIS_EXTRA=["💎","🔮","🎯","🎪","🎭","🎨","🎸","🎹","🏆","🥇","👑","💀","🤖","👽","🦄","🐲","🦊","🐼","🐨","🦉","🦚","🦜","🐙","🦑","🦞","🦀","🐢","🦎","🐍","🦂","🕷️","🦇","🐝","🌸","🌺","🌻","🌹","🍀","🌴","🌵","🍄","🌙","☀️","🌈","💫","✨","🔱","⚔️","🛡️","🏴‍☠️","🎃","👻","🧙","🧛","🧜","🧚"];
 
 let wordList=WORDS,gameMode='classic',gameOver=false,isSpymaster=false,sideCards={red:[],blue:[]};
 const team={red:{name:"Czerwoni",emoji:"🐉",score:0},blue:{name:"Niebiescy",emoji:"🦈",score:0}};
@@ -2034,6 +2212,7 @@ const cfg={winTarget:3,sound:true,assassins:1,starter:'random',startAgents:9,oth
 let remaining={red:0,blue:0};
 let currentPin='';
 let currentBoardData=null; // {words:[], roles:[]}
+let currentEmojiPicker=null; // {mode, team, picker}
 
 // Funkcja hashowania PIN-u (SHA-256)
 async function hashPin(pin) {
@@ -2088,13 +2267,15 @@ function buildPickers(){
                 div.className='avatar-option'+(i===0?' selected':'');
                 div.dataset.emoji=e;
                 div.textContent=e;
-                div.onclick=()=>{
-                    picker.querySelectorAll('.avatar-option').forEach(o=>o.classList.remove('selected'));
-                    div.classList.add('selected');
-                    team[t].emoji=e;
-                };
+                div.onclick=()=>selectEmoji(picker,div,e,t);
                 picker.appendChild(div);
             });
+            // Przycisk "+" do rozszerzonego wyboru
+            const plusBtn=document.createElement('div');
+            plusBtn.className='avatar-option avatar-plus';
+            plusBtn.textContent='+';
+            plusBtn.onclick=()=>openEmojiPicker(mode,t,picker);
+            picker.appendChild(plusBtn);
         });
         
         // Deck picker
@@ -2199,6 +2380,67 @@ function buildPickers(){
             };
         });
     }
+}
+
+function selectEmoji(picker,div,emoji,teamColor){
+    picker.querySelectorAll('.avatar-option').forEach(o=>o.classList.remove('selected'));
+    div.classList.add('selected');
+    team[teamColor].emoji=emoji;
+}
+
+function openEmojiPicker(mode,teamColor,picker){
+    currentEmojiPicker={mode,team:teamColor,picker};
+    const grid=$('emojiGrid');
+    grid.innerHTML='';
+    
+    // Połącz wszystkie emoji
+    const allEmojis=[...EMOJIS_RED,...EMOJIS_BLUE,...EMOJIS_EXTRA];
+    const uniqueEmojis=[...new Set(allEmojis)];
+    
+    uniqueEmojis.forEach(e=>{
+        const div=document.createElement('div');
+        div.className='emoji-grid-item';
+        if(team[teamColor].emoji===e) div.classList.add('selected');
+        div.textContent=e;
+        div.onclick=()=>{
+            grid.querySelectorAll('.emoji-grid-item').forEach(o=>o.classList.remove('selected'));
+            div.classList.add('selected');
+        };
+        grid.appendChild(div);
+    });
+    
+    showO('emojiPickerOverlay');
+}
+
+function confirmEmojiSelection(){
+    const selected=$('emojiGrid').querySelector('.emoji-grid-item.selected');
+    if(selected && currentEmojiPicker){
+        const emoji=selected.textContent;
+        const {team:teamColor,picker}=currentEmojiPicker;
+        
+        // Zaznacz w głównym pickerze lub dodaj jako custom
+        let found=false;
+        picker.querySelectorAll('.avatar-option:not(.avatar-plus)').forEach(opt=>{
+            opt.classList.remove('selected');
+            if(opt.dataset.emoji===emoji){
+                opt.classList.add('selected');
+                found=true;
+            }
+        });
+        
+        // Jeśli nie znaleziono, podmień ostatni przed +
+        if(!found){
+            const options=picker.querySelectorAll('.avatar-option:not(.avatar-plus)');
+            const lastOpt=options[options.length-1];
+            lastOpt.dataset.emoji=emoji;
+            lastOpt.textContent=emoji;
+            lastOpt.classList.add('selected');
+        }
+        
+        team[teamColor].emoji=emoji;
+    }
+    hideO('emojiPickerOverlay');
+    currentEmojiPicker=null;
 }
 
 function toggleModeCard(card){
@@ -2446,8 +2688,14 @@ function initRound(){
     
     const words=shuffle([...wordList]).slice(0,cfg.width*cfg.height);
     
-    // Zapisz dane planszy dla kapitana
-    currentBoardData = {words: words, roles: roles};
+    // Zapisz dane planszy dla kapitana (z info kto zaczyna)
+    currentBoardData = {
+        words: words, 
+        roles: roles, 
+        starter: redStarts ? 'red' : 'blue',
+        redCount: remaining.red,
+        blueCount: remaining.blue
+    };
     
     // Generuj PIN i zapisz do localStorage (po utworzeniu danych planszy)
     generatePin();
@@ -2477,7 +2725,10 @@ function initRound(){
                 setTimeout(()=>{
                     $('assRedText').textContent=team.red.name;
                     $('assBlueText').textContent=team.blue.name;
+                    $('assRedEmoji').textContent=team.red.emoji;
+                    $('assBlueEmoji').textContent=team.blue.emoji;
                     showO('assassinOverlay');
+                    playSound('assassin');
                 },600);
                 return;
             }
@@ -2862,7 +3113,31 @@ async function verifyCaptainPin(){
 
 function buildCaptainBoard(boardData){
     const board = $('captainBoard');
+    const starterEl = $('captainStarter');
     board.innerHTML = '';
+    
+    // Pokaż kto zaczyna
+    if(boardData.starter){
+        const isRed = boardData.starter === 'red';
+        const color = isRed ? '#e74c3c' : '#3498db';
+        const teamName = isRed ? 'Czerwoni' : 'Niebiescy';
+        const count = isRed ? boardData.redCount : boardData.blueCount;
+        const otherCount = isRed ? boardData.blueCount : boardData.redCount;
+        
+        starterEl.innerHTML = `
+            <div class="starter-info" style="border-color:${color}">
+                <span class="starter-label">Zaczyna:</span>
+                <span class="starter-team" style="color:${color}">${teamName}</span>
+                <span class="starter-counts">
+                    <span style="color:#e74c3c">${boardData.redCount || '?'}</span>
+                    <span style="color:#888">vs</span>
+                    <span style="color:#3498db">${boardData.blueCount || '?'}</span>
+                </span>
+            </div>
+        `;
+    } else {
+        starterEl.innerHTML = '';
+    }
     
     boardData.words.forEach((word, i) => {
         const card = document.createElement('div');
