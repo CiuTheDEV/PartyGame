@@ -1,0 +1,2949 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PartyHUB — 5 Sekund</title>
+<!--
+  Uwaga (sandbox/CDN):
+  W części sandboxów jakakolwiek próba ładowania skryptu z CDN potrafi kończyć się "Script error" bez stack trace.
+  Dlatego ten plik działa w 100% offline: anime.js NIE jest ładowane w ogóle.
+  Zamiast tego jest wbudowany mały fallback "anime" (no-op + proste style), który wystarcza do animacji UI.
+-->
+<style>
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  :root{
+    --brand-grad: linear-gradient(135deg,#FF9800,#4CAF50);
+    --font-main: 'Segoe UI', Tahoma, sans-serif;
+    --font-serif: Georgia, 'Times New Roman', serif;
+  }
+  body{
+    font-family:var(--font-main, 'Segoe UI', Tahoma, sans-serif);
+    background:#1a1a1a;color:#fff;text-align:center;
+    padding:0;display:flex;flex-direction:column;
+  }
+  body.game-active{height:100vh;height:100dvh;overflow:hidden}
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.92);
+    display:none;align-items:center;justify-content:center;
+    flex-direction:column;z-index:1000;padding:2vh 2vw;overflow-y:auto;
+    opacity:1;
+  }
+  .home-container{max-width:min(900px,90vw);width:90%}
+  .home-title{
+    /* identyczne wymiary jak w tajniacy.html */
+    font-size:clamp(2.5rem,8vmin,5rem);
+    margin-bottom:2vh;
+
+    background:var(--brand-grad);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+
+    text-align:center;
+  }
+
+  .mode-selection{display:flex;flex-direction:column;gap:clamp(10px,2vmin,20px);margin-bottom:3vh}
+  .mode-card{
+    background:linear-gradient(135deg,#2a2a2a,#1a1a1a);
+    border-radius:clamp(12px,2vmin,20px);
+    transition:all .3s;border:2px solid transparent;overflow:hidden;
+  }
+  .mode-card:hover{box-shadow:0 5px 20px rgba(0,0,0,.4)}
+  .mode-card.classic{border-color:#4CAF50}
+  .mode-card.wip{border-color:#9E9E9E}
+
+  .mode-header{
+    display:flex;align-items:center;
+    padding:clamp(12px,2.5vmin,25px) clamp(15px,3vmin,30px);
+    position:relative;cursor:pointer;
+  }
+  .mode-icon{
+    font-size:clamp(2rem,5vmin,3.5rem);
+    position:absolute;left:clamp(15px,3vmin,30px);
+  }
+  .mode-title-wrapper{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:clamp(8px,1.5vmin,15px);
+  }
+  .mode-title{font-size:clamp(1.2rem,3.5vmin,2.2rem);font-weight:bold}
+  .mode-card.classic .mode-title{color:#4CAF50}
+  .mode-card.wip .mode-title{color:#9E9E9E}
+
+  .mode-arrow{
+    position:absolute;right:clamp(15px,3vmin,30px);
+    font-size:clamp(0.8rem,2vmin,1.2rem);
+    color:#666;transition:transform .3s ease;
+  }
+  .mode-card.open .mode-arrow{transform:rotate(180deg)}
+
+  .mode-wip-badge{
+    background:#9E9E9E;color:#1a1a1a;font-size:clamp(0.6rem,1.5vmin,0.8rem);
+    font-weight:bold;padding:clamp(3px,0.5vmin,5px) clamp(8px,1.2vmin,12px);
+    border-radius:clamp(4px,0.8vmin,8px);text-transform:uppercase;letter-spacing:1px;
+  }
+
+  .mode-content{
+    max-height:0;overflow:hidden;
+    transition:max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    border-top:1px solid transparent;
+  }
+  .mode-card.open .mode-content{max-height:520px;border-top-color:#333}
+  .mode-content-inner{
+    display:flex;flex-direction:row;align-items:flex-end;justify-content:space-between;
+    gap:clamp(15px,3vmin,25px);
+    padding:clamp(12px,2vmin,20px) clamp(15px,3vmin,30px);
+    background:rgba(0,0,0,0.2);
+  }
+  .mode-details{
+    flex:1;min-width:0;opacity:0;transform:translateY(-10px);
+    transition:opacity 0.4s ease 0.15s, transform 0.4s ease 0.15s;
+    text-align:left;
+  }
+  .mode-card.open .mode-details{opacity:1;transform:translateY(0)}
+  .mode-description{font-size:clamp(0.95rem,2.1vmin,1.15rem);color:#aaa;margin-bottom:8px}
+  .mode-mini{font-size:clamp(0.85rem,1.9vmin,1.02rem);color:#8f8f8f;line-height:1.45;margin-bottom:10px}
+  .mode-pills{display:flex;gap:10px;flex-wrap:wrap}
+  .mode-pills .pill{border-color:#2a2a2a;padding:8px 10px}
+  .mode-pills .pill b{font-weight:900}
+  .mode-features{font-size:clamp(0.8rem,1.8vmin,1rem);color:#888;list-style:none;padding:0;margin:0}
+  .mode-features li{margin:clamp(2px,0.5vmin,5px) 0;padding-left:1em;position:relative}
+  .mode-features li::before{content:'•';position:absolute;left:0;color:#666}
+
+  .mode-buttons{
+    display:flex;gap:clamp(8px,1.5vmin,12px);
+    flex-shrink:0;align-self:flex-end;
+    opacity:0;transform:translateX(10px);
+    transition:opacity 0.4s ease 0.2s, transform 0.4s ease 0.2s;
+  }
+  .mode-card.open .mode-buttons{opacity:1;transform:translateX(0)}
+
+  .mode-btn{
+    width:clamp(44px,7vmin,58px);height:clamp(44px,7vmin,58px);
+    border-radius:50%;border:2px solid #666;background:rgba(0,0,0,0.3);
+    color:#aaa;font-size:clamp(1.1rem,2.5vmin,1.5rem);font-weight:bold;
+    cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;padding:0;
+  }
+  .mode-btn.info{font-style:italic;font-family:var(--font-serif)}
+  .mode-btn:hover{background:rgba(255,255,255,0.1);border-color:#aaa;color:#fff;transform:scale(1.1)}
+  .mode-card.classic .mode-btn.play{border-color:#4CAF50;color:#4CAF50}
+  .mode-card.classic .mode-btn.play:hover{background:#4CAF50;color:#fff}
+  .mode-btn.disabled{opacity:0.4;cursor:not-allowed}
+  .mode-btn.disabled:hover{transform:none;background:rgba(0,0,0,0.3)}
+
+  .rules-container{
+    background:#2a2a2a;
+    border-radius:clamp(15px,2vmin,25px);
+    padding:clamp(20px,4vmin,40px);
+    max-width:min(600px,90vw);
+    width:90%;
+    max-height:85vh;
+    overflow-y:auto;
+    text-align:left;
+  }
+  .rules-title{
+    background:var(--brand-grad);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+
+    /* przywrócone: nagłówek overlay */
+    font-size:clamp(1.6rem,4.2vmin,2.4rem);
+    font-weight:1000;
+    line-height:1.15;
+    margin:0 0 clamp(12px,2.5vmin,20px) 0;
+    text-align:center;
+  }
+  .rules-content{
+    font-size:clamp(0.9rem,2.2vmin,1.1rem);
+    color:#ccc;
+    line-height:1.6;
+  }
+  .rules-content h3{
+    color:#fff;
+    font-size:clamp(1.1rem,2.5vmin,1.4rem);
+    margin:clamp(15px,2.5vmin,25px) 0 clamp(8px,1.5vmin,12px);
+  }
+  .rules-content h3:first-child{margin-top:0}
+  .rules-content p{margin:clamp(8px,1.5vmin,12px) 0}
+  .rules-content ul{margin:clamp(8px,1.5vmin,12px) 0;padding-left:clamp(20px,3vmin,30px)}
+  .rules-content li{margin:clamp(4px,0.8vmin,8px) 0}
+  .rules-content .highlight{color:#4CAF50;font-weight:bold}
+  .rules-content .danger{color:#e74c3c;font-weight:bold}
+  .rules-content .info{color:#3498db}
+  .rules-container button{display:block;margin:clamp(20px,3vmin,30px) auto 0}
+  .btn-new{background:#4CAF50;color:#fff}
+
+  .home-bottom-buttons{
+    display:flex;gap:clamp(10px,2vmin,20px);
+    margin-top:clamp(10px,3vmin,30px);
+    flex-wrap:wrap;justify-content:center;
+  }
+  .home-btn{
+    background:transparent;border:2px solid;
+    padding:clamp(10px,1.8vmin,16px) clamp(18px,3vmin,30px);
+    font-size:clamp(0.85rem,2.2vmin,1.1rem);
+    border-radius:clamp(8px,1.2vmin,12px);
+    cursor:pointer;transition:all .2s;font-weight:500;color:#888;border-color:#888;
+  }
+  .home-btn:hover{transform:scale(1.05);background:#888;color:#fff}
+  .home-btn.settings{border-color:#3498db;color:#3498db}
+  .home-btn.settings:hover{background:#3498db;color:#fff}
+  .home-btn.hub{border-color:#FF9800;color:#FF9800}
+  .home-btn.hub:hover{background:#FF9800;color:#fff}
+
+  button,
+  input,
+  select,
+  textarea{
+    font-family:var(--font-main, 'Segoe UI', Tahoma, sans-serif);
+  }
+
+  button{
+    padding:clamp(10px,2vh,18px) clamp(18px,3vw,34px);
+    font-size:clamp(1rem,2.5vmin,1.3rem);
+    border:none;border-radius:clamp(8px,1vmin,15px);
+    font-weight:bold;cursor:pointer;transition:transform .2s
+  }
+  button:hover{transform:scale(1.05)}button:active{transform:scale(.95)}
+  .btn-primary{background:#4CAF50;color:#fff}
+  .btn-warn{background:#FF9800;color:#111}
+  .btn-danger{background:#e74c3c;color:#fff}
+  .btn-ghost{background:#333;color:#ddd}
+
+  .settings-container{background:#2a2a2a;border-radius:clamp(15px,2vmin,25px);padding:clamp(15px,3vmin,40px);max-width:min(800px,95vw);width:95%;max-height:90vh;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;text-align:left}
+  .settings-container::-webkit-scrollbar{width:6px}
+  .settings-container::-webkit-scrollbar-track{background:#1a1a1a;border-radius:3px}
+  .settings-container::-webkit-scrollbar-thumb{background:#555;border-radius:3px}
+  .settings-title{
+    background:var(--brand-grad);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+
+    /* przywrócone: nagłówek overlay */
+    font-size:clamp(1.6rem,4.2vmin,2.4rem);
+    font-weight:1000;
+    line-height:1.15;
+    margin:0 0 clamp(12px,2.5vmin,20px) 0;
+    text-align:center;
+  }
+  .card-block{
+    background:#1a1a1a;border-radius:clamp(10px,1.5vmin,16px);
+    padding:clamp(12px,2.2vmin,22px);border:2px solid #333;
+  }
+  .row{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    padding:10px 0;border-bottom:1px solid #2a2a2a;
+  }
+  .row:last-child{border-bottom:none}
+  label{color:#bbb}
+  input[type="text"], input[type="number"]{
+    padding:10px 12px;border-radius:10px;border:2px solid #444;background:#111;color:#fff;
+    font-size:1rem;outline:none;
+  }
+  input[type="number"]{width:120px;text-align:center}
+  input[type="text"]{width:min(360px,90vw)}
+  .pill{
+    display:inline-flex;align-items:center;gap:8px;
+    background:#111;border:2px solid #333;border-radius:999px;padding:8px 12px;color:#ddd;
+  }
+  .small{font-size:0.9rem;color:#999}
+
+  .game-settings{background:#1a1a1a;border-radius:clamp(8px,1.2vmin,15px);padding:clamp(12px,2vmin,25px);margin-bottom:2vh;overflow:hidden}
+  .game-settings h3{color:#FF9800;margin:0 0 clamp(10px,1.5vmin,15px);font-size:clamp(1rem,2.2vmin,1.4rem)}
+
+  .setting-row{display:flex;justify-content:space-between;align-items:center;margin:6px 0;padding:clamp(8px,1.2vmin,12px);background:#2a2a2a;border-radius:clamp(6px,1vmin,10px);flex-wrap:wrap;gap:8px;box-sizing:border-box;max-width:100%}
+  .setting-row:first-child{margin-top:0}
+  .setting-row:last-child{margin-bottom:0}
+  .setting-row label{font-size:clamp(0.85rem,2vmin,1.2rem);color:#ccc}
+
+  .toggle-switch{position:relative;display:inline-block;width:clamp(54px,8.5vmin,64px);height:clamp(28px,4.2vmin,34px);flex-shrink:0}
+  .toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+  .toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#555;transition:.25s;border-radius:999px}
+  .toggle-slider:before{position:absolute;content:"";height:clamp(22px,3.2vmin,28px);width:clamp(22px,3.2vmin,28px);left:3px;bottom:3px;background:#fff;transition:.25s;border-radius:50%}
+  .toggle-switch input:checked + .toggle-slider{background:#4CAF50}
+  .toggle-switch input:checked + .toggle-slider:before{transform:translateX(clamp(26px,4.4vmin,30px))}
+
+  .settings-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
+.settings-meta .title{font-weight:900;color:#fff}
+.settings-meta .desc{color:#9a9a9a;font-size:0.92rem}
+
+/* Ustawienia glowne — wyglad jak w Tajniakach (prosto, bez opisow) */
+.gs-wrap{max-width:520px;text-align:left}
+.gs-card{padding:16px;border-radius:18px}
+.gs-row{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:14px 16px;
+  background:#2a2a2a;
+  border:2px solid #2f2f2f;
+  border-radius:18px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.03);
+}
+.gs-row + .gs-row{margin-top:12px}
+.gs-label{color:#d0d0d0;font-size:1.05rem}
+.gs-right{display:flex;align-items:center;gap:10px;justify-content:flex-end}
+.gs-ico{font-size:1.2rem;opacity:0.95}
+.gs-version{opacity:0.92}
+.gs-ver{color:#9a9a9a;font-weight:900}
+.gs-close{width:100%;margin-top:16px;padding:18px 20px;font-size:1.4rem;border-radius:18px}
+.gs-select{
+  appearance:none;
+  background:#1f1f1f;
+  border:2px solid #333;
+  color:#fff;
+  border-radius:14px;
+  padding:10px 40px 10px 14px;
+  font-weight:900;
+  font-size:1.05rem;
+  cursor:pointer;
+  background-image:linear-gradient(45deg, transparent 50%, #aaa 50%), linear-gradient(135deg, #aaa 50%, transparent 50%);
+  background-position:calc(100% - 18px) calc(50% - 3px), calc(100% - 12px) calc(50% - 3px);
+  background-size:6px 6px, 6px 6px;
+  background-repeat:no-repeat;
+}
+
+  .rounds-row{flex-direction:column;align-items:stretch;padding:0;background:transparent;overflow:hidden;max-width:100%}
+  .rounds-selector{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:clamp(8px,1.5vmin,15px);
+    background:#2a2a2a;border-radius:clamp(6px,1vmin,12px);
+    cursor:pointer;transition:all .2s;
+  }
+  .rounds-selector:hover{background:#333}
+  .rounds-selector label{font-size:clamp(1rem,2.5vmin,1.4rem);color:#ccc;pointer-events:none}
+  .rounds-current{display:flex;align-items:center;gap:10px}
+  .rounds-current span:first-child{color:#fff;font-size:clamp(0.95rem,2.2vmin,1.3rem);font-weight:900}
+  .rounds-arrow{color:#888;font-size:0.8rem;transition:transform 0.3s ease}
+  .rounds-row.open .rounds-arrow{transform:rotate(180deg)}
+  .rounds-picker{max-height:0;overflow:hidden;transition:max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1)}
+  .rounds-row.open .rounds-picker{max-height:300px}
+  .rounds-picker-content{display:flex;flex-direction:column;gap:clamp(10px,1.5vmin,15px);padding:clamp(10px,2vmin,15px);margin-top:0;background:#222;border-radius:clamp(6px,1vmin,12px)}
+  .rounds-row.open .rounds-selector{border-bottom-left-radius:0;border-bottom-right-radius:0}
+  .rounds-row.open .rounds-picker-content{border-top-left-radius:0;border-top-right-radius:0;border-top:1px solid #333}
+  .rounds-options{display:flex;gap:clamp(6px,1vmin,12px);flex-wrap:wrap;justify-content:center}
+  .rounds-option{
+    width:clamp(46px,7vmin,64px);
+    height:clamp(46px,7vmin,64px);
+    display:flex;align-items:center;justify-content:center;
+    font-size:clamp(1.1rem,2.5vmin,1.6rem);
+    font-weight:1000;color:#fff;
+    background:#1a1a1a;border:2px solid transparent;border-radius:clamp(8px,1vmin,12px);
+    cursor:pointer;transition:all .2s;
+  }
+  .rounds-option:hover{border-color:#666;background:#252525}
+  .rounds-option.selected{border-color:#4CAF50;background:#1a2a1a}
+  .rounds-option.custom{font-size:clamp(1.5rem,3vmin,2rem);color:#888}
+  .rounds-custom{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,1.5vmin,12px);padding-top:clamp(10px,1.5vmin,15px);border-top:1px solid #333}
+  .rounds-custom label{font-size:clamp(0.9rem,2vmin,1.1rem);color:#888}
+  .rounds-custom input{width:clamp(70px,12vmin,110px);padding:clamp(8px,1.5vmin,12px);font-size:clamp(1rem,2.2vmin,1.3rem);border-radius:clamp(5px,0.8vmin,10px);border:2px solid #4CAF50;background:#1a2a1a;color:#fff;text-align:center}
+
+  .button-group{display:flex;gap:clamp(10px,2vmin,20px);margin-top:2vh;flex-wrap:wrap}
+  .btn-reset{background:#e74c3c;color:#fff}
+
+  .deck-row{flex-direction:column;align-items:stretch;padding:0;background:transparent;overflow:hidden;max-width:100%}
+  .deck-selector{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:clamp(8px,1.5vmin,15px);
+    background:#2a2a2a;border-radius:clamp(6px,1vmin,12px);
+    cursor:pointer;transition:all .2s;
+  }
+  .deck-selector:hover{background:#333}
+  .deck-selector label{font-size:clamp(1rem,2.5vmin,1.4rem);color:#ccc;pointer-events:none}
+  .deck-current{display:flex;align-items:center;gap:10px}
+  .deck-current span:first-child{color:#fff;font-size:clamp(0.95rem,2.2vmin,1.3rem);font-weight:900}
+  .deck-arrow{color:#888;font-size:0.8rem;transition:transform 0.3s ease}
+  .deck-row.open .deck-arrow{transform:rotate(180deg)}
+
+  .deck-picker{max-height:0;overflow:hidden;transition:max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1)}
+  .deck-row.open .deck-picker{max-height:420px}
+  .deck-picker-content{
+    display:flex;flex-direction:column;gap:clamp(10px,1.5vmin,15px);
+    padding:clamp(10px,2vmin,15px);
+    margin-top:0;
+    background:#222;border-radius:clamp(6px,1vmin,12px)
+  }
+  .deck-row.open .deck-selector{border-bottom-left-radius:0;border-bottom-right-radius:0}
+  .deck-row.open .deck-picker-content{border-top-left-radius:0;border-top-right-radius:0;border-top:1px solid #333}
+
+  .deck-options{display:grid;grid-template-columns:1fr 1fr;gap:clamp(10px,2vmin,16px)}
+  .deck-option{
+    background:linear-gradient(135deg,#2a2a2a,#1a1a1a);
+    border:2px solid #333;
+    border-radius:clamp(12px,2vmin,18px);
+    padding:clamp(12px,2.2vmin,18px);
+    cursor:pointer;text-align:left;
+    transition:transform .15s, border-color .15s, background .15s, box-shadow .15s;
+    position:relative;overflow:hidden;
+  }
+  .deck-option:hover{transform:scale(1.02);border-color:#666;box-shadow:0 10px 26px rgba(0,0,0,.35)}
+  .deck-option.selected{border-color:#4CAF50;box-shadow:0 0 0 2px rgba(76,175,80,.25) inset}
+  .deck-option.adult.selected{border-color:#FF9800;box-shadow:0 0 0 2px rgba(255,152,0,.22) inset}
+  .deck-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .deck-name{font-weight:1000;font-size:clamp(1rem,2.4vmin,1.3rem);color:#fff}
+  .deck-badge{font-weight:1000;font-size:0.85rem;padding:6px 10px;border-radius:999px;border:2px solid #444;background:rgba(0,0,0,.25);color:#ddd;flex-shrink:0}
+  .deck-badge.ok{border-color:#4CAF50;color:#4CAF50}
+  .deck-badge.adult{border-color:#FF9800;color:#FF9800}
+  .deck-desc{color:#9a9a9a;font-size:0.95rem;line-height:1.35;margin:0}
+
+  .deck-warning{
+    padding:10px 12px;
+    border-radius:14px;
+    border:2px solid #333;
+    background:rgba(0,0,0,0.25);
+    color:#bdbdbd;
+    font-size:0.95rem;
+    line-height:1.35;
+  }
+  .deck-warning strong{color:#fff}
+  .deck-warning.adult{border-color:#FF9800}
+  .deck-warning.standard{border-color:#4CAF50}
+
+  .order-seg{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+  .order-btn{
+    padding:10px 14px;
+    border-radius:14px;
+    border:2px solid #444;
+    background:#111;
+    color:#ddd;
+    font-weight:1000;
+    cursor:pointer;
+    transition:transform .15s, border-color .15s, background .15s;
+    font-size:1rem;
+  }
+  .order-btn:hover{transform:scale(1.03);border-color:#666;background:#1f1f1f}
+  .order-btn.selected{border-color:#4CAF50;background:#1a2a1a;color:#fff}
+
+  @media(max-width:520px){
+    .deck-options{grid-template-columns:1fr}
+  }
+
+  .emoji-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(54px, 1fr));
+    gap:10px;
+    margin-top:12px;
+  }
+  .emoji-btn{
+    width:100%;
+    aspect-ratio:1/1;
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.8rem;
+    background:#111;
+    border:2px solid #333;
+    border-radius:14px;
+    cursor:pointer;
+    padding:0;
+    transition:transform .15s, background .15s, border-color .15s;
+  }
+  .emoji-btn:hover{border-color:#FF9800;background:#1f1f1f;transform:scale(1.06)}
+  .emoji-btn.selected{border-color:#4CAF50}
+
+  #gameScreen{display:none;flex-direction:column;height:100%;overflow:hidden}
+  .top-bar{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:clamp(8px,1.5vh,16px) clamp(10px,2vw,30px);
+    background:linear-gradient(180deg,#252525,#1a1a1a);
+    flex-shrink:0;gap:clamp(10px,2vw,30px);
+  }
+  .top-left, .top-right{display:flex;align-items:center;gap:10px}
+  .top-left{flex:1}
+  .top-right{flex:0;justify-content:flex-end}
+  .turn-pill{
+    display:flex;align-items:center;gap:clamp(10px,1.8vmin,16px);
+    padding:clamp(14px,2.2vmin,22px) clamp(16px,2.8vmin,26px);
+    border-radius:clamp(16px,2.4vmin,22px);
+    background:linear-gradient(135deg,rgba(255,152,0,0.25),rgba(76,175,80,0.15));
+    border:3px solid #FF9800;
+    max-width:100%;
+    width:min(720px,95vw);
+  }
+  .turn-emoji{font-size:clamp(2.0rem,4.2vmin,3.2rem)}
+  .turn-name{
+    font-weight:1000;
+    font-size:clamp(1.25rem,3.2vmin,2.1rem);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    text-align:left;
+  }
+  .turn-score{
+    margin-left:auto;
+    font-weight:1000;
+    font-size:clamp(1.4rem,3.6vmin,2.4rem);
+    background:#FF9800;color:#111;
+    border-radius:clamp(12px,2vmin,18px);
+    padding:clamp(8px,1.6vmin,12px) clamp(10px,2vmin,16px);
+    min-width:clamp(64px,10vmin,92px);
+    text-align:center;
+  }
+  .icon-btn{
+    width:clamp(44px,6vmin,66px);height:clamp(44px,6vmin,66px);
+    border-radius:clamp(10px,1vmin,15px);
+    border:none;background:#333;color:#fff;font-size:clamp(1.2rem,3vmin,2.1rem);
+    cursor:pointer;transition:background .2s;display:flex;align-items:center;justify-content:center;padding:0;
+  }
+  .icon-btn:hover{background:#444}
+  .icon-btn.active{background:#FF9800;box-shadow:0 0 15px rgba(255,152,0,0.5)}
+
+  .info-inner{
+    width:min(900px,95vw);
+    display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;
+  }
+  .info-pill{
+    display:inline-flex;align-items:center;gap:8px;
+    background:#111;
+    border:2px solid #333;
+    border-radius:999px;
+    padding:8px 12px;
+    color:#ddd;
+    font-weight:800;
+  }
+  .info-pill .k{color:#999;font-weight:700}
+  .info-pill b{color:#fff}
+
+  .turn-banner{width:100%;display:flex;justify-content:center}
+
+  .game-area{
+    flex:1;min-height:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:clamp(10px,2vmin,20px);
+  }
+  .center-stack{
+    width:min(900px,95vw);
+    display:flex;flex-direction:column;gap:clamp(10px,2vmin,18px);
+    align-items:center;justify-content:center;
+  }
+  .prompt-card{
+    width:100%;
+    background:linear-gradient(135deg,#2a2a2a,#1a1a1a);
+    border:2px solid #4CAF50;
+    border-radius:18px;
+    padding:clamp(16px,3vmin,26px);
+    box-shadow:0 10px 30px rgba(0,0,0,0.35);
+  }
+  .prompt-title{
+    margin:0 0 10px 0;
+    color:#4CAF50;font-weight:900;
+    font-size:clamp(1.2rem,3vmin,1.8rem);
+    display:flex;align-items:center;justify-content:center;gap:10px;
+  }
+  .prompt-text{
+    margin:0;
+    font-weight:900;letter-spacing:0.2px;
+    font-size:clamp(1.4rem,4.2vmin,3rem);
+    line-height:1.15;
+    text-transform:uppercase;
+  }
+
+  .timer-wrap{
+    width:min(520px,92vw);
+    display:flex;flex-direction:column;align-items:center;gap:10px;
+  }
+  .timer-ring{
+    width:clamp(180px,35vmin,320px);
+    height:clamp(180px,35vmin,320px);
+    border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.08), rgba(0,0,0,0.2));
+    border:2px solid #333;
+    display:grid;place-items:center;
+    position:relative;
+    overflow:hidden;
+  }
+  .timer-ring::before{
+    content:'';
+    position:absolute;inset:-40%;
+    background:conic-gradient(var(--ringColor,#FF9800) 0deg, var(--ringColor,#FF9800) var(--deg,0deg), rgba(255,255,255,0.08) var(--deg,0deg));
+    /* start odliczania na górze (12:00) */
+    transform:rotate(0deg);
+  }
+  .timer-inner{
+    position:relative;z-index:2;
+    width:86%;height:86%;
+    background:linear-gradient(180deg,#1a1a1a,#0f0f0f);
+    border-radius:50%;
+    border:2px solid #2a2a2a;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:10px;
+  }
+  .timer-big{
+    font-weight:1000;
+    font-size:clamp(2.6rem,9vmin,6rem);
+    letter-spacing:0.02em;
+  }
+  .timer-sub{color:#aaa;font-size:clamp(0.9rem,2.2vmin,1.2rem)}
+  
+  .action-row{
+    display:flex;gap:12px;flex-wrap:wrap;justify-content:center;
+    width:100%;
+  }
+  .action-row button{min-width:160px}
+
+  .scoreboard{
+    width:min(900px,95vw);
+    display:none;
+    flex-wrap:wrap;gap:10px;justify-content:center;
+  }
+  .score-chip{
+    display:flex;align-items:center;gap:10px;
+    background:#111;border:2px solid #333;border-radius:14px;
+    padding:10px 12px;min-width:180px;
+  }
+  .score-chip .e{font-size:1.5rem}
+  .score-chip .n{font-weight:900;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .score-chip .s{font-weight:900;background:#333;border-radius:10px;padding:6px 10px;min-width:44px;text-align:center}
+
+  .summary-row{
+    display:flex;align-items:center;gap:12px;
+    padding:12px 14px;
+    border-radius:14px;
+    background:#2a2a2a;
+    border:2px solid #333;
+  }
+  .summary-row.top1{border-color:#FFD700}
+  .summary-row.top2{border-color:#C0C0C0}
+  .summary-row.top3{border-color:#CD7F32}
+  .summary-row .e{font-size:1.6rem}
+  .summary-row .n{font-weight:900;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+  .summary-row .s{font-weight:1000;background:#FF9800;color:#111;border-radius:12px;padding:6px 12px;min-width:56px;text-align:center}
+
+  .end-wrap{max-width:min(640px,92vw);width:92vw}
+  .end-title{
+    background:var(--brand-grad);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+
+    /* przywrócone: wielkość i układ nagłówka końca gry */
+    font-size:clamp(1.7rem,4.4vmin,2.6rem);
+    font-weight:1000;
+    line-height:1.15;
+    margin:0 0 clamp(12px,2.5vmin,18px) 0;
+    text-align:center;
+  }
+  .end-winner{
+    text-align:center;
+    font-size:clamp(1.1rem,3.3vmin,2.0rem);
+    font-weight:1000;
+    padding:clamp(10px,2vmin,16px) clamp(14px,3vmin,22px);
+    border-radius:16px;
+    background:rgba(255,255,255,0.06);
+    border:2px solid #FF9800;
+    margin:0;
+  }
+  .end-scores{
+    margin-top:14px;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .end-row{
+    display:flex;align-items:center;gap:12px;
+    padding:12px 14px;
+    border-radius:14px;
+    background:#2a2a2a;
+    border:2px solid #333;
+  }
+  .end-row.top1{border-color:#FFD700}
+  .end-row.top2{border-color:#C0C0C0}
+  .end-row.top3{border-color:#CD7F32}
+  .end-row .e{font-size:1.6rem}
+  .end-row .n{font-weight:900;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .end-row .s{font-weight:1000;background:#FF9800;color:#111;border-radius:12px;padding:6px 12px;min-width:56px;text-align:center}
+
+  .mini-menu{
+    width:min(520px,92vw);
+    background:#2a2a2a;
+    border-radius:clamp(18px,3vmin,26px);
+    padding:clamp(18px,3.5vmin,34px);
+    text-align:center;
+    box-shadow:0 12px 38px rgba(0,0,0,0.55);
+  }
+  .mini-title{
+    margin:0 0 clamp(14px,3vmin,22px) 0;
+    font-size:clamp(1.5rem,4vmin,2.4rem);
+    font-weight:1000;
+    color:#fff;
+  }
+  .mini-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:clamp(10px,2vmin,16px) clamp(8px,1.8vmin,14px);
+    gap:12px;
+  }
+  .mini-row .mini-label{color:#bdbdbd;font-size:clamp(1rem,2.3vmin,1.3rem)}
+  .mini-actions{display:flex;flex-direction:column;gap:clamp(10px,2vmin,16px);margin-top:clamp(8px,2vmin,14px)}
+  .mini-actions button{width:100%;border-radius:clamp(10px,1.5vmin,14px);padding:clamp(14px,2.8vmin,20px) clamp(18px,3.2vmin,26px);font-size:clamp(1.1rem,2.8vmin,1.5rem);font-weight:1000}
+  .btn-continue{background:#4CAF50;color:#fff}
+  .btn-backmenu{background:#e74c3c;color:#fff}
+
+  .confetti{position:fixed;top:-20px;pointer-events:none;z-index:9999}
+
+  @media(max-width:520px){
+    .mode-content-inner{flex-direction:column;align-items:stretch}
+    .mode-buttons{align-self:center}
+    .score-chip{min-width:160px}
+    .turn-name{max-width:120px}
+  }
+</style>
+</head>
+<body>
+
+<div class="overlay" id="homeScreen" style="display:flex">
+  <div class="home-container">
+    <h1 class="home-title">5 SEKUND</h1>
+    <div class="mode-selection">
+      <div class="mode-card classic" id="classicCard">
+        <div class="mode-header" onclick="toggleModeCard(this.parentElement)">
+          <div class="mode-icon">⏱️</div>
+          <div class="mode-title-wrapper">
+            <div class="mode-title">KLASYCZNA</div>
+          </div>
+          <div class="mode-arrow">▼</div>
+        </div>
+        <div class="mode-content">
+          <div class="mode-content-inner">
+            <div class="mode-details">
+              <div class="mode-description"><b style="color:#fff">Tryb klasyczny</b> • 5 sekund na odpowiedź</div>
+              <div class="mode-mini">Dostajesz hasło typu „Wymień 3…”. Odpowiadasz zanim minie czas, a prowadzący przyznaje punkt.</div>
+              <div class="mode-pills">
+                <span class="pill"><span>👥</span><b>2–8</b><span class="small">graczy</span></span>
+                <span class="pill"><span>⏱️</span><b>5s</b><span class="small">na turę</span></span>
+              </div>
+            </div>
+            <div class="mode-buttons">
+              <button class="mode-btn info" onclick="event.stopPropagation();showRules()">i</button>
+              <button class="mode-btn play" onclick="event.stopPropagation();openSettings()">▶</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mode-card wip" id="wipCard">
+        <div class="mode-header" onclick="toggleModeCard(this.parentElement)">
+          <div class="mode-icon">🎛️</div>
+          <div class="mode-title-wrapper">
+            <div class="mode-title">TRYBY (WKRÓTCE)</div>
+            <div class="mode-wip-badge">WIP</div>
+          </div>
+          <div class="mode-arrow">▼</div>
+        </div>
+        <div class="mode-content">
+          <div class="mode-content-inner">
+            <div class="mode-details">
+              <div class="mode-description">Przygotowane pod rozbudowę</div>
+              <ul class="mode-features">
+                <li>Tryb drużynowy</li>
+                <li>Własne talie pytań</li>
+                <li>Online / pokoje</li>
+              </ul>
+            </div>
+            <div class="mode-buttons">
+              <button class="mode-btn info disabled" onclick="event.stopPropagation()">i</button>
+              <button class="mode-btn play disabled" onclick="event.stopPropagation()">▶</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-bottom-buttons">
+      <button class="home-btn hub" onclick="goToHub()">🏠 Powrót do HUBu</button>
+      <button class="home-btn settings" onclick="openGlobalSettings()">⚙️ Ustawienia</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="rulesOverlay">
+  <div class="rules-container">
+    <h2 class="rules-title" id="rulesTitle">Zasady gry</h2>
+    <div class="rules-content" id="rulesContent"></div>
+    <button class="btn-new" onclick="hideO('rulesOverlay')">Rozumiem</button>
+  </div>
+</div>
+
+<div class="overlay" id="globalSettingsOverlay">
+  <div class="settings-container gs-wrap">
+    <h2 class="settings-title">Ustawienia</h2>
+
+    <div class="card-block gs-card">
+      <div class="gs-row">
+        <div class="gs-label">Dźwięki:</div>
+        <label class="toggle-switch">
+          <input id="soundToggle" type="checkbox" onchange="cfg.sound=this.checked;saveGlobal();syncInGameSoundToggles()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="gs-row gs-version">
+        <div class="gs-label">Wersja:</div>
+        <div class="gs-right"><span class="gs-ver">1.0.0</span></div>
+      </div>
+    </div>
+
+    <button class="btn-primary gs-close" onclick="hideO('globalSettingsOverlay')">Zamknij</button>
+  </div>
+</div>
+
+<div class="overlay" id="emojiPickerOverlay">
+  <div class="settings-container" style="max-width:500px">
+    <h2 class="settings-title">Wybierz avatar</h2>
+    <div class="card-block">
+      <div class="small" id="emojiPickerHint" style="text-align:center">Wybierz emoji</div>
+      <div class="emoji-grid" id="emojiGrid"></div>
+    </div>
+    <div style="display:flex;justify-content:center;margin-top:16px">
+      <button class="btn-primary" onclick="hideO('emojiPickerOverlay')">Zamknij</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="gameSettingsOverlay">
+  <div class="settings-container">
+    <h2 class="settings-title">Ustawienia — tryb klasyczny</h2>
+
+    <div class="game-settings">
+      <div id="playersList"></div>
+      <div class="setting-row" style="margin-top:12px">
+        <button class="btn-ghost" id="addPlayerBtn" onclick="addPlayer()">+ Dodaj gracza</button>
+        <span class="small" id="playersHint">Minimum 2 graczy</span>
+      </div>
+    </div>
+
+    <div class="game-settings">
+      <div class="setting-row deck-row" id="deckRow" style="margin:0">
+        <div class="deck-selector" id="deckSelector" onclick="toggleDeckPicker()">
+          <label>Talia:</label>
+          <div class="deck-current">
+            <span id="deckName">Standardowa</span>
+            <span class="deck-arrow">▼</span>
+          </div>
+        </div>
+
+        <div class="deck-picker" id="deckPicker">
+          <div class="deck-picker-content">
+            <div class="deck-options" id="deckOptions">
+              <div class="deck-option" id="deckStandard" onclick="selectDeck('standard');event.stopPropagation();">
+                <div class="deck-top">
+                  <div class="deck-name">Standardowa</div>
+                  <div class="deck-badge ok">OK</div>
+                </div>
+                <p class="deck-desc">Uniwersalne hasła dla każdego.</p>
+              </div>
+              <div class="deck-option adult" id="deckAdult" onclick="selectDeck('adult');event.stopPropagation();">
+                <div class="deck-top">
+                  <div class="deck-name">Dla dorosłych</div>
+                  <div class="deck-badge adult">+18</div>
+                </div>
+                <p class="deck-desc">Mocniejszy imprezowy klimat.</p>
+              </div>
+            </div>
+            <div class="deck-warning" id="deckWarning"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="setting-row" id="startOrderRow" style="margin:0">
+        <label>Kolejność:</label>
+        <div class="order-seg" role="group" aria-label="Kolejność startu">
+          <button type="button" class="order-btn" id="orderListBtn" onclick="setStartOrder('list')">Lista</button>
+          <button type="button" class="order-btn" id="orderRandomBtn" onclick="setStartOrder('random')">Losowo</button>
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+
+      <div class="setting-row rounds-row" id="winTargetRow" style="margin:0">
+        <div class="rounds-selector" id="winTargetSelector" onclick="toggleWinTargetPicker()">
+          <label>Liczba rund:</label>
+          <div class="rounds-current">
+            <span id="winTargetName">1</span>
+            <span class="rounds-arrow">▼</span>
+          </div>
+        </div>
+
+        <div class="rounds-picker" id="winTargetPicker">
+          <div class="rounds-picker-content">
+            <div class="rounds-options" id="winTargetOptions">
+              <div class="rounds-option" data-value="1" onclick="selectWinTarget(1)">1</div>
+              <div class="rounds-option" data-value="3" onclick="selectWinTarget(3)">3</div>
+              <div class="rounds-option" data-value="5" onclick="selectWinTarget(5)">5</div>
+              <div class="rounds-option" data-value="10" onclick="selectWinTarget(10)">10</div>
+              <div class="rounds-option" data-value="15" onclick="selectWinTarget(15)">15</div>
+              <div class="rounds-option custom" data-value="custom" onclick="openWinTargetCustom()">...</div>
+            </div>
+            <div class="rounds-custom" id="winTargetCustom" style="display:none">
+              <label>Własna liczba rund:</label>
+              <input type="number" id="winTargetInput" min="1" max="50" value="1" onchange="updateCustomWinTarget()" />
+            </div>
+          </div>
+        </div>
+
+        <input type="hidden" id="targetInput" value="1" />
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button class="btn-reset" onclick="backToHome()" style="flex:1">← Powrót</button>
+      <button class="btn-new" onclick="startGame()" style="flex:2;font-size:1.3rem">Start</button>
+    </div>
+  </div>
+</div>
+
+<div id="gameScreen">
+  <div class="top-bar">
+    <div class="top-left">
+      <div class="info-inner" style="width:100%;justify-content:flex-start;display:none"></div>
+    </div>
+
+    <div class="top-right">
+      <button class="icon-btn" id="btnSettings" title="Ustawienia / menu" onclick="openInGameMenu()">⚙️</button>
+    </div>
+  </div>
+
+  <div class="game-area">
+    <div class="center-stack">
+      <div class="turn-banner">
+        <div class="turn-pill" title="Aktualna tura">
+          <span class="turn-emoji" id="turnEmoji">🙂</span>
+          <span class="turn-name" id="turnName">Gracz</span>
+          <span class="turn-score" id="turnScore">0</span>
+        </div>
+      </div>
+
+      <div class="scoreboard" id="scoreboard"></div>
+
+      <div class="prompt-card" id="promptCard">
+        <div class="prompt-title">🎯 TWOJE HASŁO</div>
+        <p class="prompt-text" id="promptText">Wymień 3...</p>
+      </div>
+
+      <div class="timer-wrap">
+        <div class="timer-ring" id="timerRing" style="--deg:0deg">
+          <div class="timer-inner">
+            <div class="timer-big" id="timerBig">5</div>
+            <div class="timer-sub" id="timerSub">Przygotuj się…</div>
+          </div>
+        </div>
+
+        <div class="action-row" id="actionRow">
+          <button class="btn-primary" id="btnReveal" onclick="revealPrompt()" style="display:none">👁️ Pokaż pytanie</button>
+          <button class="btn-warn" id="btnStart" onclick="startTurn()">▶ Start</button>
+          </div>
+
+        <div class="action-row" id="judgeRow" style="display:none">
+          <button class="btn-primary" onclick="judge(true)">Zaliczone</button>
+          <button class="btn-danger" onclick="judge(false)">Niezaliczone</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="inGameMenuOverlay">
+  <div class="settings-container" style="max-width:400px;text-align:center">
+    <h2 class="settings-title" style="font-size:1.8rem;margin-bottom:20px">Ustawienia</h2>
+    <div style="display:flex;flex-direction:column;gap:15px">
+      <div class="setting-row" style="margin:0">
+        <label>Dźwięki:</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="gameSoundToggle" onchange="updateSound(this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <button class="btn-new" onclick="hideO('inGameMenuOverlay')" style="width:100%">Kontynuuj grę</button>
+      <button class="btn-reset" onclick="hideO('inGameMenuOverlay');confirmBack()" style="width:100%;padding:15px">Powrót do menu</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="removePlayerConfirmOverlay">
+  <div class="settings-container" style="max-width:420px;text-align:center">
+    <h2 class="settings-title">Usunąć gracza?</h2>
+    <div class="card-block">
+      <p id="removePlayerConfirmText" style="margin:0 0 14px 0;color:#f39c12;font-weight:800"></p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button class="btn-danger" onclick="confirmRemovePlayerYes()">Usuń</button>
+        <button class="btn-primary" onclick="confirmRemovePlayerNo()">Anuluj</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="exitConfirmOverlay">
+  <div class="settings-container" style="max-width:400px;text-align:center">
+    <h2 class="settings-title">Wyjść do menu?</h2>
+    <div class="card-block">
+      <p style="margin:0 0 14px 0;color:#f39c12;font-weight:800">Postęp punktów zostanie zresetowany.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button class="btn-danger" onclick="exitToHome()">Tak, wyjdź</button>
+        <button class="btn-primary" onclick="hideO('exitConfirmOverlay')">Nie</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="roundSummaryOverlay">
+  <div class="settings-container" style="max-width:520px;text-align:center">
+    <h2 class="settings-title" id="roundSummaryTitle" style="margin-bottom:14px">Wynik rundy</h2>
+    <div class="card-block">
+      <p class="small" id="roundSummaryNote" style="margin:0 0 12px 0;color:#bdbdbd"></p>
+      <div class="end-scores" id="roundSummaryList"></div>
+    </div>
+    <div class="button-group" style="justify-content:center">
+      <button class="btn-new" id="roundSummaryContinue" onclick="continueAfterSummary()" style="flex:1">Następna runda</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="endOverlay">
+  <div class="settings-container end-wrap">
+    <h2 class="end-title">Koniec gry</h2>
+
+    <div class="card-block">
+      <p class="end-winner" id="endResult">🏆 Zwycięzca!</p>
+      <div class="end-scores" id="endScores"></div>
+    </div>
+
+    <div class="button-group">
+      <button class="btn-new" onclick="playAgain()" style="flex:2">Kolejna gra</button>
+      <button class="btn-warn" id="btnTiebreak" onclick="startTiebreak()" style="flex:1;display:none">Dogrywka</button>
+      <button class="btn-reset" onclick="exitToHome()" style="flex:1">Powrót do menu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+(function ensureAnime(){
+  if(typeof window.anime === 'function') return;
+
+  function asList(targets){
+    if(Array.isArray(targets)) return targets;
+    if(targets instanceof NodeList) return Array.from(targets);
+    return [targets];
+  }
+
+  function resolveTarget(t){
+    if(typeof t === 'string') return document.querySelector(t);
+    return t;
+  }
+
+  function applyStyles(targets, props){
+    const list = asList(targets);
+    list.forEach(t=>{
+      const el = resolveTarget(t);
+      if(!el || !el.style || !props) return;
+      for(const k in props){
+        try{
+          const v = props[k];
+          if(k === 'opacity') el.style.opacity = String(v);
+          else if(k === 'transform') el.style.transform = String(v);
+          else if(k === 'translateY') el.style.transform = `translateY(${Array.isArray(v)?v[v.length-1]:v}px)`;
+          else if(k === 'translateX') el.style.transform = `translateX(${Array.isArray(v)?v[v.length-1]:v}px)`;
+          else if(k === 'scale') el.style.transform = `scale(${Array.isArray(v)?v[v.length-1]:v})`;
+          else el.style[k] = typeof v === 'number' ? String(v) : v;
+        }catch(_e){}
+      }
+    });
+  }
+
+  const fallback = function(params){
+    if(params && params.targets){
+      const simplified = {};
+      for(const key in params){
+        if(['targets','duration','delay','easing','complete','begin','update'].includes(key)) continue;
+        const val = params[key];
+        simplified[key] = Array.isArray(val) ? val[val.length-1] : val;
+      }
+      applyStyles(params.targets, simplified);
+    }
+    if(params && typeof params.complete === 'function'){
+      try{ params.complete(); }catch(_e){}
+    }
+    return {};
+  };
+
+  fallback.set = function(targets, props){ applyStyles(targets, props); };
+  fallback.remove = function(){ };
+  fallback.random = function(min,max){
+    min = Number(min)||0; max = Number(max)||0;
+    return Math.floor(min + Math.random()*(max-min+1));
+  };
+
+  window.anime = fallback;
+})();
+
+window.addEventListener('error', (e)=>{
+  try{ console.error('[PartyHUB 5s] window.error', e && (e.message || e.error || e)); }catch(_e){}
+});
+window.addEventListener('unhandledrejection', (e)=>{
+  try{ console.error('[PartyHUB 5s] unhandledrejection', e && (e.reason || e)); }catch(_e){}
+});
+
+const PROMPTS = [
+  "Wymień 3 owoce",
+  "Wymień 3 marki samochodów",
+  "Wymień 3 kraje w Europie",
+  "Wymień 3 zwierzęta domowe",
+  "Wymień 3 rzeczy, które są okrągłe",
+  "Wymień 3 rzeczy, które znajdziesz w plecaku",
+  "Wymień 3 sporty drużynowe",
+  "Wymień 3 aplikacje w telefonie",
+  "Wymień 3 rzeczy, które są zielone",
+  "Wymień 3 filmy animowane",
+  "Wymień 3 gatunki muzyki",
+  "Wymień 3 rzeczy w kuchni",
+  "Wymień 3 miasta w Polsce",
+  "Wymień 3 gry planszowe",
+  "Wymień 3 postacie z bajek",
+  "Wymień 3 rzeczy na plaży",
+  "Wymień 3 seriale",
+  "Wymień 3 warzywa",
+  "Wymień 3 narzędzia",
+  "Wymień 3 supermoce",
+  "Wymień 3 rzeczy, które są gorące",
+  "Wymień 3 rzeczy, które są zimne",
+  "Wymień 3 rzeczy, które latają",
+  "Wymień 3 rzeczy, które pływają",
+  "Wymień 3 piłkarzy",
+  "Wymień 3 słodycze",
+  "Wymień 3 miejsca na randkę",
+  "Wymień 3 rzeczy w łazience",
+  "Wymień 3 rzeczy w samochodzie",
+  "Wymień 3 napoje",
+];
+
+const PROMPTS_ADULT = [
+  "Wymień 3 rzeczy, których NIE mówi się na pierwszej randce",
+  "Wymień 3 powody, dla których ktoś może dostać focha",
+  "Wymień 3 żenujące teksty na podryw",
+  "Wymień 3 wymówki na spóźnienie",
+  "Wymień 3 rzeczy, które robisz po dwóch drinkach",
+  "Wymień 3 miejsca, gdzie nie wypada całować",
+  "Wymień 3 tematy, które kończą rodzinny obiad",
+  "Wymień 3 rzeczy, które rozkręcają imprezę",
+  "Wymień 3 red flagi",
+  "Wymień 3 rzeczy, których nie chcesz znaleźć w łóżku rano",
+  "Wymień 3 sytuacje, w których udajesz, że słuchasz",
+  "Wymień 3 rzeczy, które brzmią jak komplement, ale nie są",
+];
+
+const EMOJIS = [
+  "🙂","😀","😄","😁","😆","😅","😂","😉","😊","😇","😍","🤩","🥳","😎","🤓","🤠","😴","🤯","😤","😱",
+  "🤖","👽",
+  "🧑","👩","👨","🧔","👱‍♀️","👱‍♂️","🧑‍🦱","👩‍🦰","👨‍🦳","🧑‍🎤",
+  "🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐷","🐸","🐵","🐔","🐧","🐙","🦄","🐺","🐴"
+];
+
+const $ = (id)=>document.getElementById(id);
+
+const cfg = {
+  sound: true,
+  vibrate: false,
+
+  turnSeconds: 5,
+  winTarget: 1,
+  deck: 'standard',
+  startOrder: 'list'
+};
+
+let players = [];
+let gameOrder = [];
+let currentPlayer = 0;
+let roundPos = 0;
+let pendingStartPlayer = 0;
+let roundIndex = 0; // numer rundy (pełny obieg graczy)
+let tiebreakActive = false;
+let tiebreakAllPlayers = null; // przechowuje pełną listę graczy podczas dogrywki
+let emojiPickerForId = null;
+let pendingRemovePlayerId = null;
+let lastPrompt = null;
+let pendingPrompt = null;
+let promptRevealed = true;
+
+let timer = {
+  active: false,
+  total: 5,
+  left: 5,
+  startedAt: 0,
+  raf: null,
+  lastTickInt: null
+};
+
+let audioCtx = null;
+function beep(freq=800, dur=0.08, vol=0.12, type='square'){
+  if(!cfg.sound) return;
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = type || 'square';
+    o.frequency.value = freq;
+    const t = audioCtx.currentTime;
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t+dur);
+    o.start(t);
+    o.stop(t+dur);
+  }catch(_e){}
+}
+
+function metronomeTick(secLeft,total,isStart=false){
+  if(!cfg.sound) return;
+  const t = Math.max(1, Number(total)||1);
+  const s = Math.max(0, Number(secLeft)||0);
+
+  // Start: wyraźny „downbeat” (ale nie piszczący)
+  if(isStart){
+    click(2050, 0.028, 0.14);
+    return;
+  }
+
+  // Ostatnia sekunda: „warning” – niżej i w dwóch krótkich klikach (czytelne, mniej męczące)
+  if(s <= 1){
+    click(1500, 0.024, 0.13);
+    setTimeout(()=>click(1850, 0.020, 0.11), 90);
+    return;
+  }
+
+  // Normalny metronom
+  click(1850, 0.020, 0.11);
+}
+
+function click(freq=1850, dur=0.02, vol=0.11){
+  if(!cfg.sound) return;
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    const t0 = audioCtx.currentTime;
+
+    const o = audioCtx.createOscillator();
+    const hp = audioCtx.createBiquadFilter();
+    const g = audioCtx.createGain();
+
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(freq, t0);
+
+    hp.type = 'highpass';
+    hp.frequency.setValueAtTime(900, t0);
+
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol), t0 + 0.002);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+    o.connect(hp);
+    hp.connect(g);
+    g.connect(audioCtx.destination);
+
+    o.start(t0);
+    o.stop(t0 + dur + 0.01);
+  }catch(_e){}
+}
+function buzz(ms=120){
+  if(cfg.vibrate && navigator.vibrate) navigator.vibrate(ms);
+}
+
+let overlayZ = 1000;
+
+function showO(id){
+  const el = $(id);
+  if(!el) return;
+  el.style.display = 'flex';
+  overlayZ += 1;
+  el.style.zIndex = String(overlayZ);
+  anime.set(el,{opacity:0});
+  anime({targets:el,opacity:[0,1],duration:220,easing:'easeOutQuad'});
+  const container = el.querySelector('.settings-container,.end-container,.rules-container');
+  if(container){
+    anime.set(container,{opacity:1,transform:'scale(0.96)'});
+    anime({targets:container,scale:[0.96,1],duration:260,easing:'easeOutBack'});
+  }
+}
+function hideO(id){
+  const el = $(id);
+  if(!el || el.style.display==='none') return;
+  anime({
+    targets:el,opacity:[1,0],duration:180,easing:'easeInQuad',
+    complete:()=>{ el.style.display='none'; el.style.opacity='1'; el.style.zIndex=''; }
+  });
+}
+
+function toggleModeCard(card){
+  const wasOpen = card.classList.contains('open');
+  document.querySelectorAll('.mode-card').forEach(c=>c.classList.remove('open'));
+  if(!wasOpen) card.classList.add('open');
+}
+
+function showRules(){
+  const title = $('rulesTitle');
+  const content = $('rulesContent');
+  if(title) title.textContent = 'Tryb Klasyczny';
+
+  const rounds = cfg.winTarget || 1;
+  if(content){
+    content.innerHTML = `
+      <h3>🎯 Cel gry</h3>
+      <p>Gracie <span class="highlight">${rounds} rund</span>. Po ostatniej rundzie wygrywa osoba z <span class="highlight">największą liczbą punktów</span>.</p>
+
+      <h3>⏱️ Tura</h3>
+      <ul>
+        <li>Każdy gracz dostaje <span class="highlight">własne hasło</span> typu <span class="highlight">„Wymień 3…”</span>.</li>
+        <li>Gracz ma <span class="highlight">5 sekund</span> na odpowiedź.</li>
+        <li>Po czasie prowadzący ocenia: <span class="highlight">Zaliczone</span> lub <span class="danger">Niezaliczone</span>.</li>
+        <li>Gdy <span class="info">wszyscy zagrają swoje pytanie</span>, pokazuje się <span class="info">stan punktów</span> i zaczyna się kolejna runda.</li>
+      </ul>
+
+      <h3>🏅 Punktacja</h3>
+      <p><span class="highlight">Zaliczone</span> = +1 punkt. <span class="danger">Niezaliczone</span> = 0 punktów.</p>
+
+      <h3>💡 Wskazówki</h3>
+      <ul>
+        <li>Żeby nie przeciągać: prowadzący ma <span class="highlight">ostatnie słowo</span>.</li>
+      </ul>
+    `;
+  }
+
+  showO('rulesOverlay');
+}
+
+function openGlobalSettings(){
+  const st = $('soundToggle');
+  if(st) st.checked = !!cfg.sound;
+  showO('globalSettingsOverlay');
+}
+
+function saveGlobal(){
+  try{
+    localStorage.setItem(
+      'partyhub_5s_global',
+      JSON.stringify({
+        sound: !!cfg.sound,
+        deck: cfg.deck
+      })
+    );
+  }catch(_e){}
+}
+
+function saveMode(){
+  try{
+    const payload = {
+      deck: cfg.deck,
+      startOrder: cfg.startOrder,
+      winTarget: cfg.winTarget,
+      players: players.map(p=>({
+        id: p.id,
+        name: p.name,
+        emoji: p.emoji,
+        wins: p.wins||0,
+        nameAuto: !!p.nameAuto,
+      }))
+    };
+    localStorage.setItem('partyhub_5s_mode', JSON.stringify(payload));
+  }catch(_e){}
+}
+
+function loadMode(){
+  try{
+    const s = localStorage.getItem('partyhub_5s_mode');
+    if(!s) return;
+    const m = JSON.parse(s);
+
+    if(m && (m.deck==='adult' || m.deck==='standard')) cfg.deck = m.deck;
+    if(m && (m.startOrder==='random' || m.startOrder==='list')) cfg.startOrder = m.startOrder;
+    if(m && m.winTarget!=null){
+      const v = clampInt(parseInt(String(m.winTarget),10), 1, 50);
+      cfg.winTarget = v;
+      const ti = $('targetInput');
+      if(ti) ti.value = String(v);
+    }
+
+    if(m && Array.isArray(m.players) && m.players.length>=2){
+      const next = [];
+      m.players.slice(0,8).forEach((pp, idx)=>{
+        if(!pp) return;
+        const id = String(pp.id || cryptoId());
+        const emoji = (pp.emoji && EMOJIS.includes(pp.emoji)) ? pp.emoji : (EMOJIS[idx%EMOJIS.length]||'🙂');
+        const name = String(pp.name||'').trim() || `Gracz ${idx+1}`;
+        const wins = clampInt(parseInt(String(pp.wins||0),10), 0, 999999);
+        const nameAuto = (pp.nameAuto!=null) ? !!pp.nameAuto : /^Gracz [0-9]+$/.test(name);
+        next.push({id, name, emoji, score:0, wins, nameAuto});
+      });
+      if(next.length>=2) players = next;
+    }
+
+    ensurePlayerFlags();
+    reindexAutoNames();
+  }catch(_e){}
+}
+
+function loadGlobal(){
+  try{
+    const s = localStorage.getItem('partyhub_5s_global');
+    if(!s) return;
+    const g = JSON.parse(s);
+    if(typeof g.sound==='boolean') cfg.sound=g.sound;
+    if(g.deck === 'adult' || g.deck === 'standard') cfg.deck = g.deck;
+  }catch(_e){}
+}
+
+function goToHub(){
+  alert("Powrót do HUBu podepniemy później (routing PartyHUB).\n\nJeśli chcesz: zamiast alertu zrobimy overlay z listą gier.");
+}
+
+function openSettings(){
+  hideO('homeScreen');
+  loadMode();
+  buildDefaultPlayersIfNeeded();
+  renderPlayers();
+  syncDeckUI();
+  syncStartOrderUI();
+  const w = $('targetInput');
+  if(w) w.value = String(cfg.winTarget);
+  if(typeof syncWinTargetUI === 'function') syncWinTargetUI();
+  showO('gameSettingsOverlay');
+}
+
+function backToHome(){
+  hideO('gameSettingsOverlay');
+  showO('homeScreen');
+}
+
+function buildDefaultPlayersIfNeeded(){
+  if(players.length>=2) return;
+  players = [
+    {id: cryptoId(), name:"Gracz 1", emoji: EMOJIS[0], score:0, wins:0, nameAuto:true},
+    {id: cryptoId(), name:"Gracz 2", emoji: EMOJIS[1], score:0, wins:0, nameAuto:true},
+  ];
+  saveMode();
+}
+
+function cryptoId(){
+  return Math.random().toString(16).slice(2)+Date.now().toString(16);
+}
+
+function addPlayer(){
+  if(players.length>=8) return;
+  ensurePlayerFlags();
+  const idx = players.length+1;
+  const p = {id: cryptoId(), name:`Gracz ${idx}`, emoji: EMOJIS[(idx+2)%EMOJIS.length], score:0, wins:0, nameAuto:true};
+  players.push(p);
+  reindexAutoNames();
+  saveMode();
+  renderPlayersAdd(p.id);
+}
+
+function updateAddPlayerUI(animate=true){
+  const addBtn = $('addPlayerBtn');
+  if(!addBtn) return;
+
+  const shouldHide = players.length >= 8;
+
+  if(shouldHide){
+    addBtn.disabled = true;
+    if(addBtn.dataset.hidden === '1') return;
+    addBtn.dataset.hidden = '1';
+
+    anime.remove(addBtn);
+    if(animate){
+      anime({
+        targets:addBtn,
+        opacity:[1,0],
+        duration:140,
+        easing:'easeInQuad',
+        complete:()=>{
+          addBtn.style.visibility = 'hidden';
+          addBtn.style.pointerEvents = 'none';
+          addBtn.style.opacity = '0';
+        }
+      });
+    }else{
+      addBtn.style.opacity = '0';
+      addBtn.style.visibility = 'hidden';
+      addBtn.style.pointerEvents = 'none';
+    }
+  }else{
+    addBtn.disabled = false;
+    if(addBtn.dataset.hidden !== '1' && addBtn.style.visibility !== 'hidden'){
+      addBtn.style.opacity = '1';
+      addBtn.style.visibility = 'visible';
+      addBtn.style.pointerEvents = 'auto';
+      return;
+    }
+    addBtn.dataset.hidden = '0';
+
+    addBtn.style.visibility = 'visible';
+    addBtn.style.pointerEvents = 'auto';
+
+    anime.remove(addBtn);
+    if(animate){
+      anime({targets:addBtn,opacity:[0,1],duration:160,easing:'easeOutQuad'});
+    }else{
+      addBtn.style.opacity = '1';
+    }
+  }
+}
+
+function updatePlayersHint(){
+  const hint = $('playersHint');
+  if(hint) hint.textContent = players.length<2 ? 'Minimum 2 graczy' : `Graczy: ${players.length}/8`;
+}
+
+function ensurePlayerFlags(){
+  players.forEach((p)=>{
+    if(p.wins==null) p.wins = 0;
+    if(p.nameAuto==null){
+      p.nameAuto = /^Gracz [0-9]+$/.test(String(p.name||'').trim());
+    }
+  });
+}
+
+function reindexAutoNames(){
+  ensurePlayerFlags();
+  players.forEach((p, idx)=>{
+    if(p.nameAuto){
+      p.name = `Gracz ${idx+1}`;
+    }
+  });
+}
+
+function getWinsMedalMap(){
+  // podium po liczbie zwycięstw (wins). Remisy dzielą medal.
+  const winsList = players.map(p=>clampInt(parseInt(String(p.wins||0),10), 0, 999999));
+  const maxWins = winsList.reduce((m,v)=>Math.max(m,v), 0);
+  const map = new Map();
+
+  // Jeśli nikt nie ma jeszcze zwycięstw, nie pokazujemy żadnych medali.
+  if(maxWins <= 0){
+    players.forEach(p=>map.set(p.id,{medal:'',show:false}));
+    return map;
+  }
+
+  const unique = Array.from(new Set(winsList.filter(v=>v>0))).sort((a,b)=>b-a).slice(0,3);
+  const medals = ['🥇','🥈','🥉'];
+
+  players.forEach(p=>{
+    const w = clampInt(parseInt(String(p.wins||0),10), 0, 999999);
+    const idx = unique.indexOf(w);
+    if(idx >= 0 && idx < 3) map.set(p.id,{medal:medals[idx],show:true});
+    else map.set(p.id,{medal:'',show:false});
+  });
+
+  return map;
+}
+
+function applyWinsPill(pillEl, player, medalMap){
+  if(!pillEl || !player) return;
+  const meta = medalMap && medalMap.get(player.id);
+  const show = !!(meta && meta.show);
+  pillEl.style.display = show ? 'inline-flex' : 'none';
+  if(!show) return;
+
+  const m = pillEl.querySelector('.player-medal');
+  if(m) m.textContent = meta.medal || '';
+  const s = pillEl.querySelector('.player-score');
+  if(s) s.textContent = String(player.wins||0);
+}
+
+function requestRemovePlayer(id){
+  if(players.length<=2) return;
+  const p = players.find(x=>x.id===id);
+  if(!p) return;
+
+  if(((p.wins||0) > 0) || ((p.score||0) > 0)){ 
+    pendingRemovePlayerId = id;
+    const t = $('removePlayerConfirmText');
+    if(t) t.textContent = `Gracz „${p.name || 'Gracz'}” ma już ${p.wins||0} zwycięstw. Na pewno usunąć?`;
+    showO('removePlayerConfirmOverlay');
+    return;
+  }
+
+  removePlayer(id);
+}
+
+function confirmRemovePlayerYes(){
+  const id = pendingRemovePlayerId;
+  pendingRemovePlayerId = null;
+  hideO('removePlayerConfirmOverlay');
+  if(id) removePlayer(id);
+}
+
+function confirmRemovePlayerNo(){
+  pendingRemovePlayerId = null;
+  hideO('removePlayerConfirmOverlay');
+}
+
+function removePlayer(id){
+  if(players.length<=2) return;
+  const i = players.findIndex(p=>p.id===id);
+  if(i>=0) players.splice(i,1);
+  if(currentPlayer>=players.length) currentPlayer=0;
+  reindexAutoNames();
+  saveMode();
+  renderPlayers();
+}
+
+function cycleEmoji(id){
+  openEmojiPicker(id);
+}
+
+function openEmojiPicker(id){
+  emojiPickerForId = id;
+  const p = players.find(x=>x.id===id);
+  const hint = $('emojiPickerHint');
+  if(hint) hint.textContent = p ? `Dla: ${p.name || 'Gracz'}` : 'Wybierz emoji';
+  renderEmojiGrid();
+  showO('emojiPickerOverlay');
+}
+
+function renderEmojiGrid(){
+  const grid = $('emojiGrid');
+  if(!grid) return;
+  grid.innerHTML = '';
+  const p = players.find(x=>x.id===emojiPickerForId);
+  const selected = p ? p.emoji : null;
+
+  EMOJIS.forEach(e=>{
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'emoji-btn' + (e===selected ? ' selected' : '');
+    b.textContent = e;
+    b.addEventListener('click', ()=>selectEmoji(e));
+    grid.appendChild(b);
+  });
+}
+
+function selectEmoji(emoji){
+  const p = players.find(x=>x.id===emojiPickerForId);
+  if(!p){ hideO('emojiPickerOverlay'); return; }
+  p.emoji = emoji;
+  saveMode();
+
+  const row = document.querySelector(`.player-row[data-player-id="${p.id}"]`);
+  if(row){
+    const btn = row.querySelector('.player-emoji');
+    if(btn) btn.textContent = emoji;
+  }
+
+  const chipE = document.querySelector(`#chip_${p.id} .e`);
+  if(chipE) chipE.textContent = emoji;
+
+  const cur = getCurrentPlayer();
+  if(cur && cur.id===p.id){
+    const te = $('turnEmoji');
+    if(te) te.textContent = emoji;
+  }
+
+  hideO('emojiPickerOverlay');
+}
+
+function updatePlayerName(id, value){
+  const p = players.find(x=>x.id===id);
+  if(!p) return;
+  p.name = String(value == null ? '' : value);
+  p.nameAuto = false;
+  saveMode();
+}
+
+function normalizePlayerName(id){
+  const p = players.find(x=>x.id===id);
+  if(!p) return;
+  const idx = players.findIndex(x=>x.id===id);
+  const v = (p.name||'').trim();
+  if(!v){
+    p.nameAuto = true;
+    p.name = `Gracz ${idx+1}`;
+  }else{
+    p.nameAuto = false;
+    p.name = v;
+  }
+  saveMode();
+  renderPlayers(false);
+}
+
+function renderPlayersAdd(newId, animate=true){
+  const list = $('playersList');
+  if(!list) return;
+
+  if(!list.querySelector('.player-row')){
+    renderPlayers(false);
+    return;
+  }
+
+  const existing = new Map();
+  list.querySelectorAll('.player-row').forEach(row=>{
+    const id = row.dataset.playerId;
+    if(id) existing.set(id,row);
+  });
+
+  if(existing.has(newId)){
+    const canRemove = players.length > 2;
+    players.forEach((p, idx)=>{
+      const row = existing.get(p.id);
+      if(!row) return;
+      const lbl = row.querySelector('.player-idx');
+      if(lbl) lbl.textContent = `Gracz ${idx+1}`;
+      const del = row.querySelector('.player-del');
+      if(del) del.disabled = !canRemove;
+    });
+    return;
+  }
+
+  const p = players.find(x=>x.id===newId);
+  if(!p){
+    renderPlayers(false);
+    return;
+  }
+
+  const idx = players.findIndex(x=>x.id===newId);
+  const canRemove = players.length > 2;
+  const medalMap = getWinsMedalMap();
+
+  const row = document.createElement('div');
+  row.className = 'setting-row player-row';
+  row.dataset.playerId = p.id;
+
+  const left = document.createElement('div');
+  left.style.display = 'flex';
+  left.style.alignItems = 'center';
+  left.style.gap = '10px';
+  left.style.flex = '1';
+  left.style.minWidth = '260px';
+
+  const emojiBtn = document.createElement('button');
+  emojiBtn.className = 'btn-ghost player-emoji';
+  emojiBtn.style.padding = '10px 14px';
+  emojiBtn.style.borderRadius = '14px';
+  emojiBtn.title = 'Zmień emoji';
+  emojiBtn.tabIndex = -1;
+  emojiBtn.textContent = p.emoji;
+  emojiBtn.addEventListener('click', ()=>cycleEmoji(p.id));
+
+  const nameWrap = document.createElement('div');
+  nameWrap.style.display = 'flex';
+  nameWrap.style.flexDirection = 'column';
+  nameWrap.style.gap = '6px';
+  nameWrap.style.flex = '1';
+  nameWrap.style.minWidth = '200px';
+
+  const lbl = document.createElement('label');
+  lbl.className = 'small player-idx';
+  lbl.textContent = `Gracz ${idx+1}`;
+
+  const input = document.createElement('input');
+  input.className = 'player-name';
+  input.type = 'text';
+  input.value = p.name ?? '';
+  input.addEventListener('input', ()=>updatePlayerName(p.id, input.value));
+  input.addEventListener('blur', ()=>normalizePlayerName(p.id));
+
+  nameWrap.appendChild(lbl);
+  nameWrap.appendChild(input);
+
+  left.appendChild(emojiBtn);
+  left.appendChild(nameWrap);
+
+  const right = document.createElement('div');
+  right.style.display = 'flex';
+  right.style.gap = '10px';
+  right.style.alignItems = 'center';
+
+  const pill = document.createElement('span');
+  pill.className = 'pill player-wins-pill';
+  pill.title = 'Zwycięstwa (łącznie)';
+  pill.innerHTML = `<span class="player-medal"></span><b class="player-score">${p.wins||0}</b>`;
+
+  const del = document.createElement('button');
+  del.className = 'btn-danger player-del';
+  del.style.padding = '10px 14px';
+  del.style.borderRadius = '14px';
+  del.title = 'Usuń';
+  del.tabIndex = -1;
+  del.textContent = '🗑️';
+  del.disabled = !canRemove;
+  del.addEventListener('click', ()=>requestRemovePlayer(p.id));
+
+  applyWinsPill(pill, p, medalMap);
+
+  right.appendChild(pill);
+  right.appendChild(del);
+
+  row.appendChild(left);
+  row.appendChild(right);
+
+  list.appendChild(row);
+
+  existing.set(p.id, row);
+  players.forEach((pp, i)=>{
+    const r = existing.get(pp.id);
+    if(!r) return;
+    const l = r.querySelector('.player-idx');
+    if(l) l.textContent = `Gracz ${i+1}`;
+    const d = r.querySelector('.player-del');
+    if(d) d.disabled = !(players.length > 2);
+  });
+
+  if(animate){
+    const cs = getComputedStyle(row);
+    const h = row.getBoundingClientRect().height;
+    const pt = parseFloat(cs.paddingTop)||0;
+    const pb = parseFloat(cs.paddingBottom)||0;
+    const mt = parseFloat(cs.marginTop)||0;
+    const mb = parseFloat(cs.marginBottom)||0;
+
+    row.style.overflow = 'hidden';
+    row.style.height = '0px';
+    row.style.paddingTop = '0px';
+    row.style.paddingBottom = '0px';
+    row.style.marginTop = '0px';
+    row.style.marginBottom = '0px';
+    row.style.opacity = '0';
+
+    requestAnimationFrame(()=>{
+      anime({
+        targets: row,
+        opacity: [0, 1],
+        height: [0, h],
+        paddingTop: [0, pt],
+        paddingBottom: [0, pb],
+        marginTop: [0, mt],
+        marginBottom: [0, mb],
+        duration: 190,
+        easing: 'easeOutQuad',
+        complete: ()=>{
+          row.style.overflow = '';
+          row.style.height = '';
+          row.style.paddingTop = '';
+          row.style.paddingBottom = '';
+          row.style.marginTop = '';
+          row.style.marginBottom = '';
+          row.style.opacity = '';
+        }
+      });
+    });
+  }
+
+  updateAddPlayerUI(animate);
+  updatePlayersHint();
+}
+
+function renderPlayers(animate=true){
+  const list = $('playersList');
+  if(!list) return;
+
+  const idsNow = new Set(players.map(p=>p.id));
+  const existingRows = Array.from(list.querySelectorAll('.player-row'));
+  const toRemove = existingRows.filter(row=>{
+    const id = row.dataset.playerId;
+    return !id || !idsNow.has(id);
+  });
+
+  if(toRemove.length && animate){
+    let pending = toRemove.length;
+    toRemove.forEach(row=>{
+      anime.remove(row);
+      const cs = getComputedStyle(row);
+      const h = row.getBoundingClientRect().height;
+      const pt = parseFloat(cs.paddingTop)||0;
+      const pb = parseFloat(cs.paddingBottom)||0;
+      const mt = parseFloat(cs.marginTop)||0;
+      const mb = parseFloat(cs.marginBottom)||0;
+
+      row.style.overflow = 'hidden';
+      row.style.height = h + 'px';
+      row.style.paddingTop = pt + 'px';
+      row.style.paddingBottom = pb + 'px';
+      row.style.marginTop = mt + 'px';
+      row.style.marginBottom = mb + 'px';
+      row.style.borderBottomColor = 'transparent';
+
+      anime({
+        targets: row,
+        opacity: [1, 0],
+        height: [h, 0],
+        paddingTop: [pt, 0],
+        paddingBottom: [pb, 0],
+        marginTop: [mt, 0],
+        marginBottom: [mb, 0],
+        duration: 160,
+        easing: 'easeInQuad',
+        complete: ()=>{
+          row.remove();
+          pending--;
+          if(pending===0){
+            renderPlayers(false);
+            updateAddPlayerUI(true);
+            updatePlayersHint();
+          }
+        }
+      });
+    });
+    return;
+  }
+
+  toRemove.forEach(r=>r.remove());
+
+  const existing = new Map();
+  list.querySelectorAll('.player-row').forEach(row=>{
+    const id = row.dataset.playerId;
+    if(id) existing.set(id, row);
+  });
+
+  const canRemove = players.length > 2;
+  const medalMap = getWinsMedalMap();
+
+  const updateRow = (row, p, idx)=>{
+    const eb = row.querySelector('.player-emoji');
+    if(eb){
+      eb.textContent = p.emoji;
+      eb.tabIndex = -1;
+    }
+    row.querySelector('.player-idx').textContent = `Gracz ${idx+1}`;
+
+    const input = row.querySelector('.player-name');
+    if(document.activeElement !== input){
+      const desired = p.name ?? '';
+      if(input.value !== desired) input.value = desired;
+    }
+
+    const winsPill = row.querySelector('.player-wins-pill');
+    applyWinsPill(winsPill, p, medalMap);
+    const del = row.querySelector('.player-del');
+    if(del){
+      del.disabled = !canRemove;
+      del.tabIndex = -1;
+    }
+  };
+
+  const createRow = (p, idx)=>{
+    const row = document.createElement('div');
+    row.className = 'setting-row player-row';
+    row.dataset.playerId = p.id;
+
+    const left = document.createElement('div');
+    left.style.display = 'flex';
+    left.style.alignItems = 'center';
+    left.style.gap = '10px';
+    left.style.flex = '1';
+    left.style.minWidth = '260px';
+
+    const emojiBtn = document.createElement('button');
+    emojiBtn.className = 'btn-ghost player-emoji';
+    emojiBtn.style.padding = '10px 14px';
+    emojiBtn.style.borderRadius = '14px';
+    emojiBtn.title = 'Zmień emoji';
+  emojiBtn.tabIndex = -1;
+    emojiBtn.textContent = p.emoji;
+    emojiBtn.addEventListener('click', ()=>cycleEmoji(p.id));
+
+    const nameWrap = document.createElement('div');
+    nameWrap.style.display = 'flex';
+    nameWrap.style.flexDirection = 'column';
+    nameWrap.style.gap = '6px';
+    nameWrap.style.flex = '1';
+    nameWrap.style.minWidth = '200px';
+
+    const lbl = document.createElement('label');
+    lbl.className = 'small player-idx';
+    lbl.textContent = `Gracz ${idx+1}`;
+
+    const input = document.createElement('input');
+    input.className = 'player-name';
+    input.type = 'text';
+    input.value = p.name ?? '';
+    input.addEventListener('input', ()=>updatePlayerName(p.id, input.value));
+    input.addEventListener('blur', ()=>normalizePlayerName(p.id));
+
+    nameWrap.appendChild(lbl);
+    nameWrap.appendChild(input);
+
+    left.appendChild(emojiBtn);
+    left.appendChild(nameWrap);
+
+    const right = document.createElement('div');
+    right.style.display = 'flex';
+    right.style.gap = '10px';
+    right.style.alignItems = 'center';
+
+    const pill = document.createElement('span');
+    pill.className = 'pill player-wins-pill';
+    pill.title = 'Zwycięstwa (łącznie)';
+    pill.innerHTML = `<span class="player-medal"></span><b class="player-score">${p.wins||0}</b>`;
+
+    const del = document.createElement('button');
+    del.className = 'btn-danger player-del';
+    del.style.padding = '10px 14px';
+    del.style.borderRadius = '14px';
+    del.title = 'Usuń';
+  del.tabIndex = -1;
+    del.textContent = '🗑️';
+    del.addEventListener('click', ()=>requestRemovePlayer(p.id));
+
+    right.appendChild(pill);
+    right.appendChild(del);
+
+    row.appendChild(left);
+    row.appendChild(right);
+
+    updateRow(row, p, idx);
+    return row;
+  };
+
+  players.forEach((p, idx)=>{
+    let row = existing.get(p.id);
+    if(!row){
+      row = createRow(p, idx);
+      list.appendChild(row);
+      if(animate){
+        anime.set(row,{opacity:0,translateY:8});
+        anime({targets:row,opacity:[0,1],translateY:[8,0],duration:160,easing:'easeOutQuad'});
+      }
+    }else{
+      list.appendChild(row);
+      updateRow(row, p, idx);
+    }
+  });
+
+  updateAddPlayerUI(animate);
+  updatePlayersHint();
+}
+
+function escapeHtml(s){
+  return String(s||'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function clampInt(n,min,max){
+  const num = Number(n);
+  if(!isFinite(num)) return min;
+  return Math.max(min, Math.min(max, num));
+}
+
+function startGame(){
+  cfg.turnSeconds = 5;
+  const ti = $('targetInput');
+  const raw = ti ? ti.value : '10';
+  cfg.winTarget = clampInt(parseInt(String(raw||'1'),10), 1, 50);
+  saveGlobal();
+
+  players.forEach(p=>{ p.score=0; if(p.wins==null) p.wins=0; });
+  buildGameOrder();
+  currentPlayer = 0;
+  pendingStartPlayer = 0;
+  roundPos = 0;
+  roundIndex = 0;
+  lastPrompt = null;
+  pendingPrompt = null;
+  promptRevealed = false;
+
+  hideO('gameSettingsOverlay');
+  const gs = $('gameScreen');
+  if(gs) gs.style.display = 'flex';
+  document.body.classList.add('game-active');
+
+  updateGameInfoBar();
+  buildScoreboard();
+  startNewRound(true);
+
+  anime({targets:'.prompt-card',translateY:[10,0],opacity:[0,1],duration:300,easing:'easeOutQuad'});
+}
+
+function toggleDeckPicker(){
+  const row = $('deckRow');
+  if(!row) return;
+  row.classList.toggle('open');
+}
+
+function closeDeckPicker(){
+  const row = $('deckRow');
+  if(row) row.classList.remove('open');
+}
+
+function selectDeck(which){
+  cfg.deck = (which === 'adult') ? 'adult' : 'standard';
+  syncDeckUI();
+  updateGameInfoBar();
+  saveGlobal();
+  saveMode();
+}
+
+function syncDeckUI(){
+  const s = $('deckStandard');
+  const a = $('deckAdult');
+  if(s) s.classList.toggle('selected', cfg.deck !== 'adult');
+  if(a) a.classList.toggle('selected', cfg.deck === 'adult');
+
+  const dn = $('deckName');
+  if(dn) dn.textContent = (cfg.deck === 'adult') ? 'Dla dorosłych (+18)' : 'Standardowa';
+
+  updateDeckWarning();
+}
+
+function updateDeckWarning(){
+  const w = $('deckWarning');
+  if(!w) return;
+  if(cfg.deck === 'adult'){
+    w.classList.remove('standard');
+    w.classList.add('adult');
+    w.innerHTML = '⚠️ <strong>Talia +18</strong> — tylko dla dorosłych. Zawiera bardziej odważne, imprezowe skojarzenia (bez treści eksplicytnych).';
+  }else{
+    w.classList.remove('adult');
+    w.classList.add('standard');
+    w.innerHTML = '✅ <strong>Talia standardowa</strong> — bezpieczna dla każdego składu. Uniwersalne hasła.';
+  }
+}
+
+function toggleWinTargetPicker(){
+  const row = $('winTargetRow');
+  if(!row) return;
+  row.classList.toggle('open');
+}
+
+function closeWinTargetPicker(){
+  const row = $('winTargetRow');
+  if(row) row.classList.remove('open');
+}
+
+function openWinTargetCustom(){
+  const c = $('winTargetCustom');
+  if(c) c.style.display = 'flex';
+  const ti = $('targetInput');
+  const inp = $('winTargetInput');
+  if(inp) inp.value = String(clampInt(parseInt(String(ti ? ti.value : '1'),10), 1, 50));
+  markWinTargetSelected('custom');
+}
+
+function updateCustomWinTarget(){
+  const inp = $('winTargetInput');
+  const v = clampInt(parseInt(String(inp ? inp.value : '1'),10), 1, 50);
+  if(inp) inp.value = String(v);
+  const ti = $('targetInput');
+  if(ti) ti.value = String(v);
+  cfg.winTarget = v;
+  const name = $('winTargetName');
+  if(name) name.textContent = String(v);
+  updateGameInfoBar();
+  saveMode();
+}
+
+function selectWinTarget(val){
+  const v = clampInt(parseInt(String(val),10), 1, 50);
+  const ti = $('targetInput');
+  if(ti) ti.value = String(v);
+  cfg.winTarget = v;
+
+  const custom = $('winTargetCustom');
+  if(custom) custom.style.display = 'none';
+
+  syncWinTargetUI();
+  updateGameInfoBar();
+  closeWinTargetPicker();
+  saveMode();
+}
+
+function markWinTargetSelected(which){
+  const wrap = $('winTargetOptions');
+  if(!wrap) return;
+  wrap.querySelectorAll('.rounds-option').forEach(o=>{
+    const dv = o.getAttribute('data-value');
+    o.classList.toggle('selected', dv === String(which));
+  });
+}
+
+function syncWinTargetUI(){
+  const ti = $('targetInput');
+  const v = clampInt(parseInt(String(ti ? ti.value : (cfg.winTarget||1)),10), 1, 50);
+  if(ti) ti.value = String(v);
+  cfg.winTarget = v;
+
+  const name = $('winTargetName');
+  if(name) name.textContent = String(v);
+
+  const presets = new Set(['1','3','5','10','15']);
+  if(presets.has(String(v))){
+    markWinTargetSelected(String(v));
+    const custom = $('winTargetCustom');
+    if(custom) custom.style.display = 'none';
+  }else{
+    markWinTargetSelected('custom');
+    const custom = $('winTargetCustom');
+    if(custom) custom.style.display = 'flex';
+    const inp = $('winTargetInput');
+    if(inp) inp.value = String(v);
+  }
+}
+
+function openInGameMenu(){
+  const st = $('gameSoundToggle');
+  if(st) st.checked = !!cfg.sound;
+  showO('inGameMenuOverlay');
+}
+
+function syncInGameSoundToggles(){
+  const st = $('soundToggle');
+  if(st) st.checked = !!cfg.sound;
+  const ig = $('gameSoundToggle');
+  if(ig) ig.checked = !!cfg.sound;
+}
+
+function onSoundToggleChange(checked){
+  cfg.sound = !!checked;
+  saveGlobal();
+  syncInGameSoundToggles();
+}
+
+function updateSound(checked){
+  onSoundToggleChange(checked);
+}
+
+function confirmBack(){
+  confirmExitFromInGameMenu();
+}
+
+function confirmExitFromInGameMenu(){
+  hideO('inGameMenuOverlay');
+  showO('exitConfirmOverlay');
+}
+
+function confirmExit(){
+  confirmExitFromInGameMenu();
+}
+
+function exitToHome(){
+  stopTimer();
+  stopConfetti();
+
+  hideO('endOverlay');
+  hideO('roundSummaryOverlay');
+  hideO('exitConfirmOverlay');
+  hideO('inGameMenuOverlay');
+  hideO('emojiPickerOverlay');
+
+  const gs = $('gameScreen');
+  if(gs) gs.style.display = 'none';
+  document.body.classList.remove('game-active');
+
+  if($('endScores')) $('endScores').innerHTML = '';
+  if($('endResult')) $('endResult').textContent = '🏆 Zwycięzca!';
+
+  showO('homeScreen');
+}
+
+function updateGameInfoBar(){
+  const d = $('gameDeckLabel');
+  if(d) d.textContent = (cfg.deck === 'adult') ? 'Dla dorosłych (+18)' : 'Standardowa';
+  const w = $('gameWinTarget');
+  if(w) w.textContent = String(cfg.winTarget || 1);
+}
+
+function buildScoreboard(){
+  const sb = $('scoreboard');
+  if(!sb) return;
+  sb.innerHTML = '';
+  players.forEach((p)=>{
+    const chip = document.createElement('div');
+    chip.className = 'score-chip';
+    chip.id = `chip_${p.id}`;
+    chip.innerHTML = `<span class="e">${p.emoji}</span><span class="n">${escapeHtml(p.name)}</span><span class="s" id="score_${p.id}">${p.score}</span>`;
+    sb.appendChild(chip);
+  });
+}
+
+function updateScoreboard(){
+  players.forEach(p=>{
+    const s = document.getElementById(`score_${p.id}`);
+    if(s) s.textContent = String(p.score);
+  });
+  document.querySelectorAll('.score-chip').forEach(el=>el.style.borderColor='#333');
+  const cur = getCurrentPlayer();
+  if(cur){
+    const chip = document.getElementById(`chip_${cur.id}`);
+    if(chip) chip.style.borderColor = '#FF9800';
+  }
+}
+
+function updateTurnHeader(){
+  const p = getCurrentPlayer();
+  if(!p) return;
+  const te = $('turnEmoji');
+  const tn = $('turnName');
+  const ts = $('turnScore');
+  if(te) te.textContent = p.emoji;
+  if(tn) tn.textContent = p.name;
+  if(ts) ts.textContent = String(p.score);
+  updateScoreboard();
+}
+
+function startNewRound(forcePrompt=false){
+  roundPos = 0;
+  if(players.length<=0) return;
+  pendingStartPlayer = clampInt(pendingStartPlayer, 0, Math.max(0, players.length-1));
+  currentPlayer = pendingStartPlayer;
+  updateTurnHeader();
+  prepareNewTurnPrompt(forcePrompt);
+  resetRoundUI(true);
+}
+
+function prepareNewTurnPrompt(force=true){
+  pendingPrompt = drawPrompt(!!force);
+  promptRevealed = false;
+  renderHiddenPrompt();
+}
+
+function renderHiddenPrompt(){
+  const p = getCurrentPlayer();
+  const pt = $('promptText');
+  if(pt) pt.textContent = `Teraz odpowiada ${p ? p.name : 'gracz'}…`;
+  const title = document.querySelector('#promptCard .prompt-title');
+  if(title) title.textContent = '🎯 PYTANIE';
+
+  const br = $('btnReveal');
+  const bs = $('btnStart');
+  if(br) { br.style.display = 'inline-block'; br.disabled = false; }
+  if(bs) { bs.style.display = 'none'; bs.disabled = true; bs.textContent = '▶ Start'; }
+}
+
+function revealPrompt(){
+  if(promptRevealed) return;
+  promptRevealed = true;
+  const pt = $('promptText');
+  if(pt) pt.textContent = pendingPrompt || 'Wymień 3…';
+
+  const br = $('btnReveal');
+  const bs = $('btnStart');
+  if(br) br.style.display = 'none';
+  if(bs){ bs.style.display = 'inline-block'; bs.disabled = false; bs.textContent = '▶ Start'; }
+
+  setTimerUI(cfg.turnSeconds, cfg.turnSeconds, 'Gotowy?');
+  buzz(20);
+}
+
+function advanceToNextPlayerTurn(){
+  stopTimer();
+  roundPos++;
+  if(players.length<=0) return;
+
+  if(roundPos >= players.length){
+    showRoundSummary();
+    return;
+  }
+
+  currentPlayer = (currentPlayer + 1) % players.length;
+  updateTurnHeader();
+  prepareNewTurnPrompt(true);
+  resetRoundUI(true);
+}
+
+function nextPlayer(){
+  if(players.length<=0) return;
+  stopTimer();
+  if($('judgeRow')) $('judgeRow').style.display = 'none';
+  if($('actionRow')) $('actionRow').style.display = 'flex';
+
+  if(roundPos >= players.length-1){
+    showRoundSummary();
+    return;
+  }
+  advanceToNextPlayerTurn();
+}
+
+function getPromptPool(){
+  return (cfg.deck === 'adult') ? PROMPTS_ADULT : PROMPTS;
+}
+
+function drawPrompt(force){
+  const pool = getPromptPool();
+  if(pool.length===0) return "Brak haseł";
+  let p = pool[Math.floor(Math.random()*pool.length)];
+  if(!force) return p;
+  let guard = 0;
+  while(p===lastPrompt && guard<10){
+    p = pool[Math.floor(Math.random()*pool.length)];
+    guard++;
+  }
+  lastPrompt = p;
+  return p;
+}
+
+function resetRoundUI(fresh=false){
+  stopTimer();
+  timer.total = cfg.turnSeconds;
+  timer.left = cfg.turnSeconds;
+  setTimerUI(timer.left, timer.total, fresh ? "Przygotuj się…" : "Gotowy?");
+
+  if($('judgeRow')) $('judgeRow').style.display = 'none';
+  if($('actionRow')) $('actionRow').style.display = 'flex';
+
+  // Anti-cheat: najpierw „Pokaż pytanie”, dopiero potem Start
+  if(!promptRevealed){
+    renderHiddenPrompt();
+  }else{
+    const br = $('btnReveal');
+    const bs = $('btnStart');
+    if(br) br.style.display = 'none';
+    if(bs){ bs.style.display = 'inline-block'; bs.disabled = false; bs.textContent = '▶ Start'; }
+  }
+}
+
+function startTurn(){
+  // Jeśli pytanie nie jest ujawnione, nie startujemy timera
+  if(!promptRevealed) return;
+  const btn = $('btnStart');
+
+  // Jeśli timer już leci, przycisk działa jako STOP (wcześniejsze zakończenie tury)
+  if(timer.active){
+    stopTimer(false);
+    onTimeUp();
+    return;
+  }
+
+  if(btn){
+    btn.disabled = false;
+    btn.textContent = '⏹ Stop';
+  }
+  if($('timerSub')) $('timerSub').textContent = 'Czas leci!';
+  buzz(40);
+  metronomeTick(cfg.turnSeconds, cfg.turnSeconds, true);
+
+  timer.active = true;
+  timer.startedAt = performance.now();
+  timer.total = cfg.turnSeconds;
+  timer.left = cfg.turnSeconds;
+  // tik co każdą sekundę (bez podwójnego dźwięku na starcie)
+  timer.lastTickInt = Math.ceil(timer.left);
+
+  const tick = (now)=>{
+    if(!timer.active) return;
+    const elapsed = (now - timer.startedAt) / 1000;
+    const left = timer.total - elapsed;
+
+    if(left <= 0){
+      timer.left = 0;
+      // wymuszamy spójny stan końca: 0 + pełne domknięcie koła
+      setTimerUI(0, timer.total, 'Koniec!');
+      stopTimer(true);
+      onTimeUp();
+      return;
+    }
+
+    timer.left = left;
+
+    // tik przy każdej zmianie sekundy (5→4→3→2→1)
+    const intNow = Math.ceil(Math.max(0, left));
+    if(timer.lastTickInt != null && intNow !== timer.lastTickInt){
+      // tylko gdy schodzimy w dół i jeszcze nie 0
+      if(intNow > 0 && intNow < timer.lastTickInt){
+        metronomeTick(intNow, timer.total);
+      }
+      timer.lastTickInt = intNow;
+    }
+
+    setTimerUI(left, timer.total, 'Czas leci!');
+    timer.raf = requestAnimationFrame(tick);
+  };
+  timer.raf = requestAnimationFrame(tick);
+}
+
+function stopTimer(finished=false){
+  if(timer.raf) cancelAnimationFrame(timer.raf);
+  timer.raf = null;
+  timer.active = false;
+  if(finished){
+    beep(160,0.18,0.16);
+    buzz(120);
+  }
+}
+
+function setTimerUI(left,total,sub){
+  const safeTotal = Math.max(0.001, Number(total)||0.001);
+  const safeLeft = Math.max(0, Number(left)||0);
+
+  const leftInt = (safeLeft <= 0) ? 0 : Math.ceil(safeLeft);
+  if($('timerBig')) $('timerBig').textContent = String(leftInt);
+  if(sub && $('timerSub')) $('timerSub').textContent = sub;
+
+  const p = clamp01(1 - (safeLeft/safeTotal));
+  const deg = (p * 360).toFixed(2) + "deg";
+  const ring = $('timerRing');
+  if(ring){
+    ring.style.setProperty('--deg', deg);
+    // kolor rośnie w dramaturgię: zielony -> żółty/pomarańcz -> czerwony
+    const hue = Math.round(120 * (1 - p));
+    ring.style.setProperty('--ringColor', `hsl(${hue}, 90%, 52%)`);
+  }
+  if($('timerBarFill')) $('timerBarFill').style.width = (p*100).toFixed(1) + "%";
+
+  if(left <= 1.1 && left > 0){
+    anime.remove('#timerRing');
+    anime({targets:'#timerRing',scale:[1,1.03,1],duration:320,easing:'easeOutQuad'});
+  }
+}
+
+function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+
+function onTimeUp(){
+  const btn = $('btnStart');
+  if(btn){
+    btn.disabled = true;
+    btn.textContent = '▶ Start';
+  }
+  if($('timerSub')) $('timerSub').textContent = "Oceń odpowiedź:";
+  if($('actionRow')) $('actionRow').style.display = 'none';
+  if($('judgeRow')) $('judgeRow').style.display = 'flex';
+
+  anime({
+    targets:'#timerRing',
+    translateX:[0,-8,8,-6,6,-3,3,0],
+    duration:420,easing:'easeInOutQuad'
+  });
+}
+
+function judge(success){
+  if($('judgeRow')) $('judgeRow').style.display = 'none';
+  if($('actionRow')) $('actionRow').style.display = 'flex';
+
+  // Po ocenie zawsze przechodzimy w stan "ukryj pytanie" dla następnego gracza
+  promptRevealed = false;
+
+  if(success){
+    const p = getCurrentPlayer();
+    if(p){
+      p.score++;
+      updateTurnHeader();
+      anime({targets:'#turnScore',scale:[1,1.35,1],duration:420,easing:'easeOutBack'});
+      beep(740,0.06,0.10); setTimeout(()=>beep(880,0.07,0.10),80);
+    }
+  }else{
+    beep(220,0.12,0.12);
+  }
+
+  
+
+  if(roundPos >= players.length-1){
+    setTimeout(()=>showRoundSummary(), 220);
+  }else{
+    setTimeout(()=>advanceToNextPlayerTurn(), 220);
+  }
+}
+
+function showRoundSummary(){
+  roundIndex++;
+
+  // DOGRYWKA: po każdej rundzie sprawdzamy, czy jest jednoznaczny lider
+  if(tiebreakActive){
+    const max = players.reduce((m,p)=>Math.max(m,p.score), 0);
+    const winners = players.filter(p=>p.score===max);
+
+    // jeśli mamy jednego lidera -> koniec dogrywki
+    if(winners.length===1){
+      endGameFinal();
+      return;
+    }
+
+    const rt = $('roundSummaryTitle');
+    if(rt) rt.textContent = `Dogrywka — runda ${roundIndex}`;
+
+    const btn = $('roundSummaryContinue');
+    if(btn) btn.textContent = 'Kolejna runda dogrywki';
+
+    const list = $('roundSummaryList');
+    const note = $('roundSummaryNote');
+    if(note) note.textContent = '';
+
+    if(list){
+      list.innerHTML = '';
+      const sorted = [...players].sort((a,b)=>b.score-a.score);
+      const scoreRanks = Array.from(new Set(sorted.map(p=>p.score))).slice(0,3);
+      sorted.forEach((p)=>{
+        const rankIdx = scoreRanks.indexOf(p.score);
+        const row = document.createElement('div');
+        row.className = 'summary-row' + (rankIdx===0?' top1':rankIdx===1?' top2':rankIdx===2?' top3':'');
+        row.innerHTML = `<span class="e">${p.emoji}</span><span class="n">${escapeHtml(p.name)}</span><span class="s">${p.score}</span>`;
+        list.appendChild(row);
+      });
+    }
+
+    if(players.length>0) pendingStartPlayer = (pendingStartPlayer + 1) % players.length;
+    showO('roundSummaryOverlay');
+    return;
+  }
+
+  const isFinal = roundIndex >= (cfg.winTarget||1);
+
+  // Po ostatniej rundzie: bez podsumowania — od razu wyniki końcowe
+  if(isFinal){
+    const ro = $('roundSummaryOverlay');
+    if(ro) ro.style.display = 'none';
+    endGameFinal();
+    return;
+  }
+
+  const rt = $('roundSummaryTitle');
+  if(rt) rt.textContent = `Wynik rundy ${roundIndex}/${cfg.winTarget || 1}`;
+
+  const btn = $('roundSummaryContinue');
+  if(btn){
+    btn.textContent = 'Następna runda';
+  }
+
+  const list = $('roundSummaryList');
+  const note = $('roundSummaryNote');
+  if(note){
+    note.textContent = '';
+  }
+  if(list){
+    list.innerHTML = '';
+
+    // Ranking po punktach: te same punkty = ten sam „medal” (złoto/srebro/brąz)
+    const sorted = [...players].sort((a,b)=>b.score-a.score);
+    const scoreRanks = Array.from(new Set(sorted.map(p=>p.score))).slice(0,3);
+
+    sorted.forEach((p)=>{
+      const rankIdx = scoreRanks.indexOf(p.score); // 0=gold, 1=silver, 2=bronze
+      const row = document.createElement('div');
+      row.className = 'summary-row' + (rankIdx===0?' top1':rankIdx===1?' top2':rankIdx===2?' top3':'');
+      row.innerHTML = `<span class="e">${p.emoji}</span><span class="n">${escapeHtml(p.name)}</span><span class="s">${p.score}</span>`;
+      list.appendChild(row);
+    });
+  }
+
+  if(players.length>0) pendingStartPlayer = (pendingStartPlayer + 1) % players.length;
+
+  showO('roundSummaryOverlay');
+}
+
+function continueAfterSummary(){
+  hideO('roundSummaryOverlay');
+  // w dogrywce nie mamy limitu rund — gramy do wyłonienia lidera
+  startNewRound(true);
+}
+
+function endGameFinal(){
+  // jeśli kończymy dogrywkę, wracamy do pełnej listy graczy (żeby tabela końcowa była kompletna)
+  if(tiebreakActive && Array.isArray(tiebreakAllPlayers)){
+    const full = tiebreakAllPlayers;
+    tiebreakAllPlayers = null;
+    tiebreakActive = false;
+    players = full;
+  }
+  stopTimer();
+  showConfetti();
+
+  const max = players.reduce((m,p)=>Math.max(m,p.score), 0);
+  const winners = players.filter(p=>p.score===max);
+
+  // Zwycięstwa (łącznie): naliczamy tylko przy jednym zwycięzcy (bez remisu)
+  if(winners.length===1){
+    winners[0].wins = (winners[0].wins||0) + 1;
+    saveMode();
+  }
+
+  if($('endResult')){
+    if(winners.length===1){
+      $('endResult').textContent = `${winners[0].emoji} ${winners[0].name} WYGRYWA!`;
+    }else{
+      const names = winners.map(w=>w.name).join(', ');
+      $('endResult').textContent = `🤝 REMIS: ${names}`;
+    }
+  }
+
+  const list = $('endScores');
+  if(list){
+    list.innerHTML = '';
+
+    // Ranking po punktach: te same punkty = ten sam „medal” (np. remis = kilka złotych ramek)
+    const sorted = [...players].sort((a,b)=>b.score-a.score);
+    const scoreRanks = Array.from(new Set(sorted.map(p=>p.score))).slice(0,3); // top 3 progi
+
+    sorted.forEach((p)=>{
+      const rankIdx = scoreRanks.indexOf(p.score); // 0=gold, 1=silver, 2=bronze
+      const row = document.createElement('div');
+      row.className = 'end-row' + (rankIdx===0?' top1':rankIdx===1?' top2':rankIdx===2?' top3':'');
+      row.innerHTML = `<span class="e">${p.emoji}</span><span class="n">${escapeHtml(p.name)}</span><span class="s">${p.score}</span>`;
+      list.appendChild(row);
+    });
+  }
+
+  // przy remisie o 1. miejsce pokazujemy przycisk dogrywki
+  const tb = $('btnTiebreak');
+  if(tb){
+    tb.style.display = (winners.length > 1) ? 'inline-block' : 'none';
+  }
+
+  showO('endOverlay');
+}
+
+function startTiebreak(){
+  // dogrywka tylko dla liderów z remisem
+  const max = players.reduce((m,p)=>Math.max(m,p.score), 0);
+  const tied = players.filter(p=>p.score===max);
+  if(tied.length <= 1) return;
+
+  stopConfetti();
+  hideO('endOverlay');
+  hideO('roundSummaryOverlay');
+
+  tiebreakAllPlayers = players;
+  players = tied; // tylko remisujący liderzy
+  buildGameOrder();
+  tiebreakActive = true;
+
+  // reset licznika rund dogrywki
+  roundIndex = 0;
+  roundPos = 0;
+  pendingStartPlayer = 0;
+  currentPlayer = 0;
+
+  // wracamy na planszę gry
+  const gs = $('gameScreen');
+  if(gs) gs.style.display = 'flex';
+  document.body.classList.add('game-active');
+
+  buildScoreboard();
+  startNewRound(true);
+}
+
+function playAgain(){
+  stopConfetti();
+  hideO('endOverlay');
+  if($('gameScreen')) $('gameScreen').style.display = 'none';
+  document.body.classList.remove('game-active');
+  openSettings();
+}
+
+let confettiInterval = null;
+function stopConfetti(){
+  if(confettiInterval){ clearInterval(confettiInterval); confettiInterval = null; }
+  document.querySelectorAll('.confetti').forEach(c=>c.remove());
+}
+function showConfetti(){
+  stopConfetti();
+  const colors = ['#FF9800','#4CAF50','#FFD700','#FFC107','#FFEB3B','#ffffff'];
+  const duration = 8000;
+  const interval = 120;
+  let elapsed = 0;
+
+  const spawn = (count=10)=>{
+    for(let i=0;i<count;i++){
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = (Math.random()*100)+'vw';
+      c.style.background = colors[Math.floor(Math.random()*colors.length)];
+      c.style.width = (8+Math.random()*12)+'px';
+      c.style.height = (8+Math.random()*12)+'px';
+      c.style.borderRadius = Math.random()>0.6 ? '50%' : '2px';
+      document.body.appendChild(c);
+
+      anime({
+        targets:c,
+        translateY:[0, window.innerHeight+120],
+        translateX:()=>anime.random(-160,160),
+        rotate:()=>anime.random(0,1080),
+        scale:[1, anime.random(0.4,1.4)],
+        opacity:[1, 0.9, 0],
+        duration:anime.random(2600, 4300),
+        easing:'easeOutQuad',
+        complete:()=>c.remove()
+      });
+    }
+  };
+
+  spawn(70);
+  confettiInterval = setInterval(()=>{
+    elapsed += interval;
+    if(elapsed >= duration){
+      stopConfetti();
+      return;
+    }
+    spawn(10);
+  }, interval);
+
+  if(cfg.sound){
+    setTimeout(()=>beep(523,0.08,0.14),0);
+    setTimeout(()=>beep(659,0.08,0.14),120);
+    setTimeout(()=>beep(784,0.08,0.14),240);
+    setTimeout(()=>beep(1047,0.18,0.14),360);
+  }
+}
+
+function runSelfTests(){
+  try{
+    const required = [
+      'homeScreen','rulesOverlay','rulesTitle','rulesContent','globalSettingsOverlay',
+      'emojiPickerOverlay','emojiPickerHint','emojiGrid','gameSettingsOverlay','gameScreen',
+      'inGameMenuOverlay','gameSoundToggle','exitConfirmOverlay','endOverlay','roundSummaryOverlay','roundSummaryNote','roundSummaryList','roundSummaryContinue',
+      'deckRow','deckSelector','deckName','deckPicker','deckOptions','deckStandard','deckAdult','deckWarning',
+      'startOrderRow','orderListBtn','orderRandomBtn',
+      'playersList','addPlayerBtn','targetInput','winTargetRow','winTargetSelector','winTargetName','winTargetPicker','winTargetOptions','winTargetCustom','winTargetInput',
+      'promptText','timerRing','timerBig',
+      'actionRow','judgeRow','scoreboard','gameDeckLabel','gameWinTarget',
+      'classicCard','wipCard'
+    ];
+    const missing = required.filter(id=>!document.getElementById(id));
+    console.assert(missing.length===0, 'Brakuje elementów DOM:', missing);
+
+    console.assert(typeof window.anime === 'function', 'anime (fallback) powinno istnieć zawsze');
+    console.assert(typeof toggleModeCard === 'function', 'toggleModeCard powinno istnieć (klik w kafelek trybu)');
+
+    const classic = document.getElementById('classicCard');
+    const wip = document.getElementById('wipCard');
+    if(classic && wip){
+      // testujemy toggle bez zostawiania UI w stanie "open"
+      classic.classList.remove('open');
+      wip.classList.remove('open');
+      toggleModeCard(classic);
+      console.assert(classic.classList.contains('open'), 'classicCard powinien się otworzyć');
+      toggleModeCard(classic);
+      console.assert(!classic.classList.contains('open'), 'classicCard powinien się zamknąć po drugim kliknięciu');
+      toggleModeCard(wip);
+      console.assert(wip.classList.contains('open') && !classic.classList.contains('open'), 'wipCard powinien się otworzyć, a classic zamknąć');
+      // restore: domyślnie wszystkie karty zamknięte
+      classic.classList.remove('open');
+      wip.classList.remove('open');
+    }
+
+    showO('endOverlay');
+    exitToHome();
+    const eo = $('endOverlay');
+    console.assert(!eo || eo.style.display==='none' || eo.style.display==='', 'endOverlay powinno być schowane po exitToHome()');
+
+    console.assert(Array.isArray(PROMPTS) && PROMPTS.length>0, 'PROMPTS powinno mieć elementy');
+    console.assert(Array.isArray(EMOJIS) && EMOJIS.length>0, 'EMOJIS powinno mieć elementy');
+
+    buildDefaultPlayersIfNeeded();
+    console.assert(players.length>=2, 'Powinno być min. 2 graczy po buildDefaultPlayersIfNeeded()');
+
+    console.assert(cfg.turnSeconds === 5, 'cfg.turnSeconds powinno wynosić 5 w trybie klasycznym');
+    console.assert(clampInt(1,1,50)===1, 'clampInt powinno akceptować 1 jako minimum');
+
+    const p1 = players[0].score;
+    players[0].score++;
+    console.assert(players[0].score===p1+1, 'Inkrement punktu powinien działać');
+    players[0].score=p1;
+
+    const snapshot = players.map(p=>({...p}));
+    const tmpId = cryptoId();
+    players.push({id: tmpId, name:'TMP', emoji: EMOJIS[2], score:0});
+    renderPlayers(false);
+    console.assert(!!document.querySelector(`.player-row[data-player-id="${tmpId}"]`), 'TMP row powinien istnieć po dodaniu');
+    players = players.filter(p=>p.id!==tmpId);
+    renderPlayers(false);
+    console.assert(!document.querySelector(`.player-row[data-player-id="${tmpId}"]`), 'TMP row powinien zniknąć po usunięciu');
+    players = snapshot;
+    renderPlayers(false);
+    console.assert(!document.querySelector(`.player-row[data-player-id="${tmpId}"]`), 'TMP row nie powinien istnieć po przywróceniu snapshot');
+
+    console.log('[PartyHUB 5s] Self-tests OK');
+  }catch(e){
+    console.warn('[PartyHUB 5s] Self-tests FAIL', e);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', ()=>{
+  try{
+    loadGlobal();
+    loadMode();
+    showO('homeScreen');
+    runSelfTests();
+    initLiveReload();
+
+    document.addEventListener('keydown',(e)=>{
+      if(e.key==='Escape'){
+        const deckRow = $('deckRow');
+        if(deckRow && deckRow.classList.contains('open')){
+          closeDeckPicker();
+          return;
+        }
+        const row = $('winTargetRow');
+        if(row && row.classList.contains('open')){
+          closeWinTargetPicker();
+          return;
+        }
+        const open = getTopOverlay();
+        if(open) hideO(open);
+      }
+    });
+
+    document.addEventListener('click',(e)=>{
+      const row = $('winTargetRow');
+      if(!row || !row.classList.contains('open')) return;
+      const sel = $('winTargetSelector');
+      const pick = $('winTargetPicker');
+      if(sel && sel.contains(e.target)) return;
+      if(pick && pick.contains(e.target)) return;
+      closeWinTargetPicker();
+    });
+  }catch(e){
+    console.error('[PartyHUB 5s] INIT error', e);
+  }
+});
+
+function initLiveReload(){
+  try{
+    if(location.protocol !== 'http:' && location.protocol !== 'https:') return;
+    const url = `${location.origin}/__partyhub_events`;
+    const ping = fetch(url, {method:'HEAD', cache:'no-store'}).catch(()=>null);
+
+    ping.then((res)=>{
+      if(!res || (res.status && res.status>=400)) return;
+      const es = new EventSource(url);
+      es.onmessage = (ev)=>{
+        if(ev && ev.data === 'reload') location.reload();
+      };
+      es.onerror = ()=>{
+        try{ es.close(); }catch(_e){}
+      };
+    });
+  }catch(_e){}
+}
+
+function getPlayerById(id){
+  if(!id) return null;
+  return players.find(p=>p.id===id) || null;
+}
+
+function getCurrentPlayer(){
+  if(players.length<=0) return null;
+  if(!Array.isArray(gameOrder) || gameOrder.length!==players.length){
+    gameOrder = players.map(p=>p.id);
+  }
+  const id = gameOrder[currentPlayer];
+  return getPlayerById(id) || players[0] || null;
+}
+
+function shuffleInPlace(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    const tmp = arr[i]; arr[i]=arr[j]; arr[j]=tmp;
+  }
+  return arr;
+}
+
+function buildGameOrder(){
+  gameOrder = players.map(p=>p.id);
+  if(cfg.startOrder === 'random') shuffleInPlace(gameOrder);
+}
+
+function setStartOrder(v){
+  cfg.startOrder = (v === 'random') ? 'random' : 'list';
+  syncStartOrderUI();
+  saveMode();
+}
+
+function syncStartOrderUI(){
+  const a = $('orderListBtn');
+  const b = $('orderRandomBtn');
+  if(a) a.classList.toggle('selected', cfg.startOrder !== 'random');
+  if(b) b.classList.toggle('selected', cfg.startOrder === 'random');
+}
+
+function getTopOverlay(){
+  const ids = ['endOverlay','roundSummaryOverlay','exitConfirmOverlay','inGameMenuOverlay','emojiPickerOverlay','gameSettingsOverlay','globalSettingsOverlay','rulesOverlay'];
+  for(const id of ids){
+    const el = $(id);
+    if(el && el.style.display==='flex') return id;
+  }
+  return null;
+}
+</script>
+</body>
+</html>
