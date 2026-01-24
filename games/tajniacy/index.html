@@ -2293,9 +2293,51 @@ button:active{transform:scale(.995)}
 
 <script>
 // ANCHOR: CONSTANTS
-const WORDS=["stand 1","stand 2","stand 3","stand 4","stand 5","stand 6","stand 7","stand 8","stand 9","stand 10","stand 11","stand 12","stand 13","stand 14","stand 15","stand 16","stand 17","stand 18","stand 19","stand 20","stand 21","stand 22","stand 23","stand 24","stand 25","stand 26","stand 27","stand 28","stand 29","stand 30","stand 31","stand 32","stand 33","stand 34","stand 35","stand 36","stand 37","stand 38","stand 39","stand 40","stand 41","stand 42","stand 43","stand 44","stand 45","stand 46","stand 47","stand 48","stand 49","stand 50","stand 51","stand 52","stand 53","stand 54","stand 55","stand 56","stand 57","stand 58","stand 59","stand 60","stand 61","stand 62","stand 63","stand 64","stand 65","stand 66","stand 67","stand 68","stand 69","stand 70","stand 71","stand 72","stand 73","stand 74","stand 75"];
-const ADULT=["cenz 1","cenz 2","cenz 3","cenz 4","cenz 5","cenz 6","cenz 7","cenz 8","cenz 9","cenz 10","cenz 11","cenz 12","cenz 13","cenz 14","cenz 15","cenz 16","cenz 17","cenz 18","cenz 19","cenz 20","cenz 21","cenz 22","cenz 23","cenz 24","cenz 25","cenz 26","cenz 27","cenz 28","cenz 29","cenz 30","cenz 31","cenz 32","cenz 33","cenz 34","cenz 35","cenz 36","cenz 37","cenz 38","cenz 39","cenz 40","cenz 41","cenz 42","cenz 43","cenz 44","cenz 45","cenz 46","cenz 47","cenz 48","cenz 49","cenz 50","cenz 51","cenz 52","cenz 53","cenz 54","cenz 55","cenz 56","cenz 57","cenz 58","cenz 59","cenz 60","cenz 61","cenz 62","cenz 63","cenz 64","cenz 65","cenz 66","cenz 67","cenz 68","cenz 69","cenz 70","cenz 71","cenz 72","cenz 73","cenz 74","cenz 75"];
-const EMOJIS_RED=["🐉","🦁","🔥","🌶️","🦅","🚀","⚡"];
+const WORDS = [
+  "FIGLE","AMORY","PSOTY","EKSTAZA","SZAŁ","HURAGAN","TSUNAMI","GEJZER","WULKAN","ERUPCJA",
+  "MAGIA","CZARY","TRIK","ILUZJA","ZMYŁKA","PUŁAPKA","HACZYK","ZAGADKA","SZYFR","KOD",
+  "ENIGMA","SEKRETNOŚĆ","RIPOSTA","IRONIA","SARKAZM","KABARET","PARODIA","MEM","ŻART","BEKA",
+  "PRZYPAŁ","WTOPA","FOCH","DRAMA","OBRAZA","REAKCJA","EMOJI","HASHTAG","FOLLOW","TREND",
+  "VIRAL","POST","RELACJA","FILTROWANIE","POWIADOMIENIE","ALGORYTM","KONTENT","HEJT","FAME","GLAMOUR",
+  "BŁYSK","GŁOŚNIK","MIKROFON","PLAYLISTA","TRĄBKA","FLET","CYMBAL","GITARA","AKROBACJA","SALTO",
+  "SKOK","MINA","GRYMAS","CHICHOT","UŚMIECH","ZIEWANIE","KICHANIE","SZAFA","PÓŁKA","DYWAN",
+  "FOTEL","LAMPA","OKNO","DRZWI","SCHODY","KALORYFER","ODKURZACZ","MIOTŁA","SZCZOTKA","MOP",
+  "WIADRO","FOLIA","KARTON","GAZETA","KLEJ","TAKSI","TRAMWAJ","METRO","RAKIETA","HELIKOPTER",
+  "BALON","PONTON","ŁÓDŹ","KAJAK","NAMIOT","HAMAK","LATARKA","KOMPAS","MAPA","LORNETKA",
+  "TELESKOP","MIKROSKOP","ROBOT","DRON","MAGNES","SPRĘŻYNA","WAŁEK","LEWAREK","KORKOCIĄG","ZAWÓR",
+  "KRAN","LEJEK","TUBA","ZASUWA","KŁÓDKA","SŁOIK","POKRYWKA","SZCZYPCE","TŁUCZEK","TARKA",
+  "GARNEK","PATELNIA","WIDELEC","ŁYŻKA","TALERZ","KUBEK","SŁOMKA","LEMONIADA","COCA","WAFEL",
+  "CZEKOLADA","KISIEL","BUDYŃ","GALARETKA","MIÓD","DŻEM","CHILI","PIEPRZ","CUKIER","ANANAS",
+  "MANGO","KIWI","GRANAT","MALINA","JAGODA","BORÓWKA","CYTRYNA","POMARAŃCZA","AWOKADO","BROKUŁ",
+  "BURAK","KUKURYDZA","CZOSNEK","IMBIR","RYŻ","MAKARON","NALEŚNIK","PIZZA","KARALUCH","BORSUK",
+  "ALPAKA","PINGWIN","JEDNOROŻEC","SMOK","KOSMITA","UFOLUDEK","GALAKTYKA","PLANETA","KOMETA","GWIAZDOZBIÓR",
+  "ZARZEWIE","ZAPŁON","PSIKUS","KAPIBARA","LENIWIEC","WIEWIÓRKA","JEŻ","ŻABA","BÓBR","PAPUGA",
+  "STRUŚ","PANDA","KOALA","KOMAR","MUCHA","BIEDRONKA","PSZCZOŁA","MRÓWKA","ŚLIMAK","CZAPKA",
+  "KURTKA","RĘKAWICZKI","SZALIK","BIBLIOTEKA","BAZAR","TARG","POCZTA","PACZKA","DRUKARKA","SKANER"
+];
+
+const ADULT = [
+  "PORNO","SEKS","NAGOŚĆ","PODNIECENIE","ORGAZM","SPERMA","WYTRYSK","SPUST","PENIS","KUTAS",
+  "FIUT","PAŁA","CIPKA","PIZDA","POCHWA","ŁECHTACZKA","DUPA","TYŁEK","CYCKI","BIUST",
+  "SUTEK","KROCZE","ODDECH","ŚLINA","JĘK","DRESZCZ","DOTYK","USTA","JĘZYK","SZYJA",
+  "MOKRO","OSTRO","NAMIĘTNOŚĆ","ZALAĆ","LASKA","OBCIĄGNĄĆ","DEEPTHROAT","MINETA","RIMMING","FACIAL",
+  "CREAMPIE","CUMSHOT","ANAL","KOREK","FISTING","PALCÓWKA","DZIURKA","MUSZELKA","BDSM","DOMINACJA",
+  "ULEGŁOŚĆ","KLAPS","PEJCZ","BAT","DUSIĆ","PRZYDUSZAĆ","KNEBEL","MASKA","OBROŻA","SMYCZ",
+  "KRĘPOWANIE","KAJDANKI","LATEKS","DADDY","MOMMY","ONLYFANS","NUDESY","DICKPIC","WYCIEK","SEXTING",
+  "TINDER","STRINGI","KORONKA","BIELIZNA","WIBRATOR","DILDO","ZABAWKA","LUBRYKANT","KONDOM","PREZERWATYWA",
+  "SEXSHOP","ROMANS","ZDRADA","KOCHANEK","KOCHANKA","TRÓJKĄT","ORGIA","FETYSZ","KLUB","AFTER",
+  "RŻNĄĆ","RUCHAĆ","PRZELECIEĆ","BANAN","OGÓREK","KIEŁBASA","PARÓWKA","MELON","BRZOSKWINIA","TRUSKAWKA",
+  "ŚMIETANKA","LIZAK","CIASTKO","PĄCZEK","SOS","KREM","RURKA","DRĄŻEK","PILOT","ŁADOWARKA",
+  "KABEL","WIBRACJA","POMPKA","TŁOK","DYSZA","BUTELKA","OTWIERACZ","ZAMEK","KLUCZ","GUMKA",
+  "TAŚMA","PASEK","KNOT","ŚRUBA","WKRĘT","POŃCZOCHY","STANIK","DEKOLT","OBCASY","SZPILKI",
+  "SKÓRA","GARNITUR","MUNDUREK","PERFUMY","MAKIJAŻ","SZMINKA","TATUAŻ","KOLCZYK","DEZODORANT","LUSTRO",
+  "ŁAZIENKA","PRYSZNIC","WANNA","HOTEL","POKÓJ","ŁÓŻKO","PODUSZKA","KOŁDRA","ZASŁONA","CIEMNOŚĆ",
+  "FLIRT","PODRYW","RANDKA","ZALOTY","SPOJRZENIE","SZEPT","PROWOKACJA","ZACZEPKA","KOMPLEMENT","ISKRA",
+  "NAPIĘCIE","CHEMIA","POKUSA","GRZESZEK","ZAKAZ","SEKRET","RYWAL","CRUSH","EX","PLOTKA",
+  "GHOSTING","MATCH","DMY","WIADOMOŚĆ","SCREENSHOT","BLOKADA","ZABAWA","WYZWANIE","ODWAGA","WSTYD",
+  "RUMIENIEC","IMPREZA","MELANŻ","KARAOKE","SHOT","DRINK","KOKTAJL","WÓDKA","WINO","WHISKY",
+  "GIN","RUM","PIWO","KAC","TOALETA","SZATNIA","BROKAT","KANAPA","KATAR","KIBEL"
+];
 const EMOJIS_BLUE=["🦈","🐺","❄️","🌊","🦋","🛸","⭐"];
 const EMOJIS_ANIMALS=["🐉","🦁","🦅","🦈","🐺","🦋","🦄","🐲","🦊","🐼","🐨","🦉","🦚","🦜","🐙","🦑","🦞","🦀","🐢","🦎","🐍","🦂","🕷️","🦇","🐝"];
 const EMOJIS_OBJECTS=["🔥","🌶️","🚀","⚡","❄️","🌊","⭐","💎","🔮","🎯","🎪","🎭","🎨","🎸","🎹","🏆","🥇","👑","💀","🤖","👽","🛸","🔱","⚔️","🛡️","🏴‍☠️","🎃"];
