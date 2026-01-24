@@ -2338,12 +2338,13 @@ const ADULT = [
   "RUMIENIEC","IMPREZA","MELANŻ","KARAOKE","SHOT","DRINK","KOKTAJL","WÓDKA","WINO","WHISKY",
   "GIN","RUM","PIWO","KAC","TOALETA","SZATNIA","BROKAT","KANAPA","KATAR","KIBEL"
 ];
-const EMOJIS_BLUE=["🦈","🐺","❄️","🌊","🦋","🛸","⭐"];
-const EMOJIS_ANIMALS=["🐉","🦁","🦅","🦈","🐺","🦋","🦄","🐲","🦊","🐼","🐨","🦉","🦚","🦜","🐙","🦑","🦞","🦀","🐢","🦎","🐍","🦂","🕷️","🦇","🐝"];
-const EMOJIS_OBJECTS=["🔥","🌶️","🚀","⚡","❄️","🌊","⭐","💎","🔮","🎯","🎪","🎭","🎨","🎸","🎹","🏆","🥇","👑","💀","🤖","👽","🛸","🔱","⚔️","🛡️","🏴‍☠️","🎃"];
-const EMOJIS_NATURE=["🌸","🌺","🌻","🌹","🍀","🌴","🌵","🍄","🌙","☀️","🌈","💫","✨"];
-const EMOJIS_MAGIC=["👻","🧙","🧛","🧜","🧚"];
-const EMOJIS_ALL=[...new Set([...EMOJIS_ANIMALS,...EMOJIS_OBJECTS,...EMOJIS_NATURE,...EMOJIS_MAGIC])];
+const EMOJIS_RED = ["🍆", "🦁", "🔥", "🌶️", "🦅", "🚀", "⚡"];
+        const EMOJIS_BLUE = ["🍑", "🐺", "❄️", "🌊", "🦋", "🛸", "⭐"];
+        const EMOJIS_ANIMALS = ["🐉", "🦁", "🦅", "🦈", "🐺", "🦋", "🦄", "🐲", "🦊", "🐼", "🐨", "🦉", "🦚", "🦜", "🐙", "🦑", "🦞", "🦀", "🐢", "🦎", "🐍", "🦂", "🕷️", "🦇", "🐝"];
+        const EMOJIS_OBJECTS = ["🔥", "🌶️", "🚀", "⚡", "❄️", "🌊", "⭐", "💎", "🔮", "🎯", "🎪", "🎭", "🎨", "🎸", "🎹", "🏆", "🥇", "👑", "💀", "🤖", "👽", "🛸", "🔱", "⚔️", "🛡️", "🏴‍☠️", "🎃"];
+        const EMOJIS_NATURE = ["🌸", "🌺", "🌻", "🌹", "🍀", "🌴", "🌵", "🍄", "🌙", "☀️", "🌈", "💫", "✨"];
+        const EMOJIS_MAGIC = ["👻", "🧙", "🧛", "🧜", "🧚"];
+        const EMOJIS_ALL = [...new Set([...EMOJIS_ANIMALS, ...EMOJIS_OBJECTS, ...EMOJIS_NATURE, ...EMOJIS_MAGIC])];
 
 // ANCHOR: STATE_MACHINE
 let wordList=WORDS,gameMode='classic',gameOver=false,isSpymaster=false,sideCards={red:[],blue:[]},isMixedDeck=false;
