@@ -1773,6 +1773,12 @@
             transform: scale(.995)
         }
 
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none
+        }
+
         /* ANCHOR: BUTTONS_POLISH (subtelna głębia — bez połysku) */
         :where(.btn-new, .btn-primary, .btn-reset, .btn-ghost, .btn-back) {
             border: 1px solid var(--btnLine);
@@ -3033,15 +3039,27 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-                <div class="setting-row setting-row--compact">
-                    <label>Odkrywanie kart:</label>
-                    <div class="keymode-toggle">
-                        <span class="keymode-label left card-reveal-label" title="Kliknięcie">👆</span>
-                        <label class="switch keymode-switch card-reveal-switch">
-                            <input type="checkbox" id="globalCardRevealToggle" onchange="updateCardRevealMode(this.checked)">
-                            <span class="slider"></span>
-                        </label>
-                        <span class="keymode-label right card-reveal-label" title="Przytrzymanie">👇</span>
+
+                <!-- ANCHOR: CARD_REVEAL_MODE -->
+                <div class="setting-card" id="cardGlobalReveal">
+                    <div class="setting-head" onclick="toggleSettingCard('cardGlobalReveal')">
+                        <div class="setting-title">Odkrywanie kart</div>
+                        <div class="setting-sub" id="globalRevealSummary">Kliknięcie</div>
+                        <div class="setting-arrow">▼</div>
+                    </div>
+                    <div class="setting-body">
+                        <div class="setting-body-inner">
+                            <div class="deck-picker-content">
+                                <div class="deck-option selected" data-reveal="click" onclick="selectRevealMode('click')">
+                                    <span class="deck-icon">👆</span>
+                                    <span class="deck-name">Kliknięcie</span>
+                                </div>
+                                <div class="deck-option" data-reveal="hold" onclick="selectRevealMode('hold')">
+                                    <span class="deck-icon">👇</span>
+                                    <span class="deck-name">Przytrzymanie</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -3119,14 +3137,14 @@
                 <!-- ANCHOR: CARD_DECK -->
                 <div class="setting-card" id="cardClassicDeck">
                     <div class="setting-head" onclick="toggleSettingCard('cardClassicDeck')">
-                        <div class="setting-title">Talia kart</div>
-                        <div class="setting-sub" id="classicDeckSummary">Standardowa</div>
+                        <div class="setting-title">Talia haseł</div>
+                        <div class="setting-sub" id="classicDeckSummary">Wybierz talię</div>
                         <div class="setting-arrow">▼</div>
                     </div>
                     <div class="setting-body">
                         <div class="setting-body-inner">
                             <div class="deck-picker-content">
-                                <div class="deck-option selected" data-deck="standard" onclick="selectDeck('classic', 'standard')">
+                                <div class="deck-option" data-deck="standard" onclick="selectDeck('classic', 'standard')">
                                     <div class="deck-info">
                                         <span class="deck-title">Standardowa</span>
                                         <span class="deck-desc">Klasyczne hasła odpowiednie dla wszystkich. Bezpieczne i rodzinne.<br><span class="deck-counter" id="classicStandardCounter">Pozostało unikalnych haseł: 124/124</span></span>
@@ -3150,7 +3168,7 @@
                                 <span class="deck-action-text">Reset puli</span>
                             </button>
                         </div>
-                        <input type="hidden" id="classicDeck" value="standard">
+                        <input type="hidden" id="classicDeck" value="">
                     </div>
                 </div>
             </div>
@@ -3201,7 +3219,7 @@
 
             <div class="button-group">
                 <button class="btn-back" onclick="backToHome()" style="flex:1">← Powrót</button>
-                <button class="btn-new btn-lg" onclick="startClassic()" style="flex:2">Start</button>
+                <button class="btn-new btn-lg" id="classicStartBtn" onclick="startClassic()" style="flex:2" disabled>Start</button>
             </div>
         </div>
     </div>
@@ -3229,14 +3247,14 @@
                 <!-- ANCHOR: CARD_DECK -->
                 <div class="setting-card" id="cardCrazyDeck">
                     <div class="setting-head" onclick="toggleSettingCard('cardCrazyDeck')">
-                        <div class="setting-title">Talia kart</div>
-                        <div class="setting-sub" id="crazyDeckSummary">Standardowa</div>
+                        <div class="setting-title">Talia haseł</div>
+                        <div class="setting-sub" id="crazyDeckSummary">Wybierz talię</div>
                         <div class="setting-arrow">▼</div>
                     </div>
                     <div class="setting-body">
                         <div class="setting-body-inner">
                             <div class="deck-picker-content">
-                                <div class="deck-option selected" data-deck="standard" onclick="selectDeck('crazy', 'standard')">
+                                <div class="deck-option" data-deck="standard" onclick="selectDeck('crazy', 'standard')">
                                     <div class="deck-info">
                                         <span class="deck-title">Standardowa</span>
                                         <span class="deck-desc">Klasyczne hasła odpowiednie dla wszystkich. Bezpieczne i rodzinne.<br><span class="deck-counter" id="crazyStandardCounter">Pozostało unikalnych haseł: 124/124</span></span>
@@ -3260,7 +3278,7 @@
                                 <span class="deck-action-text">Reset puli</span>
                             </button>
                         </div>
-                        <input type="hidden" id="crazyDeck" value="standard">
+                        <input type="hidden" id="crazyDeck" value="">
                     </div>
                 </div>
             </div>
@@ -3339,7 +3357,7 @@
 
             <div class="button-group">
                 <button class="btn-back" onclick="backToHome()" style="flex:1">← Powrót</button>
-                <button class="btn-new btn-lg" onclick="startCrazy()" style="flex:2">Start</button>
+                <button class="btn-new btn-lg" id="crazyStartBtn" onclick="startCrazy()" style="flex:2" disabled>Start</button>
             </div>
         </div>
     </div>
@@ -3565,52 +3583,52 @@
     <script>
         // ANCHOR: CONSTANTS
         const WORDS = [
-  "FIGLE","AMORY","PSOTY","EKSTAZA","SZAŁ","HURAGAN","TSUNAMI","GEJZER","WULKAN","ERUPCJA",
-  "MAGIA","CZARY","TRIK","ILUZJA","ZMYŁKA","PUŁAPKA","HACZYK","ZAGADKA","SZYFR","KOD",
-  "ENIGMA","SEKRETNOŚĆ","RIPOSTA","IRONIA","SARKAZM","KABARET","PARODIA","MEM","ŻART","BEKA",
-  "PRZYPAŁ","WTOPA","FOCH","DRAMA","OBRAZA","REAKCJA","EMOJI","HASHTAG","FOLLOW","TREND",
-  "VIRAL","POST","RELACJA","FILTROWANIE","POWIADOMIENIE","ALGORYTM","KONTENT","HEJT","FAME","GLAMOUR",
-  "BŁYSK","GŁOŚNIK","MIKROFON","PLAYLISTA","TRĄBKA","FLET","CYMBAL","GITARA","AKROBACJA","SALTO",
-  "SKOK","MINA","GRYMAS","CHICHOT","UŚMIECH","ZIEWANIE","KICHANIE","SZAFA","PÓŁKA","DYWAN",
-  "FOTEL","LAMPA","OKNO","DRZWI","SCHODY","KALORYFER","ODKURZACZ","MIOTŁA","SZCZOTKA","MOP",
-  "WIADRO","FOLIA","KARTON","GAZETA","KLEJ","TAKSI","TRAMWAJ","METRO","RAKIETA","HELIKOPTER",
-  "BALON","PONTON","ŁÓDŹ","KAJAK","NAMIOT","HAMAK","LATARKA","KOMPAS","MAPA","LORNETKA",
-  "TELESKOP","MIKROSKOP","ROBOT","DRON","MAGNES","SPRĘŻYNA","WAŁEK","LEWAREK","KORKOCIĄG","ZAWÓR",
-  "KRAN","LEJEK","TUBA","ZASUWA","KŁÓDKA","SŁOIK","POKRYWKA","SZCZYPCE","TŁUCZEK","TARKA",
-  "GARNEK","PATELNIA","WIDELEC","ŁYŻKA","TALERZ","KUBEK","SŁOMKA","LEMONIADA","COCA","WAFEL",
-  "CZEKOLADA","KISIEL","BUDYŃ","GALARETKA","MIÓD","DŻEM","CHILI","PIEPRZ","CUKIER","ANANAS",
-  "MANGO","KIWI","GRANAT","MALINA","JAGODA","BORÓWKA","CYTRYNA","POMARAŃCZA","AWOKADO","BROKUŁ",
-  "BURAK","KUKURYDZA","CZOSNEK","IMBIR","RYŻ","MAKARON","NALEŚNIK","PIZZA","KARALUCH","BORSUK",
-  "ALPAKA","PINGWIN","JEDNOROŻEC","SMOK","KOSMITA","UFOLUDEK","GALAKTYKA","PLANETA","KOMETA","GWIAZDOZBIÓR",
-  "ZARZEWIE","ZAPŁON","PSIKUS","KAPIBARA","LENIWIEC","WIEWIÓRKA","JEŻ","ŻABA","BÓBR","PAPUGA",
-  "STRUŚ","PANDA","KOALA","KOMAR","MUCHA","BIEDRONKA","PSZCZOŁA","MRÓWKA","ŚLIMAK","CZAPKA",
-  "KURTKA","RĘKAWICZKI","SZALIK","BIBLIOTEKA","BAZAR","TARG","POCZTA","PACZKA","DRUKARKA","SKANER"
-];
+            "FIGLE", "AMORY", "PSOTY", "EKSTAZA", "SZAŁ", "HURAGAN", "TSUNAMI", "GEJZER", "WULKAN", "ERUPCJA",
+            "MAGIA", "CZARY", "TRIK", "ILUZJA", "ZMYŁKA", "PUŁAPKA", "HACZYK", "ZAGADKA", "SZYFR", "KOD",
+            "ENIGMA", "SEKRETNOŚĆ", "RIPOSTA", "IRONIA", "SARKAZM", "KABARET", "PARODIA", "MEM", "ŻART", "BEKA",
+            "PRZYPAŁ", "WTOPA", "FOCH", "DRAMA", "OBRAZA", "REAKCJA", "EMOJI", "HASHTAG", "FOLLOW", "TREND",
+            "VIRAL", "POST", "RELACJA", "FILTROWANIE", "POWIADOMIENIE", "ALGORYTM", "KONTENT", "HEJT", "FAME", "GLAMOUR",
+            "BŁYSK", "GŁOŚNIK", "MIKROFON", "PLAYLISTA", "TRĄBKA", "FLET", "CYMBAL", "GITARA", "AKROBACJA", "SALTO",
+            "SKOK", "MINA", "GRYMAS", "CHICHOT", "UŚMIECH", "ZIEWANIE", "KICHANIE", "SZAFA", "PÓŁKA", "DYWAN",
+            "FOTEL", "LAMPA", "OKNO", "DRZWI", "SCHODY", "KALORYFER", "ODKURZACZ", "MIOTŁA", "SZCZOTKA", "MOP",
+            "WIADRO", "FOLIA", "KARTON", "GAZETA", "KLEJ", "TAKSI", "TRAMWAJ", "METRO", "RAKIETA", "HELIKOPTER",
+            "BALON", "PONTON", "ŁÓDŹ", "KAJAK", "NAMIOT", "HAMAK", "LATARKA", "KOMPAS", "MAPA", "LORNETKA",
+            "TELESKOP", "MIKROSKOP", "ROBOT", "DRON", "MAGNES", "SPRĘŻYNA", "WAŁEK", "LEWAREK", "KORKOCIĄG", "ZAWÓR",
+            "KRAN", "LEJEK", "TUBA", "ZASUWA", "KŁÓDKA", "SŁOIK", "POKRYWKA", "SZCZYPCE", "TŁUCZEK", "TARKA",
+            "GARNEK", "PATELNIA", "WIDELEC", "ŁYŻKA", "TALERZ", "KUBEK", "SŁOMKA", "LEMONIADA", "COCA", "WAFEL",
+            "CZEKOLADA", "KISIEL", "BUDYŃ", "GALARETKA", "MIÓD", "DŻEM", "CHILI", "PIEPRZ", "CUKIER", "ANANAS",
+            "MANGO", "KIWI", "GRANAT", "MALINA", "JAGODA", "BORÓWKA", "CYTRYNA", "POMARAŃCZA", "AWOKADO", "BROKUŁ",
+            "BURAK", "KUKURYDZA", "CZOSNEK", "IMBIR", "RYŻ", "MAKARON", "NALEŚNIK", "PIZZA", "KARALUCH", "BORSUK",
+            "ALPAKA", "PINGWIN", "JEDNOROŻEC", "SMOK", "KOSMITA", "UFOLUDEK", "GALAKTYKA", "PLANETA", "KOMETA", "GWIAZDOZBIÓR",
+            "ZARZEWIE", "ZAPŁON", "PSIKUS", "KAPIBARA", "LENIWIEC", "WIEWIÓRKA", "JEŻ", "ŻABA", "BÓBR", "PAPUGA",
+            "STRUŚ", "PANDA", "KOALA", "KOMAR", "MUCHA", "BIEDRONKA", "PSZCZOŁA", "MRÓWKA", "ŚLIMAK", "CZAPKA",
+            "KURTKA", "RĘKAWICZKI", "SZALIK", "BIBLIOTEKA", "BAZAR", "TARG", "POCZTA", "PACZKA", "DRUKARKA", "SKANER"
+        ];
 
-const ADULT = [
-  "PORNO","SEKS","NAGOŚĆ","PODNIECENIE","ORGAZM","SPERMA","WYTRYSK","SPUST","PENIS","KUTAS",
-  "FIUT","PAŁA","CIPKA","PIZDA","POCHWA","ŁECHTACZKA","DUPA","TYŁEK","CYCKI","BIUST",
-  "SUTEK","KROCZE","ODDECH","ŚLINA","JĘK","DRESZCZ","DOTYK","USTA","JĘZYK","SZYJA",
-  "MOKRO","OSTRO","NAMIĘTNOŚĆ","ZALAĆ","LASKA","OBCIĄGNĄĆ","DEEPTHROAT","MINETA","RIMMING","FACIAL",
-  "CREAMPIE","CUMSHOT","ANAL","KOREK","FISTING","PALCÓWKA","DZIURKA","MUSZELKA","BDSM","DOMINACJA",
-  "ULEGŁOŚĆ","KLAPS","PEJCZ","BAT","DUSIĆ","PRZYDUSZAĆ","KNEBEL","MASKA","OBROŻA","SMYCZ",
-  "KRĘPOWANIE","KAJDANKI","LATEKS","DADDY","MOMMY","ONLYFANS","NUDESY","DICKPIC","WYCIEK","SEXTING",
-  "TINDER","STRINGI","KORONKA","BIELIZNA","WIBRATOR","DILDO","ZABAWKA","LUBRYKANT","KONDOM","PREZERWATYWA",
-  "SEXSHOP","ROMANS","ZDRADA","KOCHANEK","KOCHANKA","TRÓJKĄT","ORGIA","FETYSZ","KLUB","AFTER",
-  "RŻNĄĆ","RUCHAĆ","PRZELECIEĆ","BANAN","OGÓREK","KIEŁBASA","PARÓWKA","MELON","BRZOSKWINIA","TRUSKAWKA",
-  "ŚMIETANKA","LIZAK","CIASTKO","PĄCZEK","SOS","KREM","RURKA","DRĄŻEK","PILOT","ŁADOWARKA",
-  "KABEL","WIBRACJA","POMPKA","TŁOK","DYSZA","BUTELKA","OTWIERACZ","ZAMEK","KLUCZ","GUMKA",
-  "TAŚMA","PASEK","KNOT","ŚRUBA","WKRĘT","POŃCZOCHY","STANIK","DEKOLT","OBCASY","SZPILKI",
-  "SKÓRA","GARNITUR","MUNDUREK","PERFUMY","MAKIJAŻ","SZMINKA","TATUAŻ","KOLCZYK","DEZODORANT","LUSTRO",
-  "ŁAZIENKA","PRYSZNIC","WANNA","HOTEL","POKÓJ","ŁÓŻKO","PODUSZKA","KOŁDRA","ZASŁONA","CIEMNOŚĆ",
-  "FLIRT","PODRYW","RANDKA","ZALOTY","SPOJRZENIE","SZEPT","PROWOKACJA","ZACZEPKA","KOMPLEMENT","ISKRA",
-  "NAPIĘCIE","CHEMIA","POKUSA","GRZESZEK","ZAKAZ","SEKRET","RYWAL","CRUSH","EX","PLOTKA",
-  "GHOSTING","MATCH","DMY","WIADOMOŚĆ","SCREENSHOT","BLOKADA","ZABAWA","WYZWANIE","ODWAGA","WSTYD",
-  "RUMIENIEC","IMPREZA","MELANŻ","KARAOKE","SHOT","DRINK","KOKTAJL","WÓDKA","WINO","WHISKY",
-  "GIN","RUM","PIWO","KAC","TOALETA","SZATNIA","BROKAT","KANAPA","KATAR","KIBEL"
-];
-        const EMOJIS_RED = ["🐉", "🦁", "🔥", "🌶️", "🦅", "🚀", "⚡"];
-        const EMOJIS_BLUE = ["🦈", "🐺", "❄️", "🌊", "🦋", "🛸", "⭐"];
+        const ADULT = [
+            "PORNO", "SEKS", "NAGOŚĆ", "PODNIECENIE", "ORGAZM", "SPERMA", "WYTRYSK", "SPUST", "PENIS", "KUTAS",
+            "FIUT", "PAŁA", "CIPKA", "PIZDA", "POCHWA", "ŁECHTACZKA", "DUPA", "TYŁEK", "CYCKI", "BIUST",
+            "SUTEK", "KROCZE", "ODDECH", "ŚLINA", "JĘK", "DRESZCZ", "DOTYK", "USTA", "JĘZYK", "SZYJA",
+            "MOKRO", "OSTRO", "NAMIĘTNOŚĆ", "ZALAĆ", "LASKA", "OBCIĄGNĄĆ", "DEEPTHROAT", "MINETA", "RIMMING", "FACIAL",
+            "CREAMPIE", "CUMSHOT", "ANAL", "KOREK", "FISTING", "PALCÓWKA", "DZIURKA", "MUSZELKA", "BDSM", "DOMINACJA",
+            "ULEGŁOŚĆ", "KLAPS", "PEJCZ", "BAT", "DUSIĆ", "PRZYDUSZAĆ", "KNEBEL", "MASKA", "OBROŻA", "SMYCZ",
+            "KRĘPOWANIE", "KAJDANKI", "LATEKS", "DADDY", "MOMMY", "ONLYFANS", "NUDESY", "DICKPIC", "WYCIEK", "SEXTING",
+            "TINDER", "STRINGI", "KORONKA", "BIELIZNA", "WIBRATOR", "DILDO", "ZABAWKA", "LUBRYKANT", "KONDOM", "PREZERWATYWA",
+            "SEXSHOP", "ROMANS", "ZDRADA", "KOCHANEK", "KOCHANKA", "TRÓJKĄT", "ORGIA", "FETYSZ", "KLUB", "AFTER",
+            "RŻNĄĆ", "RUCHAĆ", "PRZELECIEĆ", "BANAN", "OGÓREK", "KIEŁBASA", "PARÓWKA", "MELON", "BRZOSKWINIA", "TRUSKAWKA",
+            "ŚMIETANKA", "LIZAK", "CIASTKO", "PĄCZEK", "SOS", "KREM", "RURKA", "DRĄŻEK", "PILOT", "ŁADOWARKA",
+            "KABEL", "WIBRACJA", "POMPKA", "TŁOK", "DYSZA", "BUTELKA", "OTWIERACZ", "ZAMEK", "KLUCZ", "GUMKA",
+            "TAŚMA", "PASEK", "KNOT", "ŚRUBA", "WKRĘT", "POŃCZOCHY", "STANIK", "DEKOLT", "OBCASY", "SZPILKI",
+            "SKÓRA", "GARNITUR", "MUNDUREK", "PERFUMY", "MAKIJAŻ", "SZMINKA", "TATUAŻ", "KOLCZYK", "DEZODORANT", "LUSTRO",
+            "ŁAZIENKA", "PRYSZNIC", "WANNA", "HOTEL", "POKÓJ", "ŁÓŻKO", "PODUSZKA", "KOŁDRA", "ZASŁONA", "CIEMNOŚĆ",
+            "FLIRT", "PODRYW", "RANDKA", "ZALOTY", "SPOJRZENIE", "SZEPT", "PROWOKACJA", "ZACZEPKA", "KOMPLEMENT", "ISKRA",
+            "NAPIĘCIE", "CHEMIA", "POKUSA", "GRZESZEK", "ZAKAZ", "SEKRET", "RYWAL", "CRUSH", "EX", "PLOTKA",
+            "GHOSTING", "MATCH", "DMY", "WIADOMOŚĆ", "SCREENSHOT", "BLOKADA", "ZABAWA", "WYZWANIE", "ODWAGA", "WSTYD",
+            "RUMIENIEC", "IMPREZA", "MELANŻ", "KARAOKE", "SHOT", "DRINK", "KOKTAJL", "WÓDKA", "WINO", "WHISKY",
+            "GIN", "RUM", "PIWO", "KAC", "TOALETA", "SZATNIA", "BROKAT", "KANAPA", "KATAR", "KIBEL"
+        ];
+        const EMOJIS_RED = ["🐉", "🍆", "🦁", "🔥", "🌶️", "🤵", "⚡"];
+        const EMOJIS_BLUE = ["🦈", "🍑", "🐺", "❄️", "👰", "🦋", "⭐"];
         const EMOJIS_ANIMALS = ["🐉", "🦁", "🦅", "🦈", "🐺", "🦋", "🦄", "🐲", "🦊", "🐼", "🐨", "🦉", "🦚", "🦜", "🐙", "🦑", "🦞", "🦀", "🐢", "🦎", "🐍", "🦂", "🕷️", "🦇", "🐝"];
         const EMOJIS_OBJECTS = ["🔥", "🌶️", "🚀", "⚡", "❄️", "🌊", "⭐", "💎", "🔮", "🎯", "🎪", "🎭", "🎨", "🎸", "🎹", "🏆", "🥇", "👑", "💀", "🤖", "👽", "🛸", "🔱", "⚔️", "🛡️", "🏴‍☠️", "🎃"];
         const EMOJIS_NATURE = ["🌸", "🌺", "🌻", "🌹", "🍀", "🌴", "🌵", "🍄", "🌙", "☀️", "🌈", "💫", "✨"];
@@ -3673,10 +3691,6 @@ const ADULT = [
                 used: 0
             }
         };
-        let mixPool = {
-            standard: 0,
-            adult: 0
-        }; // Ile słów z każdej talii jest w mixie
 
         // ANCHOR: CRYPTO_UTILS
         async function hashPin(pin) {
@@ -3777,6 +3791,10 @@ const ADULT = [
             document.querySelectorAll(`#card${mode.charAt(0).toUpperCase()+mode.slice(1)}Deck .deck-option`).forEach(opt => {
                 opt.classList.add('selected');
             });
+
+            // Odblokuj przycisk START
+            const startBtn = $(`${mode}StartBtn`);
+            if (startBtn) startBtn.disabled = false;
 
             playSound('click');
         }
@@ -4022,6 +4040,9 @@ const ADULT = [
             picker.querySelectorAll('.avatar-option').forEach(o => o.classList.remove('selected'));
             div.classList.add('selected');
             team[teamColor].emoji = emoji;
+
+            // Zapisz ustawienia drużyn
+            if (gameMode) saveTeamSettings(gameMode);
         }
 
         function openEmojiPicker(mode, teamColor, picker) {
@@ -4098,6 +4119,17 @@ const ADULT = [
             hideO('homeScreen');
             // Zamknij karty przy wyjściu
             document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('open'));
+
+            // Wczytaj zapisane ustawienia drużyn
+            loadTeamSettings(mode);
+
+            // Wczytaj zapisany styl kart
+            const savedStyle = localStorage.getItem('tajniacy_style') || 'white';
+            selectStyle('global', savedStyle);
+
+            // Zaktualizuj liczniki talii (pokazuje aktualne wartości 75/75)
+            updateWordCounters();
+
             showO(mode === 'classic' ? 'classicSettings' : 'crazySettings');
         }
 
@@ -4158,9 +4190,10 @@ const ADULT = [
         }
 
         function backToHome() {
+            // NIE resetujemy usedWords/deckStates - karty pozostają użyte!
             hideO('classicSettings');
             hideO('crazySettings');
-            showO('homeScreen')
+            showO('homeScreen');
         }
 
         function startClassic() {
@@ -4171,33 +4204,28 @@ const ADULT = [
 
             const deckValue = $('classicDeck').value;
 
-            // RESET stanów talii na start nowej gry
-            usedWords = [];
-            deckStates.standard.available = WORDS.length;
-            deckStates.standard.used = 0;
-            deckStates.adult.available = ADULT.length;
-            deckStates.adult.used = 0;
+            // NIE resetujemy usedWords ani deckStates - kontynuujemy od miejsca gdzie skończyliśmy!
+            // Talie działają jak karty - zużyte pozostają zużyte
 
             if (deckValue === 'mixed') {
-                // Mix = proporcje 13 adult + 12 standard przy KAŻDEJ rundzie
-                // NIE tworzymy zamkniętej puli, tylko ustawiamy tryb mixa
-                wordList = [...ADULT, ...WORDS]; // Cała dostępna lista
-                availableWords = [...wordList];
+                wordList = [...ADULT, ...WORDS];
+                // Dla mixa: weź niewykorzystane z OBUDWU talii
+                const unusedAdult = ADULT.filter(w => !usedWords.includes(w));
+                const unusedStandard = WORDS.filter(w => !usedWords.includes(w));
+                availableWords = [...unusedAdult, ...unusedStandard];
                 isMixedDeck = true;
-                mixPool.adult = 0;
-                mixPool.standard = 0;
             } else if (deckValue === 'adult') {
                 wordList = ADULT;
-                availableWords = [...ADULT];
+                // Dla adult: tylko niewykorzystane adult
+                availableWords = ADULT.filter(w => !usedWords.includes(w));
+                if (availableWords.length === 0) availableWords = [...ADULT];
                 isMixedDeck = false;
-                mixPool.adult = 0;
-                mixPool.standard = 0;
             } else {
                 wordList = WORDS;
-                availableWords = [...WORDS];
+                // Dla standard: tylko niewykorzystane standard
+                availableWords = WORDS.filter(w => !usedWords.includes(w));
+                if (availableWords.length === 0) availableWords = [...WORDS];
                 isMixedDeck = false;
-                mixPool.adult = 0;
-                mixPool.standard = 0;
             }
 
             cfg.assassins = 1;
@@ -4228,33 +4256,24 @@ const ADULT = [
 
             const deckValue = $('crazyDeck').value;
 
-            // RESET stanów talii na start nowej gry
-            usedWords = [];
-            deckStates.standard.available = WORDS.length;
-            deckStates.standard.used = 0;
-            deckStates.adult.available = ADULT.length;
-            deckStates.adult.used = 0;
+            // NIE resetujemy usedWords ani deckStates - kontynuujemy od miejsca gdzie skończyliśmy!
 
             if (deckValue === 'mixed') {
-                // Mix = proporcje 13 adult + 12 standard przy KAŻDEJ rundzie
-                // NIE tworzymy zamkniętej puli, tylko ustawiamy tryb mixa
-                wordList = [...ADULT, ...WORDS]; // Cała dostępna lista
-                availableWords = [...wordList];
+                wordList = [...ADULT, ...WORDS];
+                const unusedAdult = ADULT.filter(w => !usedWords.includes(w));
+                const unusedStandard = WORDS.filter(w => !usedWords.includes(w));
+                availableWords = [...unusedAdult, ...unusedStandard];
                 isMixedDeck = true;
-                mixPool.adult = 0;
-                mixPool.standard = 0;
             } else if (deckValue === 'adult') {
                 wordList = ADULT;
-                availableWords = [...ADULT];
+                availableWords = ADULT.filter(w => !usedWords.includes(w));
+                if (availableWords.length === 0) availableWords = [...ADULT];
                 isMixedDeck = false;
-                mixPool.adult = 0;
-                mixPool.standard = 0;
             } else {
                 wordList = WORDS;
-                availableWords = [...WORDS];
+                availableWords = WORDS.filter(w => !usedWords.includes(w));
+                if (availableWords.length === 0) availableWords = [...WORDS];
                 isMixedDeck = false;
-                mixPool.adult = 0;
-                mixPool.standard = 0;
             }
 
             cfg.deckStyle = $('globalStyle').value;
@@ -4295,6 +4314,11 @@ const ADULT = [
             document.querySelectorAll(`#card${mode.charAt(0).toUpperCase()+mode.slice(1)}Deck .deck-option`).forEach(opt => {
                 opt.classList.toggle('selected', opt.dataset.deck === deck);
             });
+
+            // Odblokuj przycisk START
+            const startBtn = $(`${mode}StartBtn`);
+            if (startBtn) startBtn.disabled = false;
+
             // Aktualizuj liczniki po zmianie talii
             updateWordCounters();
         }
@@ -4351,11 +4375,33 @@ const ADULT = [
                 opt.classList.toggle('selected', opt.dataset.style === style);
             });
 
+            // Zapisz wybrany styl
+            localStorage.setItem('tajniacy_style', style);
+
             // Live update - jeśli gra aktywna, zmień styl planszy
             const board = document.getElementById('board');
             if (board && document.body.classList.contains('game-active')) {
                 board.className = 'grid-container deck-' + style;
             }
+        }
+
+        function selectRevealMode(mode) {
+            // Ustaw globalny tryb odkrywania kart
+            cfg.cardRevealHold = (mode === 'hold');
+            localStorage.setItem('tajniacy_cardRevealHold', cfg.cardRevealHold);
+
+            const summary = document.getElementById('globalRevealSummary');
+            const names = {
+                'click': 'Kliknięcie',
+                'hold': 'Przytrzymanie'
+            };
+            if (summary) summary.textContent = names[mode] || mode;
+
+            document.querySelectorAll('#cardGlobalReveal .deck-option').forEach(opt => {
+                opt.classList.toggle('selected', opt.dataset.reveal === mode);
+            });
+
+            playSound('click');
         }
 
         function updateGameSummary(mode) {
@@ -4501,30 +4547,8 @@ const ADULT = [
             // SYSTEM NIEPOWTARZAJĄCYCH SIĘ SŁÓW
             const wordsNeeded = cfg.width * cfg.height;
 
-            // Jeśli brak dostępnych słów lub za mało, zresetuj pulę
-            if (availableWords.length < wordsNeeded) {
-                availableWords = [...wordList];
-                usedWords = [];
-
-                // Aktualizuj deckStates przy auto-resecie
-                // Sprawdź jaka talia jest aktywna i zresetuj jej stan
-                if (wordList === ADULT) {
-                    deckStates.adult.available = ADULT.length;
-                    deckStates.adult.used = 0;
-                } else if (wordList === WORDS) {
-                    deckStates.standard.available = WORDS.length;
-                    deckStates.standard.used = 0;
-                } else {
-                    // Mixed deck - zresetuj obie proporcjonalnie
-                    // Policz ile adult i ile standard jest w wordList
-                    const adultInMix = wordList.filter(w => ADULT.includes(w)).length;
-                    const standardInMix = wordList.filter(w => WORDS.includes(w)).length;
-                    deckStates.adult.available = adultInMix;
-                    deckStates.adult.used = ADULT.length - adultInMix;
-                    deckStates.standard.available = standardInMix;
-                    deckStates.standard.used = WORDS.length - standardInMix;
-                }
-            }
+            // NIE ma auto-resetu! Gdy brakuje kart - używamy powtórek
+            // Reset TYLKO przez przycisk "Reset puli"
 
             // Losuj słowa - przy mixie bierz proporcje, przy czystej talii bierz wszystkie
             let words;
@@ -4896,24 +4920,17 @@ const ADULT = [
             cfg.cardRevealHold = isHold;
             localStorage.setItem('tajniacy_cardRevealHold', isHold);
 
-            // Aktualizuj wizualne podświetlenie emoji
-            const toggle = $('globalCardRevealToggle').closest('.keymode-toggle');
-            if (toggle) {
-                toggle.querySelector('.keymode-label.left').classList.toggle('active', !isHold);
-                toggle.querySelector('.keymode-label.right').classList.toggle('active', isHold);
-            }
+            // Aktualizuj wybraną opcję w accordion
+            const mode = isHold ? 'hold' : 'click';
+            selectRevealMode(mode);
         }
 
         function showGlobalSettings() {
             $('globalSoundToggle').checked = cfg.sound;
-            $('globalCardRevealToggle').checked = cfg.cardRevealHold;
 
-            // Aktualizuj wizualne podświetlenie emoji dla card reveal
-            const toggle = $('globalCardRevealToggle').closest('.keymode-toggle');
-            if (toggle) {
-                toggle.querySelector('.keymode-label.left').classList.toggle('active', !cfg.cardRevealHold);
-                toggle.querySelector('.keymode-label.right').classList.toggle('active', cfg.cardRevealHold);
-            }
+            // Ustaw wybraną opcję odkrywania kart
+            const mode = cfg.cardRevealHold ? 'hold' : 'click';
+            selectRevealMode(mode);
 
             showO('globalSettingsOverlay');
         }
@@ -5087,6 +5104,8 @@ const ADULT = [
             team.red.score = team.blue.score = 0;
             gameOver = false;
             isSpymaster = false;
+
+            // NIE resetujemy usedWords/deckStates - karty pozostają użyte!
 
             // Zatrzymaj confetti
             stopConfetti();
@@ -6295,6 +6314,48 @@ const ADULT = [
         // Rozpocznij nasłuchiwanie gamepada
         requestAnimationFrame(pollGamepad);
 
+        // ANCHOR: LOCALSTORAGE_TEAM_SETTINGS
+        function saveTeamSettings(mode) {
+            const settings = {
+                redName: $(`${mode}RedName`).value,
+                blueName: $(`${mode}BlueName`).value,
+                redEmoji: team.red.emoji,
+                blueEmoji: team.blue.emoji
+            };
+            localStorage.setItem(`tajniacy_${mode}_teams`, JSON.stringify(settings));
+        }
+
+        function loadTeamSettings(mode) {
+            const saved = localStorage.getItem(`tajniacy_${mode}_teams`);
+            if (saved) {
+                try {
+                    const settings = JSON.parse(saved);
+                    $(`${mode}RedName`).value = settings.redName || 'Czerwoni';
+                    $(`${mode}BlueName`).value = settings.blueName || 'Niebiescy';
+                    team.red.emoji = settings.redEmoji || '🔴';
+                    team.blue.emoji = settings.blueEmoji || '🔵';
+
+                    // Zaktualizuj zaznaczenie w avatar pickerach
+                    const redPicker = $(`${mode}RedPicker`);
+                    const bluePicker = $(`${mode}BluePicker`);
+
+                    if (redPicker) {
+                        redPicker.querySelectorAll('.avatar-option').forEach(opt => {
+                            opt.classList.toggle('selected', opt.dataset.emoji === team.red.emoji);
+                        });
+                    }
+
+                    if (bluePicker) {
+                        bluePicker.querySelectorAll('.avatar-option').forEach(opt => {
+                            opt.classList.toggle('selected', opt.dataset.emoji === team.blue.emoji);
+                        });
+                    }
+                } catch (e) {
+                    console.log('Błąd wczytywania ustawień drużyn:', e);
+                }
+            }
+        }
+
         // ANCHOR: FIREBASE_CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyBYFHH9yP_0N0X14_2ooRyhZeXGhR36wIs",
@@ -6315,6 +6376,24 @@ const ADULT = [
         } catch (e) {
             console.log('Firebase niedostępny - tryb offline');
         }
+
+        // Dodaj listenery do inputów nazw drużyn
+        ['classic', 'crazy'].forEach(mode => {
+            const redInput = $(`${mode}RedName`);
+            const blueInput = $(`${mode}BlueName`);
+
+            if (redInput) {
+                redInput.addEventListener('input', () => {
+                    if (gameMode === mode) saveTeamSettings(mode);
+                });
+            }
+
+            if (blueInput) {
+                blueInput.addEventListener('input', () => {
+                    if (gameMode === mode) saveTeamSettings(mode);
+                });
+            }
+        });
 
     </script>
 </body>
