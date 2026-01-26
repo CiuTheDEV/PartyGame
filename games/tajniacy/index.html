@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tajniacy</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
@@ -956,6 +957,7 @@
             gap: clamp(10px, 2vmin, 18px)
         }
 
+        /* ANCHOR: SETTING_CARD (dla ustawień trybów - fancy) */
         .setting-card {
             background: linear-gradient(135deg, #1f1f1f, #121212);
             border: 2px solid #333;
@@ -1021,6 +1023,64 @@
         .setting-body-inner {
             padding: clamp(12px, 2vmin, 16px);
             background: rgba(0, 0, 0, 0.12)
+        }
+
+        /* ANCHOR: GLOBAL_SETTING_CARD (dla ustawień głównych - spójny z Dźwięki/Wersja) */
+        .global-setting-card {
+            background: linear-gradient(135deg, #2e2e2e, #262626);
+            border: 1px solid #3a3a3a;
+            border-radius: clamp(6px, 1vmin, 10px);
+            overflow: hidden;
+            transition: all .2s;
+            margin: 6px 0;
+        }
+
+        .global-setting-card.open {
+            background: linear-gradient(135deg, #323232, #2a2a2a);
+            border-color: #4a4a4a;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, .25);
+        }
+
+        .global-setting-card .setting-head {
+            padding: clamp(8px, 1.2vmin, 12px);
+            gap: 8px;
+        }
+
+        .global-setting-card .setting-title {
+            font-size: clamp(0.85rem, 2vmin, 1.2rem);
+            color: #fff;
+            font-weight: 400;
+        }
+
+        .global-setting-card .setting-sub {
+            font-size: clamp(0.8rem, 1.8vmin, 1rem);
+            padding-right: 24px;
+        }
+
+        .global-setting-card .setting-arrow {
+            right: clamp(10px, 1.8vmin, 14px);
+            font-size: 0.85rem;
+        }
+
+        .global-setting-card.open .setting-arrow {
+            transform: rotate(180deg)
+        }
+
+        .global-setting-card .setting-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height .35s cubic-bezier(0.4, 0, 0.2, 1);
+            border-top: 1px solid transparent;
+        }
+
+        .global-setting-card.open .setting-body {
+            max-height: 1200px;
+            border-top-color: #1a1a1a;
+        }
+
+        .global-setting-card .setting-body-inner {
+            padding: clamp(10px, 1.8vmin, 14px);
+            background: #1e1e1e;
         }
 
         .setting-actions {
@@ -1225,7 +1285,7 @@
         }
 
         .rounds-custom input {
-            width: clamp(80px, 16vmin, 120px);
+            width: clamp(60px, 12vmin, 80px);
             min-width: clamp(40px, 8vmin, 60px);
             height: clamp(40px, 8vmin, 60px);
             padding: 10px;
@@ -1626,6 +1686,12 @@
             gap: 8px;
             box-sizing: border-box;
             max-width: 100%
+        }
+
+        /* ANCHOR: GLOBAL_SETTING_ROW (dla Dźwięki w globalnych ustawieniach) */
+        #globalSettingsOverlay .setting-row {
+            background: linear-gradient(135deg, #2e2e2e, #262626);
+            border: 1px solid #3a3a3a;
         }
 
         .setting-row label {
@@ -2241,6 +2307,8 @@
             color: #fff;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
             overflow: hidden;
+            position: relative;
+            transition: opacity .3s, filter .3s;
         }
 
         .captain-card.is-red {
@@ -2258,6 +2326,24 @@
         .captain-card.is-assassin {
             background: #1a1a1a;
             color: #e74c3c
+        }
+
+        /* Odkryte karty w captain board - przyciemnione + checkmark */
+        .captain-card.revealed {
+            opacity: 0.4;
+            filter: grayscale(50%);
+        }
+
+        .captain-card.revealed::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(1.5rem, 6vmin, 3rem);
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            font-weight: 900;
         }
 
         .captain-legend {
@@ -3030,7 +3116,7 @@
 
     <div class="overlay" id="globalSettingsOverlay">
         <div class="settings-container settings-container--sm scroll-surface">
-            <h2 class="settings-title">⚙️ Ustawienia</h2>
+            <h2 class="settings-title">Ustawienia</h2>
             <div class="game-settings game-settings--flush">
                 <div class="setting-row setting-row--compact">
                     <label>Dźwięki:</label>
@@ -3041,7 +3127,7 @@
                 </div>
 
                 <!-- ANCHOR: CARD_REVEAL_MODE -->
-                <div class="setting-card" id="cardGlobalReveal">
+                <div class="global-setting-card" id="cardGlobalReveal">
                     <div class="setting-head" onclick="toggleSettingCard('cardGlobalReveal')">
                         <div class="setting-title">Odkrywanie kart</div>
                         <div class="setting-sub" id="globalRevealSummary">Kliknięcie</div>
@@ -3063,9 +3149,32 @@
                     </div>
                 </div>
 
+                <!-- ANCHOR: CONFETTI_STYLE -->
+                <div class="global-setting-card" id="cardGlobalConfetti">
+                    <div class="setting-head" onclick="toggleSettingCard('cardGlobalConfetti')">
+                        <div class="setting-title">Styl confetti</div>
+                        <div class="setting-sub" id="globalConfettiSummary">Canvas (nowy)</div>
+                        <div class="setting-arrow">▼</div>
+                    </div>
+                    <div class="setting-body">
+                        <div class="setting-body-inner">
+                            <div class="deck-picker-content">
+                                <div class="deck-option selected" data-confetti="canvas" onclick="selectConfettiStyle('canvas')">
+                                    <span class="deck-icon">🎆</span>
+                                    <span class="deck-name">Canvas (nowy)</span>
+                                </div>
+                                <div class="deck-option" data-confetti="anime" onclick="selectConfettiStyle('anime')">
+                                    <span class="deck-icon">✨</span>
+                                    <span class="deck-name">Anime.js (klasyczny)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="settings-accordion">
                     <!-- ANCHOR: STYLE_CARD -->
-                    <div class="setting-card" id="cardGlobalStyle">
+                    <div class="global-setting-card" id="cardGlobalStyle">
                         <div class="setting-head" onclick="toggleSettingCard('cardGlobalStyle')">
                             <div class="setting-title">Styl kart</div>
                             <div class="setting-sub" id="globalStyleSummary">Białe</div>
@@ -3582,53 +3691,10 @@
 
     <script>
         // ANCHOR: CONSTANTS
-        const WORDS = [
-            "FIGLE", "AMORY", "PSOTY", "EKSTAZA", "SZAŁ", "HURAGAN", "TSUNAMI", "GEJZER", "WULKAN", "ERUPCJA",
-            "MAGIA", "CZARY", "TRIK", "ILUZJA", "ZMYŁKA", "PUŁAPKA", "HACZYK", "ZAGADKA", "SZYFR", "KOD",
-            "ENIGMA", "SEKRETNOŚĆ", "RIPOSTA", "IRONIA", "SARKAZM", "KABARET", "PARODIA", "MEM", "ŻART", "BEKA",
-            "PRZYPAŁ", "WTOPA", "FOCH", "DRAMA", "OBRAZA", "REAKCJA", "EMOJI", "HASHTAG", "FOLLOW", "TREND",
-            "VIRAL", "POST", "RELACJA", "FILTROWANIE", "POWIADOMIENIE", "ALGORYTM", "KONTENT", "HEJT", "FAME", "GLAMOUR",
-            "BŁYSK", "GŁOŚNIK", "MIKROFON", "PLAYLISTA", "TRĄBKA", "FLET", "CYMBAL", "GITARA", "AKROBACJA", "SALTO",
-            "SKOK", "MINA", "GRYMAS", "CHICHOT", "UŚMIECH", "ZIEWANIE", "KICHANIE", "SZAFA", "PÓŁKA", "DYWAN",
-            "FOTEL", "LAMPA", "OKNO", "DRZWI", "SCHODY", "KALORYFER", "ODKURZACZ", "MIOTŁA", "SZCZOTKA", "MOP",
-            "WIADRO", "FOLIA", "KARTON", "GAZETA", "KLEJ", "TAKSI", "TRAMWAJ", "METRO", "RAKIETA", "HELIKOPTER",
-            "BALON", "PONTON", "ŁÓDŹ", "KAJAK", "NAMIOT", "HAMAK", "LATARKA", "KOMPAS", "MAPA", "LORNETKA",
-            "TELESKOP", "MIKROSKOP", "ROBOT", "DRON", "MAGNES", "SPRĘŻYNA", "WAŁEK", "LEWAREK", "KORKOCIĄG", "ZAWÓR",
-            "KRAN", "LEJEK", "TUBA", "ZASUWA", "KŁÓDKA", "SŁOIK", "POKRYWKA", "SZCZYPCE", "TŁUCZEK", "TARKA",
-            "GARNEK", "PATELNIA", "WIDELEC", "ŁYŻKA", "TALERZ", "KUBEK", "SŁOMKA", "LEMONIADA", "COCA", "WAFEL",
-            "CZEKOLADA", "KISIEL", "BUDYŃ", "GALARETKA", "MIÓD", "DŻEM", "CHILI", "PIEPRZ", "CUKIER", "ANANAS",
-            "MANGO", "KIWI", "GRANAT", "MALINA", "JAGODA", "BORÓWKA", "CYTRYNA", "POMARAŃCZA", "AWOKADO", "BROKUŁ",
-            "BURAK", "KUKURYDZA", "CZOSNEK", "IMBIR", "RYŻ", "MAKARON", "NALEŚNIK", "PIZZA", "KARALUCH", "BORSUK",
-            "ALPAKA", "PINGWIN", "JEDNOROŻEC", "SMOK", "KOSMITA", "UFOLUDEK", "GALAKTYKA", "PLANETA", "KOMETA", "GWIAZDOZBIÓR",
-            "ZARZEWIE", "ZAPŁON", "PSIKUS", "KAPIBARA", "LENIWIEC", "WIEWIÓRKA", "JEŻ", "ŻABA", "BÓBR", "PAPUGA",
-            "STRUŚ", "PANDA", "KOALA", "KOMAR", "MUCHA", "BIEDRONKA", "PSZCZOŁA", "MRÓWKA", "ŚLIMAK", "CZAPKA",
-            "KURTKA", "RĘKAWICZKI", "SZALIK", "BIBLIOTEKA", "BAZAR", "TARG", "POCZTA", "PACZKA", "DRUKARKA", "SKANER"
-        ];
-
-        const ADULT = [
-            "PORNO", "SEKS", "NAGOŚĆ", "PODNIECENIE", "ORGAZM", "SPERMA", "WYTRYSK", "SPUST", "PENIS", "KUTAS",
-            "FIUT", "PAŁA", "CIPKA", "PIZDA", "POCHWA", "ŁECHTACZKA", "DUPA", "TYŁEK", "CYCKI", "BIUST",
-            "SUTEK", "KROCZE", "ODDECH", "ŚLINA", "JĘK", "DRESZCZ", "DOTYK", "USTA", "JĘZYK", "SZYJA",
-            "MOKRO", "OSTRO", "NAMIĘTNOŚĆ", "ZALAĆ", "LASKA", "OBCIĄGNĄĆ", "DEEPTHROAT", "MINETA", "RIMMING", "FACIAL",
-            "CREAMPIE", "CUMSHOT", "ANAL", "KOREK", "FISTING", "PALCÓWKA", "DZIURKA", "MUSZELKA", "BDSM", "DOMINACJA",
-            "ULEGŁOŚĆ", "KLAPS", "PEJCZ", "BAT", "DUSIĆ", "PRZYDUSZAĆ", "KNEBEL", "MASKA", "OBROŻA", "SMYCZ",
-            "KRĘPOWANIE", "KAJDANKI", "LATEKS", "DADDY", "MOMMY", "ONLYFANS", "NUDESY", "DICKPIC", "WYCIEK", "SEXTING",
-            "TINDER", "STRINGI", "KORONKA", "BIELIZNA", "WIBRATOR", "DILDO", "ZABAWKA", "LUBRYKANT", "KONDOM", "PREZERWATYWA",
-            "SEXSHOP", "ROMANS", "ZDRADA", "KOCHANEK", "KOCHANKA", "TRÓJKĄT", "ORGIA", "FETYSZ", "KLUB", "AFTER",
-            "RŻNĄĆ", "RUCHAĆ", "PRZELECIEĆ", "BANAN", "OGÓREK", "KIEŁBASA", "PARÓWKA", "MELON", "BRZOSKWINIA", "TRUSKAWKA",
-            "ŚMIETANKA", "LIZAK", "CIASTKO", "PĄCZEK", "SOS", "KREM", "RURKA", "DRĄŻEK", "PILOT", "ŁADOWARKA",
-            "KABEL", "WIBRACJA", "POMPKA", "TŁOK", "DYSZA", "BUTELKA", "OTWIERACZ", "ZAMEK", "KLUCZ", "GUMKA",
-            "TAŚMA", "PASEK", "KNOT", "ŚRUBA", "WKRĘT", "POŃCZOCHY", "STANIK", "DEKOLT", "OBCASY", "SZPILKI",
-            "SKÓRA", "GARNITUR", "MUNDUREK", "PERFUMY", "MAKIJAŻ", "SZMINKA", "TATUAŻ", "KOLCZYK", "DEZODORANT", "LUSTRO",
-            "ŁAZIENKA", "PRYSZNIC", "WANNA", "HOTEL", "POKÓJ", "ŁÓŻKO", "PODUSZKA", "KOŁDRA", "ZASŁONA", "CIEMNOŚĆ",
-            "FLIRT", "PODRYW", "RANDKA", "ZALOTY", "SPOJRZENIE", "SZEPT", "PROWOKACJA", "ZACZEPKA", "KOMPLEMENT", "ISKRA",
-            "NAPIĘCIE", "CHEMIA", "POKUSA", "GRZESZEK", "ZAKAZ", "SEKRET", "RYWAL", "CRUSH", "EX", "PLOTKA",
-            "GHOSTING", "MATCH", "DMY", "WIADOMOŚĆ", "SCREENSHOT", "BLOKADA", "ZABAWA", "WYZWANIE", "ODWAGA", "WSTYD",
-            "RUMIENIEC", "IMPREZA", "MELANŻ", "KARAOKE", "SHOT", "DRINK", "KOKTAJL", "WÓDKA", "WINO", "WHISKY",
-            "GIN", "RUM", "PIWO", "KAC", "TOALETA", "SZATNIA", "BROKAT", "KANAPA", "KATAR", "KIBEL"
-        ];
-        const EMOJIS_RED = ["🐉", "🍆", "🦁", "🔥", "🌶️", "🤵", "⚡"];
-        const EMOJIS_BLUE = ["🦈", "🍑", "🐺", "❄️", "👰", "🦋", "⭐"];
+        const WORDS = ["stand 1", "stand 2", "stand 3", "stand 4", "stand 5", "stand 6", "stand 7", "stand 8", "stand 9", "stand 10", "stand 11", "stand 12", "stand 13", "stand 14", "stand 15", "stand 16", "stand 17", "stand 18", "stand 19", "stand 20", "stand 21", "stand 22", "stand 23", "stand 24", "stand 25", "stand 26", "stand 27", "stand 28", "stand 29", "stand 30", "stand 31", "stand 32", "stand 33", "stand 34", "stand 35", "stand 36", "stand 37", "stand 38", "stand 39", "stand 40", "stand 41", "stand 42", "stand 43", "stand 44", "stand 45", "stand 46", "stand 47", "stand 48", "stand 49", "stand 50", "stand 51", "stand 52", "stand 53", "stand 54", "stand 55", "stand 56", "stand 57", "stand 58", "stand 59", "stand 60", "stand 61", "stand 62", "stand 63", "stand 64", "stand 65", "stand 66", "stand 67", "stand 68", "stand 69", "stand 70", "stand 71", "stand 72", "stand 73", "stand 74", "stand 75"];
+        const ADULT = ["cenz 1", "cenz 2", "cenz 3", "cenz 4", "cenz 5", "cenz 6", "cenz 7", "cenz 8", "cenz 9", "cenz 10", "cenz 11", "cenz 12", "cenz 13", "cenz 14", "cenz 15", "cenz 16", "cenz 17", "cenz 18", "cenz 19", "cenz 20", "cenz 21", "cenz 22", "cenz 23", "cenz 24", "cenz 25", "cenz 26", "cenz 27", "cenz 28", "cenz 29", "cenz 30", "cenz 31", "cenz 32", "cenz 33", "cenz 34", "cenz 35", "cenz 36", "cenz 37", "cenz 38", "cenz 39", "cenz 40", "cenz 41", "cenz 42", "cenz 43", "cenz 44", "cenz 45", "cenz 46", "cenz 47", "cenz 48", "cenz 49", "cenz 50", "cenz 51", "cenz 52", "cenz 53", "cenz 54", "cenz 55", "cenz 56", "cenz 57", "cenz 58", "cenz 59", "cenz 60", "cenz 61", "cenz 62", "cenz 63", "cenz 64", "cenz 65", "cenz 66", "cenz 67", "cenz 68", "cenz 69", "cenz 70", "cenz 71", "cenz 72", "cenz 73", "cenz 74", "cenz 75"];
+        const EMOJIS_RED = ["🐉", "🦁", "🔥", "🌶️", "🦅", "🚀", "⚡"];
+        const EMOJIS_BLUE = ["🦈", "🐺", "❄️", "🌊", "🦋", "🛸", "⭐"];
         const EMOJIS_ANIMALS = ["🐉", "🦁", "🦅", "🦈", "🐺", "🦋", "🦄", "🐲", "🦊", "🐼", "🐨", "🦉", "🦚", "🦜", "🐙", "🦑", "🦞", "🦀", "🐢", "🦎", "🐍", "🦂", "🕷️", "🦇", "🐝"];
         const EMOJIS_OBJECTS = ["🔥", "🌶️", "🚀", "⚡", "❄️", "🌊", "⭐", "💎", "🔮", "🎯", "🎪", "🎭", "🎨", "🎸", "🎹", "🏆", "🥇", "👑", "💀", "🤖", "👽", "🛸", "🔱", "⚔️", "🛡️", "🏴‍☠️", "🎃"];
         const EMOJIS_NATURE = ["🌸", "🌺", "🌻", "🌹", "🍀", "🌴", "🌵", "🍄", "🌙", "☀️", "🌈", "💫", "✨"];
@@ -3669,7 +3735,8 @@
             height: 5,
             deckStyle: 'white',
             keyMode: 'preview',
-            cardRevealHold: false
+            cardRevealHold: false,
+            confettiStyle: 'canvas'
         };
         let remaining = {
             red: 0,
@@ -4404,6 +4471,25 @@
             playSound('click');
         }
 
+        function selectConfettiStyle(style) {
+            // Ustaw styl confetti
+            cfg.confettiStyle = style;
+            localStorage.setItem('tajniacy_confettiStyle', style);
+
+            const summary = document.getElementById('globalConfettiSummary');
+            const names = {
+                'canvas': 'Canvas (nowy)',
+                'anime': 'Anime.js (klasyczny)'
+            };
+            if (summary) summary.textContent = names[style] || style;
+
+            document.querySelectorAll('#cardGlobalConfetti .deck-option').forEach(opt => {
+                opt.classList.toggle('selected', opt.dataset.confetti === style);
+            });
+
+            playSound('click');
+        }
+
         function updateGameSummary(mode) {
             const rounds = document.getElementById(`${mode}WinTarget`).value;
             const keyMode = document.getElementById(`${mode}KeyMode`).value;
@@ -4636,6 +4722,23 @@
                     card.classList.add('revealed');
                     playSound('click');
 
+                    // Zapisz odkrytą kartę do Firebase (live sync z kapitanem)
+                    if (db) {
+                        const sessionId = localStorage.getItem('tajniacy_session_id');
+                        if (sessionId) {
+                            const revealedCards = Array.from(document.querySelectorAll('.card.revealed')).map(c => parseInt(c.dataset.index));
+                            db.ref('games/' + sessionId + '/revealedCards').set(revealedCards).catch(e => console.log('Firebase sync error:', e));
+
+                            // Zapisz aktualny stan gry
+                            db.ref('games/' + sessionId + '/gameState').set({
+                                redRemaining: remaining.red,
+                                blueRemaining: remaining.blue,
+                                redScore: team.red.score,
+                                blueScore: team.blue.score
+                            }).catch(e => console.log('Firebase sync error:', e));
+                        }
+                    }
+
                     if (roles[i] === 'assassin') {
                         // Animacja zabójcy - shake + flash
                         animateAssassinReveal(card);
@@ -4752,7 +4855,12 @@
 
                 if (team[winner].score >= cfg.winTarget) {
                     // Wygrana meczu
-                    showConfetti(winner === 'red' ? '#e74c3c' : '#3498db');
+                    const confettiColor = winner === 'red' ? '#e74c3c' : '#3498db';
+                    if (cfg.confettiStyle === 'canvas') {
+                        showConfettiCanvas(confettiColor);
+                    } else {
+                        showConfetti(confettiColor);
+                    }
                     resultEl.textContent = `${team[winner].emoji} ${team[winner].name} WYGRYWAJĄ MECZ!`;
                     resultEl.classList.add('match-won');
                     $('nextRoundBtn').style.display = 'none';
@@ -4843,6 +4951,10 @@
                     await db.ref('games/' + sessionId).set({
                         pinHash: pinHash,
                         board: currentBoardData,
+                        teamNames: {
+                            red: team.red.name,
+                            blue: team.blue.name
+                        },
                         createdAt: Date.now()
                     });
 
@@ -4931,6 +5043,9 @@
             // Ustaw wybraną opcję odkrywania kart
             const mode = cfg.cardRevealHold ? 'hold' : 'click';
             selectRevealMode(mode);
+
+            // Ustaw wybraną opcję confetti
+            selectConfettiStyle(cfg.confettiStyle);
 
             showO('globalSettingsOverlay');
         }
@@ -5035,11 +5150,11 @@
             const starterEl = $('captainStarter');
             board.innerHTML = '';
 
-            // Pokaż kto zaczyna
+            // Pokaż kto zaczyna + nazwy drużyn z gry
             if (boardData.starter) {
                 const isRed = boardData.starter === 'red';
                 const color = isRed ? '#e74c3c' : '#3498db';
-                const teamName = isRed ? 'Czerwoni' : 'Niebiescy';
+                const teamName = isRed ? (team.red.name || 'Czerwoni') : (team.blue.name || 'Niebiescy');
                 const count = isRed ? boardData.redCount : boardData.blueCount;
                 const otherCount = isRed ? boardData.blueCount : boardData.redCount;
 
@@ -5061,16 +5176,78 @@
             boardData.words.forEach((word, i) => {
                 const card = document.createElement('div');
                 card.className = `captain-card is-${boardData.roles[i]}`;
+                card.dataset.index = i;
                 card.textContent = word;
                 board.appendChild(card);
             });
+
+            // Nasłuchuj na zmiany odkrytych kart (live sync z grą)
+            if (db) {
+                const sessionId = localStorage.getItem('tajniacy_session_id');
+                if (sessionId) {
+                    // Listener na odkryte karty
+                    db.ref('games/' + sessionId + '/revealedCards').on('value', (snapshot) => {
+                        const revealedIndexes = snapshot.val() || [];
+                        document.querySelectorAll('.captain-card').forEach((card, idx) => {
+                            if (revealedIndexes.includes(idx)) {
+                                card.classList.add('revealed');
+                            } else {
+                                card.classList.remove('revealed');
+                            }
+                        });
+                    });
+
+                    // Listener na stan gry (liczniki)
+                    db.ref('games/' + sessionId + '/gameState').on('value', (snapshot) => {
+                        const state = snapshot.val();
+                        if (state) {
+                            updateCaptainLegend(state);
+                        }
+                    });
+                }
+            }
         }
+
+        // Aktualizuj legendę z licznikami live
+        function updateCaptainLegend(state) {
+            const legend = document.querySelector('.captain-legend');
+            if (!legend || !state) return;
+
+            legend.innerHTML = `
+        <span class="legend-item">
+            <span class="legend-color red"></span>
+            ${team.red.name || 'Czerwoni'} (${state.redRemaining}/${state.redRemaining + (team.red.score || 0)})
+        </span>
+        <span class="legend-item">
+            <span class="legend-color blue"></span>
+            ${team.blue.name || 'Niebiescy'} (${state.blueRemaining}/${state.blueRemaining + (team.blue.score || 0)})
+        </span>
+        <span class="legend-item">
+            <span class="legend-color neutral"></span>
+            Neutralni
+        </span>
+        <span class="legend-item">
+            <span class="legend-color assassin"></span>
+            Zabójca
+        </span>
+    `;
+        }
+
 
         function confirmCloseCaptainBoard() {
             showO('closeCaptainConfirm');
         }
 
         function closeCaptainBoardAndReturn() {
+            // Wyłącz Firebase listenery
+            if (db) {
+                const sessionId = localStorage.getItem('tajniacy_session_id');
+                if (sessionId) {
+                    db.ref('games/' + sessionId + '/revealedCards').off();
+                    db.ref('games/' + sessionId + '/gameState').off();
+                }
+            }
+
             // Ukryj overlaye i zresetuj opacity
             $('closeCaptainConfirm').style.display = 'none';
             $('closeCaptainConfirm').style.opacity = '1';
@@ -5119,6 +5296,11 @@
                 confettiInterval = null;
             }
             document.querySelectorAll('.confetti').forEach(c => c.remove());
+
+            // Zatrzymaj canvas-confetti
+            if (typeof confetti !== 'undefined' && confetti.reset) {
+                confetti.reset();
+            }
         }
 
         function showConfetti(color) {
@@ -5195,6 +5377,122 @@
                 }
                 spawnConfetti();
             }, interval);
+
+            // Fanfary
+            playFanfare();
+        }
+
+        // ANCHOR: CANVAS_CONFETTI (alternatywa - porównanie)
+        function showConfettiCanvas(color) {
+            // Kolory zależne od drużyny
+            const teamColors = color === '#e74c3c' ?
+                ['#e74c3c', '#c0392b', '#ff6b6b', '#ee5a24'] :
+                ['#3498db', '#2980b9', '#74b9ff', '#0984e3'];
+            const goldColors = ['#FFD700', '#FFC107', '#FFEB3B', '#FFA000'];
+            const allColors = [...teamColors, ...goldColors];
+
+            const duration = 10000; // 10 sekund
+            const animationEnd = Date.now() + duration;
+
+            // Główny wybuch z góry - EKSPLOZJA
+            const fireworks = () => {
+                confetti({
+                    particleCount: 100,
+                    spread: 160,
+                    origin: {
+                        y: 0.3
+                    },
+                    colors: allColors,
+                    startVelocity: 45,
+                    gravity: 1.2,
+                    scalar: 1.5,
+                    ticks: 400,
+                    shapes: ['circle', 'square'],
+                    zIndex: 10000
+                });
+            };
+
+            // Boczne wyrzutnie
+            const sides = () => {
+                // Lewa
+                confetti({
+                    particleCount: 50,
+                    angle: 60,
+                    spread: 55,
+                    origin: {
+                        x: 0,
+                        y: 0.7
+                    },
+                    colors: allColors,
+                    startVelocity: 55,
+                    gravity: 1,
+                    scalar: 1.2,
+                    zIndex: 10000
+                });
+                // Prawa
+                confetti({
+                    particleCount: 50,
+                    angle: 120,
+                    spread: 55,
+                    origin: {
+                        x: 1,
+                        y: 0.7
+                    },
+                    colors: allColors,
+                    startVelocity: 55,
+                    gravity: 1,
+                    scalar: 1.2,
+                    zIndex: 10000
+                });
+            };
+
+            // Deszcz confetti z góry
+            const rain = () => {
+                confetti({
+                    particleCount: 30,
+                    spread: 360,
+                    origin: {
+                        y: 0
+                    },
+                    colors: allColors,
+                    startVelocity: 25,
+                    gravity: 0.5,
+                    scalar: 1,
+                    drift: 1,
+                    zIndex: 10000
+                });
+            };
+
+            // Początkowa seria wybuchów
+            fireworks();
+            setTimeout(fireworks, 150);
+            setTimeout(fireworks, 300);
+            setTimeout(sides, 100);
+            setTimeout(sides, 250);
+
+            // Zatrzymaj poprzedni interval jeśli istnieje
+            if (confettiInterval) {
+                clearInterval(confettiInterval);
+            }
+
+            // Ciągłe efekty przez 10 sekund
+            confettiInterval = setInterval(() => {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    clearInterval(confettiInterval);
+                    confettiInterval = null;
+                    return;
+                }
+
+                // Co 300ms - różne efekty
+                const random = Math.random();
+                if (random < 0.5) {
+                    rain();
+                } else {
+                    sides();
+                }
+            }, 300);
 
             // Fanfary
             playFanfare();
@@ -5627,6 +5925,12 @@
         const savedCardRevealHold = localStorage.getItem('tajniacy_cardRevealHold');
         if (savedCardRevealHold !== null) {
             cfg.cardRevealHold = savedCardRevealHold === 'true';
+        }
+
+        // Załaduj styl confetti z localStorage
+        const savedConfettiStyle = localStorage.getItem('tajniacy_confettiStyle');
+        if (savedConfettiStyle !== null) {
+            cfg.confettiStyle = savedConfettiStyle;
         }
 
         showO('homeScreen');
