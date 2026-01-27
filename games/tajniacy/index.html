@@ -1034,6 +1034,23 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 .btn-key{background:#FF9800;color:#fff;border-color:rgba(255,255,255,.08)}
 .btn-key:hover{background:#F57C00}
 
+.btn-captain{
+    width:100%;
+    padding:12px 20px;
+    font-size:1rem;
+    font-weight:600;
+    border-radius:10px;
+    border:2px solid rgba(255,152,0,.5);
+    background:linear-gradient(180deg,rgba(255,152,0,.15),rgba(255,152,0,.08));
+    color:#FF9800;
+    cursor:pointer;
+    transition:all .2s;
+}
+.btn-captain:hover{
+    background:linear-gradient(180deg,rgba(255,152,0,.25),rgba(255,152,0,.15));
+    border-color:#FF9800;
+}
+
 .btn-ghost{background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.06));color:#fff;border-color:rgba(255,255,255,.16)}
 .btn-ghost:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.22)}
 
@@ -1057,6 +1074,16 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
     display:inline-block;
     padding-right:calc(clamp(15px,3vmin,25px) - clamp(8px,2vmin,15px));
 }
+.waiting-spinner{
+    width:40px;
+    height:40px;
+    border:4px solid #333;
+    border-top-color:#f39c12;
+    border-radius:50%;
+    margin:0 auto;
+    animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
 .pin-input-section{
     background:#1a1a1a;
     padding:clamp(15px,2.5vmin,25px);
@@ -1998,7 +2025,7 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 </div>
 
 <div class="button-group">
-<button class="btn-back" onclick="backToHome()" style="flex:1">← Powrót</button>
+<button class="btn-back" onclick="backToHome()" style="flex:1">← Powrót</button>
 <button class="btn-new btn-lg" id="classicStartBtn" onclick="startClassic()" style="flex:2" disabled>Start</button>
 </div>
 </div>
@@ -2136,7 +2163,7 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 </div>
 
 <div class="button-group">
-<button class="btn-back" onclick="backToHome()" style="flex:1">← Powrót</button>
+<button class="btn-back" onclick="backToHome()" style="flex:1">← Powrót</button>
 <button class="btn-new btn-lg" id="crazyStartBtn" onclick="startCrazy()" style="flex:2" disabled>Start</button>
 </div>
 </div>
@@ -2152,7 +2179,7 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 <div class="top-controls">
 <button class="icon-btn" id="newRoundBtn" title="Nowa runda (przytrzymaj)"><svg class="hold-progress" viewBox="0 0 100 100"><path d="M50 2 L85 2 Q98 2 98 15 L98 85 Q98 98 85 98 L15 98 Q2 98 2 85 L2 15 Q2 2 15 2 Z"/></svg><span>🔄</span></button>
 <button class="icon-btn" id="keyBtn" title="Pokaż klucz (przytrzymaj)"><svg class="hold-progress" viewBox="0 0 100 100"><path d="M50 2 L85 2 Q98 2 98 15 L98 85 Q98 98 85 98 L15 98 Q2 98 2 85 L2 15 Q2 2 15 2 Z"/></svg><span>👁️</span></button>
-<button class="icon-btn settings-btn" onclick="showO('gameSettings')" title="Ustawienia"><span>⚙️</span></button>
+<button class="icon-btn settings-btn" onclick="showGameSettings()" title="Ustawienia"><span>⚙️</span></button>
 </div>
 <div class="team-bar blue">
 <span class="team-score" id="scoreBluePoints">0</span>
@@ -2180,6 +2207,9 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 <input type="checkbox" id="gameSoundToggle" onchange="updateSound(this.checked)">
 <span class="slider"></span>
 </label>
+</div>
+<div id="showPinBtnContainer" style="display:none">
+<button class="btn-captain" onclick="hideO('gameSettings');showPinData()">🔑 Pokaż dane do klucza</button>
 </div>
 <button class="btn-new" onclick="hideO('gameSettings')" style="width:100%">Kontynuuj grę</button>
 <button class="btn-back" onclick="hideO('gameSettings');confirmBack()" style="width:100%;padding:15px">Powrót do menu</button>
@@ -2251,10 +2281,27 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 <p style="font-size:0.8rem;color:#888;margin:0 0 5px 0">PIN</p>
 <div class="pin-display" id="pinDisplay">1234</div>
 </div>
-<p style="font-size:0.85rem;color:#aaa;margin:12px 0;text-align:center">Podaj te dane kapitanom drużyn.<br>Mogą je wpisać w menu głównym ←’ Klucz kapitana</p>
-<div style="display:flex;justify-content:center;margin-top:15px">
-<button class="btn-reset" onclick="hideO('pinOverlay')">Zamknij</button>
+<p style="font-size:0.85rem;color:#aaa;margin:12px 0;text-align:center">Podaj te dane kapitanom drużyn.<br>Gra rozpocznie się gdy kapitan wpisze PIN.</p>
+<div id="pinOverlayStatus" style="text-align:center;margin:15px 0">
+<div class="waiting-spinner"></div>
+<p style="color:#f39c12;font-size:0.9rem;margin-top:10px">Oczekiwanie na kapitana...</p>
 </div>
+</div>
+</div>
+
+<div class="overlay" id="pinDataViewOverlay">
+<div class="settings-container" style="max-width:350px">
+<h2 style="font-size:1.4rem;margin-bottom:12px">🔑 Dane do klucza</h2>
+<div style="background:#1a1a1a;border-radius:10px;padding:10px 15px;margin-bottom:10px;text-align:center">
+<p style="font-size:0.8rem;color:#888;margin:0 0 5px 0">Kod gry</p>
+<div id="sessionCodeDisplay2" style="font-size:1.8rem;font-weight:bold;color:#4CAF50;letter-spacing:0.25em;font-family:monospace;padding-right:0.25em">----</div>
+</div>
+<div style="background:#1a1a1a;border-radius:10px;padding:10px 15px;text-align:center">
+<p style="font-size:0.8rem;color:#888;margin:0 0 5px 0">PIN</p>
+<div class="pin-display" id="pinDisplay2">1234</div>
+</div>
+<p style="font-size:0.85rem;color:#aaa;margin:12px 0;text-align:center">Podaj te dane drugiemu kapitanowi.</p>
+<button class="btn-new" onclick="hideO('pinDataViewOverlay')" style="width:100%;margin-top:10px">Zamknij</button>
 </div>
 </div>
 
@@ -2364,6 +2411,7 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 </div>
 
 <script>
+// ANCHOR: CONSTANTS
 const WORDS = [
   "FIGLE","AMORY","PSOTY","EKSTAZA","SZAŁ","HURAGAN","TSUNAMI","GEJZER","WULKAN","ERUPCJA",
   "MAGIA","CZARY","TRIK","ILUZJA","ZMYŁKA","PUŁAPKA","HACZYK","ZAGADKA","SZYFR","KOD",
@@ -2428,6 +2476,7 @@ let currentEmojiPicker=null;
 let currentEmojiCategory='all';
 let usedWords=[];
 let availableWords=[];
+let captainReady=false;
 let deckStates={
     standard: {available: WORDS.length, used: 0},
     adult: {available: ADULT.length, used: 0}
@@ -3207,6 +3256,7 @@ function initRound(){
     const board=$('board'),status=$('status');
     board.innerHTML='';hideO('endOverlay');
     gameOver=false;isSpymaster=false;
+    captainReady = (cfg.keyMode !== 'pin'); // W trybie PIN wymaga potwierdzenia kapitana
     document.body.classList.remove('spymaster-mode');
     updateKeyButtonIcon();
     $('keyBtn').classList.remove('active');
@@ -3292,7 +3342,8 @@ function initRound(){
         revealed: new Array(words.length).fill(false),
         gameOver: false,
         winner: null,
-        teamNames: { red: team.red.name, blue: team.blue.name }
+        teamNames: { red: team.red.name, blue: team.blue.name },
+        captainReady: false
     };
     
     // Generuj PIN i zapisz do localStorage (po utworzeniu danych planszy)
@@ -3313,6 +3364,7 @@ function initRound(){
         // Funkcja odkrywająca kartę
         const revealCard = () => {
             if(gameOver||isSpymaster||card.classList.contains('revealed')||!card.classList.contains('flipped'))return;
+            
             card.classList.add('revealed');
             playSound('click');
             
@@ -3423,7 +3475,13 @@ function initRound(){
     });
     
     // Animacja flip kart - rewers na awers
-    setTimeout(()=>animateCardsFlip(board.querySelectorAll('.card')),100);
+    if(cfg.keyMode === 'pin'){
+        // W trybie PIN - pokaż dane do klucza i czekaj na kapitana
+        showO('pinOverlay');
+    } else {
+        // W trybie preview - od razu flipuj
+        setTimeout(()=>animateCardsFlip(board.querySelectorAll('.card')),100);
+    }
     
     // Aktualizuj liczniki słów
     updateWordCounters();
@@ -3496,14 +3554,33 @@ function assassinHit(loser){
     endRound(`${team[loser].emoji} ${team[loser].name} trafili na zabójcę!`,winner,true);
 }
 
+// Pokaż dane do klucza (PIN + kod gry) podczas gry
+function showPinData(){
+    // Aktualizuj wyświetlane dane
+    $('pinDisplay2').textContent = currentPin;
+    const sessionId = localStorage.getItem('tajniacy_session_id');
+    if($('sessionCodeDisplay2') && sessionId){
+        $('sessionCodeDisplay2').textContent = sessionId;
+    }
+    showO('pinDataViewOverlay');
+}
+
+// Pokaż ustawienia gry (z przyciskiem PIN tylko w trybie PIN)
+function showGameSettings(){
+    const pinBtnContainer = $('showPinBtnContainer');
+    if(pinBtnContainer){
+        pinBtnContainer.style.display = cfg.keyMode === 'pin' ? 'block' : 'none';
+    }
+    showO('gameSettings');
+}
+
 function toggleKey(){
     if(gameOver)return;
     if(!isSpymaster){
-        if(cfg.keyMode === 'pin'){
-            showO('pinOverlay');
-        } else {
+        if(cfg.keyMode === 'preview'){
             showO('keyWarning');
         }
+        // W trybie PIN przycisk jest tylko wizualny - PIN dostępny w ustawieniach ⚙️
     }
     else{isSpymaster=false;document.body.classList.remove('spymaster-mode');updateKeyButtonIcon();$('keyBtn').classList.remove('active')}
 }
@@ -3542,6 +3619,20 @@ async function generatePin(){
                 pinHash: pinHash,
                 board: currentBoardData,
                 createdAt: Date.now()
+            });
+            
+            // Nasłuchuj na captainReady z Firebase (gdy kapitan z innego urządzenia wpisze PIN)
+            db.ref('games/' + sessionId + '/board/captainReady').on('value', (snapshot) => {
+                if(snapshot.val() === true && !captainReady){
+                    captainReady = true;
+                    if(currentBoardData) currentBoardData.captainReady = true;
+                    console.log('Kapitan gotowy (z Firebase)');
+                    
+                    // Ukryj overlay z danymi i flipnij karty
+                    hideO('pinOverlay');
+                    const board = $('board');
+                    if(board) setTimeout(()=>animateCardsFlip(board.querySelectorAll('.card')),100);
+                }
             });
             
             // Pokaż kod sesji na ekranie z PIN-em
@@ -3837,6 +3928,25 @@ async function verifyCaptainPin(){
         error.classList.remove('visible');
         
         try {
+            // Oznacz kapitana jako gotowego (lokalnie i w Firebase)
+            captainReady = true;
+            if(currentBoardData) currentBoardData.captainReady = true;
+            
+            // Sprawdź czy to urządzenie z grą (ma planszę)
+            const localSessionId = localStorage.getItem('tajniacy_session_id');
+            const isGameDevice = $('board') && $('board').children.length > 0;
+            
+            if(isGameDevice){
+                // To urządzenie z grą - flipnij karty
+                hideO('pinOverlay');
+                setTimeout(()=>animateCardsFlip($('board').querySelectorAll('.card')),100);
+                // Sync do Firebase
+                if(db && localSessionId) syncBoardToFirebase();
+            } else if(db && sessionCode){
+                // Kapitan z innego urządzenia - wyślij captainReady do Firebase
+                await db.ref('games/' + sessionCode + '/board/captainReady').set(true);
+            }
+            
             // Najpierw przygotuj planszę
             buildCaptainBoard(savedBoard);
             
@@ -4509,9 +4619,8 @@ $('keyBtn').addEventListener('click',()=>{
     if(gameOver)return;
     if(isSpymaster){
         toggleKey();
-    } else if(cfg.keyMode === 'pin'){
-        showO('pinOverlay');
     }
+    // W trybie PIN przycisk jest tylko wizualny - PIN dostępny w ustawieniach ⚙️
 });
 
 // Obsługa Enter w polu PIN kapitana
@@ -4639,7 +4748,7 @@ function disableKeyboardMode(){
 }
 
 function getActiveOverlay(){
-    const overlays = ['endOverlay','assassinOverlay','keyWarning','pinOverlay','captainKeyOverlay',
+    const overlays = ['endOverlay','assassinOverlay','keyWarning','pinOverlay','pinDataViewOverlay','captainKeyOverlay',
                       'captainBoardOverlay','closeCaptainConfirm','newRoundConfirm','backConfirm',
                       'gameSettings','globalSettingsOverlay','rulesOverlay','classicSettings','crazySettings'];
     for(const id of overlays){
