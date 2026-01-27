@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tajniacy</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <style>
@@ -280,7 +279,7 @@ body.spymaster-mode .card.is-assassin .card-front{
     gap:clamp(2px,0.5vmin,8px);
 }
 body.spymaster-mode .card.is-assassin .card-front::after{
-    content:'☠';
+    content:'☐';
     font-size:clamp(16px,3.5vmin,40px);
     opacity:0.9;
 }
@@ -642,7 +641,6 @@ body.spymaster-mode .card.revealed .card-front{
 
 /* ANCHOR: MODE_SETTINGS_CARDS (rozwijane sekcje accordion) */
 .settings-accordion{display:flex;flex-direction:column;gap:clamp(10px,2vmin,18px)}
-/* ANCHOR: SETTING_CARD (dla ustawień trybów - fancy) */
 .setting-card{background:linear-gradient(135deg,#1f1f1f,#121212);border:2px solid #333;border-radius:clamp(12px,2vmin,20px);overflow:hidden;transition:border-color .18s, box-shadow .18s}
 .setting-card.open{border-color:rgba(231,76,60,.55);box-shadow:0 10px 22px rgba(0,0,0,.45) inset, 0 12px 26px rgba(0,0,0,.35)}
 .setting-head{display:flex;align-items:center;gap:10px;padding:clamp(12px,2.2vmin,18px) clamp(14px,2.6vmin,20px);cursor:pointer;position:relative}
@@ -653,54 +651,6 @@ body.spymaster-mode .card.revealed .card-front{
 .setting-body{max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(0.4,0,0.2,1);border-top:1px solid transparent}
 .setting-card.open .setting-body{max-height:1200px;border-top-color:#222}
 .setting-body-inner{padding:clamp(12px,2vmin,16px);background:rgba(0,0,0,0.12)}
-
-/* ANCHOR: GLOBAL_SETTING_CARD (dla ustawień głównych - spójny z Dźwięki/Wersja) */
-.global-setting-card{
-    background:linear-gradient(135deg,#2e2e2e,#262626);
-    border:1px solid #3a3a3a;
-    border-radius:clamp(6px,1vmin,10px);
-    overflow:hidden;
-    transition:all .2s;
-    margin:6px 0;
-}
-.global-setting-card.open{
-    background:linear-gradient(135deg,#323232,#2a2a2a);
-    border-color:#4a4a4a;
-    box-shadow:0 4px 10px rgba(0,0,0,.25);
-}
-.global-setting-card .setting-head{
-    padding:clamp(8px,1.2vmin,12px);
-    gap:8px;
-}
-.global-setting-card .setting-title{
-    font-size:clamp(0.85rem,2vmin,1.2rem);
-    color:#fff;
-    font-weight:400;
-}
-.global-setting-card .setting-sub{
-    font-size:clamp(0.8rem,1.8vmin,1rem);
-    padding-right:24px;
-}
-.global-setting-card .setting-arrow{
-    right:clamp(10px,1.8vmin,14px);
-    font-size:0.85rem;
-}
-.global-setting-card.open .setting-arrow{transform:rotate(180deg)}
-.global-setting-card .setting-body{
-    max-height:0;
-    overflow:hidden;
-    transition:max-height .35s cubic-bezier(0.4,0,0.2,1);
-    border-top:1px solid transparent;
-}
-.global-setting-card.open .setting-body{
-    max-height:1200px;
-    border-top-color:#1a1a1a;
-}
-.global-setting-card .setting-body-inner{
-    padding:clamp(10px,1.8vmin,14px);
-    background:#1e1e1e;
-}
-
 .setting-actions{margin-top:12px}
 .setting-actions .btn-new{width:100%}
 
@@ -786,7 +736,7 @@ body.spymaster-mode .card.revealed .card-front{
 .custom-btn:hover{background:#333;border-color:#666}
 .custom-btn:active{transform:scale(0.95)}
 .rounds-custom input{
-    width:clamp(60px,12vmin,80px);
+    width:clamp(80px,16vmin,120px);
     min-width:clamp(40px,8vmin,60px);
     height:clamp(40px,8vmin,60px);
     padding:10px;
@@ -986,13 +936,6 @@ body.spymaster-mode .card.revealed .card-front{
 .game-settings{background:#1a1a1a;border-radius:clamp(8px,1.2vmin,15px);padding:clamp(12px,2vmin,25px);margin-bottom:2vh;overflow:hidden}
 .game-settings h3{color:#FF9800;margin-bottom:clamp(10px,1.5vmin,15px);font-size:clamp(1rem,2.2vmin,1.4rem)}
 .setting-row{display:flex;justify-content:space-between;align-items:center;margin:6px 0;padding:clamp(8px,1.2vmin,12px);background:#2a2a2a;border-radius:clamp(6px,1vmin,10px);flex-wrap:wrap;gap:8px;box-sizing:border-box;max-width:100%}
-
-/* ANCHOR: GLOBAL_SETTING_ROW (dla Dźwięki w globalnych ustawieniach) */
-#globalSettingsOverlay .setting-row{
-    background:linear-gradient(135deg,#2e2e2e,#262626);
-    border:1px solid #3a3a3a;
-}
-
 .setting-row label{font-size:clamp(0.85rem,2vmin,1.2rem);color:#ccc}
 .setting-row input,.setting-row select{
     padding:clamp(6px,1vmin,10px);
@@ -1396,31 +1339,11 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
     color:#fff;
     text-shadow:1px 1px 2px rgba(0,0,0,0.5);
     overflow:hidden;
-    position:relative;
-    transition:opacity .3s, filter .3s;
 }
 .captain-card.is-red{background:#e74c3c}
 .captain-card.is-blue{background:#3498db}
 .captain-card.is-neutral{background:#7f8c8d}
 .captain-card.is-assassin{background:#1a1a1a;color:#e74c3c}
-
-/* Odkryte karty w captain board - przyciemnione + checkmark */
-.captain-card.revealed{
-    opacity:0.4;
-    filter:grayscale(50%);
-}
-.captain-card.revealed::after{
-    content:'✓';
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%, -50%);
-    font-size:clamp(1.5rem,6vmin,3rem);
-    color:rgba(255,255,255,0.8);
-    text-shadow:2px 2px 4px rgba(0,0,0,0.8);
-    font-weight:900;
-}
-
 .captain-legend{
     display:flex;
     justify-content:center;
@@ -1444,6 +1367,58 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 .legend-color.blue{background:#3498db}
 .legend-color.neutral{background:#7f8c8d}
 .legend-color.assassin{background:#1a1a1a;border:1px solid #e74c3c}
+
+/* CAPTAIN ROUND END OVERLAY */
+.captain-round-end{
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,0.92);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    border-radius:inherit;
+    z-index:10;
+}
+.captain-round-end.active{display:flex}
+.round-end-content{
+    text-align:center;
+    animation:roundEndPop 0.4s ease-out;
+}
+@keyframes roundEndPop{
+    0%{transform:scale(0.5);opacity:0}
+    70%{transform:scale(1.1)}
+    100%{transform:scale(1);opacity:1}
+}
+.round-end-emoji{
+    font-size:clamp(3rem,10vmin,5rem);
+    margin-bottom:15px;
+}
+.round-end-text{
+    font-size:clamp(1.2rem,4vmin,2rem);
+    font-weight:bold;
+    margin-bottom:20px;
+}
+.round-end-text.red{color:#e74c3c}
+.round-end-text.blue{color:#3498db}
+.round-end-countdown{
+    font-size:clamp(0.9rem,2.5vmin,1.1rem);
+    color:#888;
+}
+.round-end-countdown span{
+    font-weight:bold;
+    color:#fff;
+}
+.captain-card.revealed{
+    opacity:0.5;
+    position:relative;
+}
+.captain-card.revealed .card-revealer{
+    position:absolute;
+    bottom:2px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:clamp(0.6rem,1.8vmin,0.9rem);
+}
 
 #endText{font-size:clamp(2rem,6vmin,5rem);margin-bottom:3vh}
 .confetti{position:fixed;top:-20px;pointer-events:none;z-index:9999}
@@ -1795,7 +1770,7 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 </div>
 <div class="mode-card wip">
 <div class="mode-header" onclick="toggleModeCard(this.parentElement)">
-<div class="mode-icon">⚡</div>
+<div class="mode-icon">⏱️</div>
 <div class="mode-title-wrapper">
 <div class="mode-title">RUSH</div>
 <div class="mode-wip-badge">WIP</div>
@@ -1835,7 +1810,7 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 
 <div class="overlay" id="globalSettingsOverlay">
 <div class="settings-container settings-container--sm scroll-surface">
-<h2 class="settings-title">Ustawienia</h2>
+<h2 class="settings-title">⚙️ Ustawienia</h2>
 <div class="game-settings game-settings--flush">
 <div class="setting-row setting-row--compact">
 <label>Dźwięki:</label>
@@ -1846,7 +1821,7 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 </div>
 
 <!-- ANCHOR: CARD_REVEAL_MODE -->
-<div class="global-setting-card" id="cardGlobalReveal">
+<div class="setting-card" id="cardGlobalReveal">
 <div class="setting-head" onclick="toggleSettingCard('cardGlobalReveal')">
 <div class="setting-title">Odkrywanie kart</div>
 <div class="setting-sub" id="globalRevealSummary">Kliknięcie</div>
@@ -1868,32 +1843,9 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 </div>
 </div>
 
-<!-- ANCHOR: CONFETTI_STYLE -->
-<div class="global-setting-card" id="cardGlobalConfetti">
-<div class="setting-head" onclick="toggleSettingCard('cardGlobalConfetti')">
-<div class="setting-title">Styl confetti</div>
-<div class="setting-sub" id="globalConfettiSummary">Canvas (nowy)</div>
-<div class="setting-arrow">▼</div>
-</div>
-<div class="setting-body">
-<div class="setting-body-inner">
-<div class="deck-picker-content">
-<div class="deck-option selected" data-confetti="canvas" onclick="selectConfettiStyle('canvas')">
-<span class="deck-icon">🎆</span>
-<span class="deck-name">Canvas (nowy)</span>
-</div>
-<div class="deck-option" data-confetti="anime" onclick="selectConfettiStyle('anime')">
-<span class="deck-icon">✨</span>
-<span class="deck-name">Anime.js (klasyczny)</span>
-</div>
-</div>
-</div>
-</div>
-</div>
-
 <div class="settings-accordion">
 <!-- ANCHOR: STYLE_CARD -->
-<div class="global-setting-card" id="cardGlobalStyle">
+<div class="setting-card" id="cardGlobalStyle">
 <div class="setting-head" onclick="toggleSettingCard('cardGlobalStyle')">
 <div class="setting-title">Styl kart</div>
 <div class="setting-sub" id="globalStyleSummary">Białe</div>
@@ -1981,7 +1933,7 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 <div class="deck-option" data-deck="adult" onclick="selectDeck('classic', 'adult')">
 <div class="deck-info">
 <span class="deck-title">Bez cenzury (+18)</span>
-<span class="deck-desc">Hasła pikantne i kontrowersyjne – tylko dla dorosłych.<br><span class="deck-counter" id="classicAdultCounter">Pozostało unikalnych haseł: 51/51</span></span>
+<span class="deck-desc">Hasła pikantne i kontrowersyjne — tylko dla dorosłych.<br><span class="deck-counter" id="classicAdultCounter">Pozostało unikalnych haseł: 51/51</span></span>
 </div>
 </div>
 </div>
@@ -2046,7 +1998,7 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 </div>
 
 <div class="button-group">
-<button class="btn-back" onclick="backToHome()" style="flex:1">← Powrót</button>
+<button class="btn-back" onclick="backToHome()" style="flex:1">← Powrót</button>
 <button class="btn-new btn-lg" id="classicStartBtn" onclick="startClassic()" style="flex:2" disabled>Start</button>
 </div>
 </div>
@@ -2091,7 +2043,7 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 <div class="deck-option" data-deck="adult" onclick="selectDeck('crazy', 'adult')">
 <div class="deck-info">
 <span class="deck-title">Bez cenzury (+18)</span>
-<span class="deck-desc">Hasła pikantne i kontrowersyjne – tylko dla dorosłych.<br><span class="deck-counter" id="crazyAdultCounter">Pozostało unikalnych haseł: 51/51</span></span>
+<span class="deck-desc">Hasła pikantne i kontrowersyjne — tylko dla dorosłych.<br><span class="deck-counter" id="crazyAdultCounter">Pozostało unikalnych haseł: 51/51</span></span>
 </div>
 </div>
 </div>
@@ -2184,7 +2136,7 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 </div>
 
 <div class="button-group">
-<button class="btn-back" onclick="backToHome()" style="flex:1">← Powrót</button>
+<button class="btn-back" onclick="backToHome()" style="flex:1">← Powrót</button>
 <button class="btn-new btn-lg" id="crazyStartBtn" onclick="startCrazy()" style="flex:2" disabled>Start</button>
 </div>
 </div>
@@ -2252,7 +2204,7 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 </div>
 </div>
 <div class="end-target" id="endTarget">Pierwszy do 3 wygranych</div>
-<button class="btn-new btn-next" id="nextRoundBtn" onclick="hideO('endOverlay');initRound()">Kolejna runda →</button>
+<button class="btn-new btn-next" id="nextRoundBtn" onclick="hideO('endOverlay');initRound()">Kolejna runda ←’</button>
 <button class="btn-back btn-menu" id="matchWonBtn" onclick="resetMatch()" style="display:none">Powrót do menu</button>
 </div>
 </div>
@@ -2299,7 +2251,7 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 <p style="font-size:0.8rem;color:#888;margin:0 0 5px 0">PIN</p>
 <div class="pin-display" id="pinDisplay">1234</div>
 </div>
-<p style="font-size:0.85rem;color:#aaa;margin:12px 0;text-align:center">Podaj te dane kapitanom drużyn.<br>Mogą je wpisać w menu głównym → Klucz kapitana</p>
+<p style="font-size:0.85rem;color:#aaa;margin:12px 0;text-align:center">Podaj te dane kapitanom drużyn.<br>Mogą je wpisać w menu głównym ←’ Klucz kapitana</p>
 <div style="display:flex;justify-content:center;margin-top:15px">
 <button class="btn-reset" onclick="hideO('pinOverlay')">Zamknij</button>
 </div>
@@ -2317,7 +2269,7 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 </div>
 <div style="display:flex;flex-direction:column;align-items:center">
 <label style="display:block;font-size:0.85rem;color:#888;margin-bottom:8px;width:100%;text-align:center">PIN (4 cyfry)</label>
-<input type="text" id="captainPinInput" maxlength="4" placeholder="●●●●" autocomplete="off" inputmode="numeric">
+<input type="text" id="captainPinInput" maxlength="4" placeholder="••••" autocomplete="off" inputmode="numeric">
 </div>
 <p class="pin-error" id="captainPinError">Nieprawidłowy PIN</p>
 </div>
@@ -2330,23 +2282,30 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 
 <div class="overlay" id="captainBoardOverlay">
 <div class="settings-container captain-board-container">
-<h2 style="font-size:1.3rem;margin-bottom:10px">🔑 Klucz planszy</h2>
+<h2 style="font-size:1.3rem;margin-bottom:10px">🎯 Plansza kapitana</h2>
 <div class="captain-starter" id="captainStarter"></div>
 <div class="captain-board" id="captainBoard"></div>
 <div class="captain-legend">
-<span class="legend-item"><span class="legend-color red"></span>Czerwoni</span>
-<span class="legend-item"><span class="legend-color blue"></span>Niebiescy</span>
+<span class="legend-item" id="legendRed"><span class="legend-color red"></span><span class="legend-name">Czerwoni</span> [<span class="legend-count">0</span>]</span>
+<span class="legend-item" id="legendBlue"><span class="legend-color blue"></span><span class="legend-name">Niebiescy</span> [<span class="legend-count">0</span>]</span>
 <span class="legend-item"><span class="legend-color neutral"></span>Neutralni</span>
 <span class="legend-item"><span class="legend-color assassin"></span>Zabójca</span>
 </div>
 <button class="btn-reset" onclick="confirmCloseCaptainBoard()" style="margin-top:15px">Zamknij</button>
 </div>
+<div class="captain-round-end" id="captainRoundEnd">
+<div class="round-end-content">
+<div class="round-end-emoji" id="captainWinnerEmoji"></div>
+<div class="round-end-text" id="captainWinnerText"></div>
+<div class="round-end-countdown">Zamykanie za <span id="captainCountdown">3</span>...</div>
+</div>
+</div>
 </div>
 
 <div class="overlay" id="closeCaptainConfirm">
 <div class="settings-container" style="max-width:400px">
-<h2 style="font-size:1.5rem;margin-bottom:15px">Zamknąć klucz?</h2>
-<p style="font-size:1rem;color:#f39c12;margin-bottom:20px">Aby ponownie zobaczyć klucz, będziesz musiał wpisać kod gry i PIN.</p>
+<h2 style="font-size:1.5rem;margin-bottom:15px">Zamknąć planszę?</h2>
+<p style="font-size:1rem;color:#f39c12;margin-bottom:20px">Aby ponownie zobaczyć planszę, będziesz musiał wpisać kod gry i PIN.</p>
 <div style="display:flex;gap:15px;justify-content:center">
 <button class="btn-new" onclick="hideO('closeCaptainConfirm')">Zostań</button>
 <button class="btn-reset" onclick="closeCaptainBoardAndReturn()">Zamknij</button>
@@ -2405,21 +2364,63 @@ button:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
 </div>
 
 <script>
-// ANCHOR: CONSTANTS
-const WORDS=["stand 1","stand 2","stand 3","stand 4","stand 5","stand 6","stand 7","stand 8","stand 9","stand 10","stand 11","stand 12","stand 13","stand 14","stand 15","stand 16","stand 17","stand 18","stand 19","stand 20","stand 21","stand 22","stand 23","stand 24","stand 25","stand 26","stand 27","stand 28","stand 29","stand 30","stand 31","stand 32","stand 33","stand 34","stand 35","stand 36","stand 37","stand 38","stand 39","stand 40","stand 41","stand 42","stand 43","stand 44","stand 45","stand 46","stand 47","stand 48","stand 49","stand 50","stand 51","stand 52","stand 53","stand 54","stand 55","stand 56","stand 57","stand 58","stand 59","stand 60","stand 61","stand 62","stand 63","stand 64","stand 65","stand 66","stand 67","stand 68","stand 69","stand 70","stand 71","stand 72","stand 73","stand 74","stand 75"];
-const ADULT=["cenz 1","cenz 2","cenz 3","cenz 4","cenz 5","cenz 6","cenz 7","cenz 8","cenz 9","cenz 10","cenz 11","cenz 12","cenz 13","cenz 14","cenz 15","cenz 16","cenz 17","cenz 18","cenz 19","cenz 20","cenz 21","cenz 22","cenz 23","cenz 24","cenz 25","cenz 26","cenz 27","cenz 28","cenz 29","cenz 30","cenz 31","cenz 32","cenz 33","cenz 34","cenz 35","cenz 36","cenz 37","cenz 38","cenz 39","cenz 40","cenz 41","cenz 42","cenz 43","cenz 44","cenz 45","cenz 46","cenz 47","cenz 48","cenz 49","cenz 50","cenz 51","cenz 52","cenz 53","cenz 54","cenz 55","cenz 56","cenz 57","cenz 58","cenz 59","cenz 60","cenz 61","cenz 62","cenz 63","cenz 64","cenz 65","cenz 66","cenz 67","cenz 68","cenz 69","cenz 70","cenz 71","cenz 72","cenz 73","cenz 74","cenz 75"];
-const EMOJIS_RED=["🐉","🦁","🔥","🌶️","🦅","🚀","⚡"];
-const EMOJIS_BLUE=["🦈","🐺","❄️","🌊","🦋","🛸","⭐"];
-const EMOJIS_ANIMALS=["🐉","🦁","🦅","🦈","🐺","🦋","🦄","🐲","🦊","🐼","🐨","🦉","🦚","🦜","🐙","🦑","🦞","🦀","🐢","🦎","🐍","🦂","🕷️","🦇","🐝"];
-const EMOJIS_OBJECTS=["🔥","🌶️","🚀","⚡","❄️","🌊","⭐","💎","🔮","🎯","🎪","🎭","🎨","🎸","🎹","🏆","🥇","👑","💀","🤖","👽","🛸","🔱","⚔️","🛡️","🏴‍☠️","🎃"];
-const EMOJIS_NATURE=["🌸","🌺","🌻","🌹","🍀","🌴","🌵","🍄","🌙","☀️","🌈","💫","✨"];
-const EMOJIS_MAGIC=["👻","🧙","🧛","🧜","🧚"];
-const EMOJIS_ALL=[...new Set([...EMOJIS_ANIMALS,...EMOJIS_OBJECTS,...EMOJIS_NATURE,...EMOJIS_MAGIC])];
+const WORDS = [
+  "FIGLE","AMORY","PSOTY","EKSTAZA","SZAŁ","HURAGAN","TSUNAMI","GEJZER","WULKAN","ERUPCJA",
+  "MAGIA","CZARY","TRIK","ILUZJA","ZMYŁKA","PUŁAPKA","HACZYK","ZAGADKA","SZYFR","KOD",
+  "ENIGMA","SEKRETNOŚĆ","RIPOSTA","IRONIA","SARKAZM","KABARET","PARODIA","MEM","ŻART","BEKA",
+  "PRZYPAŁ","WTOPA","FOCH","DRAMA","OBRAZA","REAKCJA","EMOJI","HASHTAG","FOLLOW","TREND",
+  "VIRAL","POST","RELACJA","FILTROWANIE","POWIADOMIENIE","ALGORYTM","KONTENT","HEJT","FAME","GLAMOUR",
+  "BŁYSK","GŁOŚNIK","MIKROFON","PLAYLISTA","TRĄBKA","FLET","CYMBAL","GITARA","AKROBACJA","SALTO",
+  "SKOK","MINA","GRYMAS","CHICHOT","UŚMIECH","ZIEWANIE","KICHANIE","SZAFA","PÓŁKA","DYWAN",
+  "FOTEL","LAMPA","OKNO","DRZWI","SCHODY","KALORYFER","ODKURZACZ","MIOTŁA","SZCZOTKA","MOP",
+  "WIADRO","FOLIA","KARTON","GAZETA","KLEJ","TAKSI","TRAMWAJ","METRO","RAKIETA","HELIKOPTER",
+  "BALON","PONTON","ŁÓDŹ","KAJAK","NAMIOT","HAMAK","LATARKA","KOMPAS","MAPA","LORNETKA",
+  "TELESKOP","MIKROSKOP","ROBOT","DRON","MAGNES","SPRĘŻYNA","WAŁEK","LEWAREK","KORKOCIĄG","ZAWÓR",
+  "KRAN","LEJEK","TUBA","ZASUWA","KŁÓDKA","SŁOIK","POKRYWKA","SZCZYPCE","TŁUCZEK","TARKA",
+  "GARNEK","PATELNIA","WIDELEC","ŁYŻKA","TALERZ","KUBEK","SŁOMKA","LEMONIADA","COCA","WAFEL",
+  "CZEKOLADA","KISIEL","BUDYŃ","GALARETKA","MIÓD","DŻEM","CHILI","PIEPRZ","CUKIER","ANANAS",
+  "MANGO","KIWI","GRANAT","MALINA","JAGODA","BORÓWKA","CYTRYNA","POMARAŃCZA","AWOKADO","BROKUŁ",
+  "BURAK","KUKURYDZA","CZOSNEK","IMBIR","RYŻ","MAKARON","NALEŚNIK","PIZZA","KARALUCH","BORSUK",
+  "ALPAKA","PINGWIN","JEDNOROŻEC","SMOK","KOSMITA","UFOLUDEK","GALAKTYKA","PLANETA","KOMETA","GWIAZDOZBIÓR",
+  "ZARZEWIE","ZAPŁON","PSIKUS","KAPIBARA","LENIWIEC","WIEWIÓRKA","JEŻ","ŻABA","BÓBR","PAPUGA",
+  "STRUŚ","PANDA","KOALA","KOMAR","MUCHA","BIEDRONKA","PSZCZOŁA","MRÓWKA","ŚLIMAK","CZAPKA",
+  "KURTKA","RĘKAWICZKI","SZALIK","BIBLIOTEKA","BAZAR","TARG","POCZTA","PACZKA","DRUKARKA","SKANER"
+];
+
+const ADULT = [
+  "PORNO","SEKS","NAGOŚĆ","PODNIECENIE","ORGAZM","SPERMA","WYTRYSK","SPUST","PENIS","KUTAS",
+  "FIUT","PAŁA","CIPKA","PIZDA","POCHWA","ŁECHTACZKA","DUPA","TYŁEK","CYCKI","BIUST",
+  "SUTEK","KROCZE","ODDECH","ŚLINA","JĘK","DRESZCZ","DOTYK","USTA","JĘZYK","SZYJA",
+  "MOKRO","OSTRO","NAMIĘTNOŚĆ","ZALAĆ","LASKA","OBCIĄGNĄĆ","DEEPTHROAT","MINETA","RIMMING","FACIAL",
+  "CREAMPIE","CUMSHOT","ANAL","KOREK","FISTING","PALCÓWKA","DZIURKA","MUSZELKA","BDSM","DOMINACJA",
+  "ULEGŁOŚĆ","KLAPS","PEJCZ","BAT","DUSIĆ","PRZYDUSZAĆ","KNEBEL","MASKA","OBROŻA","SMYCZ",
+  "KRĘPOWANIE","KAJDANKI","LATEKS","DADDY","MOMMY","ONLYFANS","NUDESY","DICKPIC","WYCIEK","SEXTING",
+  "TINDER","STRINGI","KORONKA","BIELIZNA","WIBRATOR","DILDO","ZABAWKA","LUBRYKANT","KONDOM","PREZERWATYWA",
+  "SEXSHOP","ROMANS","ZDRADA","KOCHANEK","KOCHANKA","TRÓJKĄT","ORGIA","FETYSZ","KLUB","AFTER",
+  "RŻNĄĆ","RUCHAĆ","PRZELECIEĆ","BANAN","OGÓREK","KIEŁBASA","PARÓWKA","MELON","BRZOSKWINIA","TRUSKAWKA",
+  "ŚMIETANKA","LIZAK","CIASTKO","PĄCZEK","SOS","KREM","RURKA","DRĄŻEK","PILOT","ŁADOWARKA",
+  "KABEL","WIBRACJA","POMPKA","TŁOK","DYSZA","BUTELKA","OTWIERACZ","ZAMEK","KLUCZ","GUMKA",
+  "TAŚMA","PASEK","KNOT","ŚRUBA","WKRĘT","POŃCZOCHY","STANIK","DEKOLT","OBCASY","SZPILKI",
+  "SKÓRA","GARNITUR","MUNDUREK","PERFUMY","MAKIJAŻ","SZMINKA","TATUAŻ","KOLCZYK","DEZODORANT","LUSTRO",
+  "ŁAZIENKA","PRYSZNIC","WANNA","HOTEL","POKÓJ","ŁÓŻKO","PODUSZKA","KOŁDRA","ZASŁONA","CIEMNOŚĆ",
+  "FLIRT","PODRYW","RANDKA","ZALOTY","SPOJRZENIE","SZEPT","PROWOKACJA","ZACZEPKA","KOMPLEMENT","ISKRA",
+  "NAPIĘCIE","CHEMIA","POKUSA","GRZESZEK","ZAKAZ","SEKRET","RYWAL","CRUSH","EX","PLOTKA",
+  "GHOSTING","MATCH","DMY","WIADOMOŚĆ","SCREENSHOT","BLOKADA","ZABAWA","WYZWANIE","ODWAGA","WSTYD",
+  "RUMIENIEC","IMPREZA","MELANŻ","KARAOKE","SHOT","DRINK","KOKTAJL","WÓDKA","WINO","WHISKY",
+  "GIN","RUM","PIWO","KAC","TOALETA","SZATNIA","BROKAT","KANAPA","KATAR","KIBEL"
+];
+const EMOJIS_RED = ["🐉", "🍆","🦁", "🔥", "🌶️" , "🤵", "⚡"];
+        const EMOJIS_BLUE = ["🦈", "🍑", "🐺", "❄️", "👰", "🦋", "⭐"];
+        const EMOJIS_ANIMALS = ["🐉", "🦁", "🦅", "🦈", "🐺", "🦋", "🦄", "🐲", "🦊", "🐼", "🐨", "🦉", "🦚", "🦜", "🐙", "🦑", "🦞", "🦀", "🐢", "🦎", "🐍", "🦂", "🕷️", "🦇", "🐝"];
+        const EMOJIS_OBJECTS = ["🔥", "🌶️", "🚀", "⚡", "❄️", "🌊", "⭐", "💎", "🔮", "🎯", "🎪", "🎭", "🎨", "🎸", "🎹", "🏆", "🥇", "👑", "💀", "🤖", "👽", "🛸", "🔱", "⚔️", "🛡️", "🏴‍☠️", "🎃"];
+        const EMOJIS_NATURE = ["🌸", "🌺", "🌻", "🌹", "🍀", "🌴", "🌵", "🍄", "🌙", "☀️", "🌈", "💫", "✨"];
+        const EMOJIS_MAGIC = ["👻", "🧙", "🧛", "🧜", "🧚"];
+        const EMOJIS_ALL = [...new Set([...EMOJIS_ANIMALS, ...EMOJIS_OBJECTS, ...EMOJIS_NATURE, ...EMOJIS_MAGIC])];
 
 // ANCHOR: STATE_MACHINE
 let wordList=WORDS,gameMode='classic',gameOver=false,isSpymaster=false,sideCards={red:[],blue:[]},isMixedDeck=false;
 const team={red:{name:"Czerwoni",emoji:"🐉",score:0},blue:{name:"Niebiescy",emoji:"🦈",score:0}};
-const cfg={winTarget:3,sound:true,assassins:1,starter:'random',startAgents:9,otherAgents:8,neutral:7,width:5,height:5,deckStyle:'white',keyMode:'preview',cardRevealHold:false,confettiStyle:'canvas'};
+const cfg={winTarget:3,sound:true,assassins:1,starter:'random',startAgents:9,otherAgents:8,neutral:7,width:5,height:5,deckStyle:'white',keyMode:'preview',cardRevealHold:false};
 let remaining={red:0,blue:0};
 let currentPin='';
 let currentBoardData=null;
@@ -2836,13 +2837,13 @@ function selectMode(mode){
 function showRules(mode){
     const rules = {
         classic: `
-            <h3>🎯 Cel gry</h3>
+<h3>🎯 Cel gry</h3>
             <p>Dwie drużyny rywalizują, aby jako pierwsze odnaleźć wszystkich swoich <span class="highlight">agentów</span> ukrytych pod kartami ze słowami.</p>
             
-            <h3>👥 Drużyny</h3>
+<h3>👥 Drużyny</h3>
             <p>Gracze dzielą się na dwie drużyny: <span class="danger">Czerwonych</span> i <span class="info">Niebieskich</span>. Każda drużyna wybiera <span class="highlight">Szpiega</span> (kapitana), który zna położenie wszystkich kart.</p>
             
-            <h3>🎮 Rozgrywka</h3>
+<h3>🎮 Rozgrywka</h3>
             <ul>
                 <li><span class="highlight">Szpieg</span> podaje swojej drużynie jednowyrazową wskazówkę i liczbę kart, które pasują do tej wskazówki</li>
                 <li>Drużyna próbuje odgadnąć karty swoich agentów</li>
@@ -2850,17 +2851,17 @@ function showRules(mode){
                 <li>Drużyna zaczynająca ma <span class="highlight">9 agentów</span>, druga ma <span class="highlight">8</span></li>
             </ul>
             
-            <h3>☠️ Zabójca</h3>
+<h3>☠️ Zabójca</h3>
             <p>Na planszy jest <span class="danger">1 zabójca</span>. Drużyna, która trafi na zabójcę, <span class="danger">natychmiast przegrywa</span> rundę!</p>
             
-            <h3>🏆 Zwycięstwo</h3>
+<h3>🏆 Zwycięstwo</h3>
             <p>Rundę wygrywa drużyna, która pierwsza odkryje wszystkich swoich agentów. Mecz wygrywa drużyna, która pierwsza wygra ustaloną liczbę rund.</p>
         `,
         crazy: `
-            <h3>🎯 Cel gry</h3>
+<h3>🎯 Cel gry</h3>
             <p>Takie same zasady jak w trybie klasycznym, ale z <span class="danger">większym ryzykiem</span>!</p>
             
-            <h3>☠️ Wielu zabójców</h3>
+<h3>☠️ Wielu zabójców</h3>
             <p>Możesz ustawić od <span class="danger">1 do 7 zabójców</span> na planszy! Im więcej zabójców, tym mniej neutralnych kart i większe emocje.</p>
             <ul>
                 <li>1 zabójca = 7 neutralnych</li>
@@ -2871,7 +2872,7 @@ function showRules(mode){
             <h3>🎲 Wybór startu</h3>
             <p>W trybie szalonym możesz wybrać, która drużyna zaczyna grę, zamiast losowania.</p>
             
-            <h3>⚡ Strategia</h3>
+            <h3>⏱️ Strategia</h3>
             <p>Więcej zabójców oznacza:</p>
             <ul>
                 <li>Większe ryzyko przy zgadywaniu</li>
@@ -2879,7 +2880,7 @@ function showRules(mode){
                 <li>Ostrożniejsze wskazówki od Szpiega</li>
             </ul>
             
-            <h3>🏆 Zwycięstwo</h3>
+<h3>🏆 Zwycięstwo</h3>
             <p>Zasady wygranej pozostają takie same - odkryj wszystkich swoich agentów lub poczekaj, aż przeciwnik trafi na zabójcę!</p>
         `
     };
@@ -2899,11 +2900,6 @@ function backToHome(){
 function startClassic(){
     team.red.name=$('classicRedName').value||'Czerwoni';
     team.blue.name=$('classicBlueName').value||'Niebiescy';
-    
-    // Zapisz nazwy drużyn do localStorage (dla kapitana)
-    localStorage.setItem('tajniacy_teamRedName', team.red.name);
-    localStorage.setItem('tajniacy_teamBlueName', team.blue.name);
-    
     cfg.winTarget=Math.max(1,+$('classicWinTarget').value||3);
     cfg.deckStyle=$('globalStyle').value;
     
@@ -2952,10 +2948,6 @@ function startClassic(){
 function startCrazy(){
     team.red.name=$('crazyRedName').value||'Czerwoni';
     team.blue.name=$('crazyBlueName').value||'Niebiescy';
-    
-    // Zapisz nazwy drużyn do localStorage (dla kapitana)
-    localStorage.setItem('tajniacy_teamRedName', team.red.name);
-    localStorage.setItem('tajniacy_teamBlueName', team.blue.name);
     
     const deckValue = $('crazyDeck').value;
     
@@ -3095,22 +3087,6 @@ function selectRevealMode(mode){
     
     document.querySelectorAll('#cardGlobalReveal .deck-option').forEach(opt => {
         opt.classList.toggle('selected', opt.dataset.reveal === mode);
-    });
-    
-    playSound('click');
-}
-
-function selectConfettiStyle(style){
-    // Ustaw styl confetti
-    cfg.confettiStyle = style;
-    localStorage.setItem('tajniacy_confettiStyle', style);
-    
-    const summary = document.getElementById('globalConfettiSummary');
-    const names = {'canvas':'Canvas (nowy)', 'anime':'Anime.js (klasyczny)'};
-    if(summary) summary.textContent = names[style] || style;
-    
-    document.querySelectorAll('#cardGlobalConfetti .deck-option').forEach(opt => {
-        opt.classList.toggle('selected', opt.dataset.confetti === style);
     });
     
     playSound('click');
@@ -3312,7 +3288,11 @@ function initRound(){
         roles: roles, 
         starter: redStarts ? 'red' : 'blue',
         redCount: remaining.red,
-        blueCount: remaining.blue
+        blueCount: remaining.blue,
+        revealed: new Array(words.length).fill(false),
+        gameOver: false,
+        winner: null,
+        teamNames: { red: team.red.name, blue: team.blue.name }
     };
     
     // Generuj PIN i zapisz do localStorage (po utworzeniu danych planszy)
@@ -3336,27 +3316,22 @@ function initRound(){
             card.classList.add('revealed');
             playSound('click');
             
-            // Zapisz odkrytą kartę do Firebase (live sync z kapitanem)
-            if(db) {
-                const sessionId = localStorage.getItem('tajniacy_session_id');
-                if(sessionId) {
-                    const revealedCards = Array.from(document.querySelectorAll('.card.revealed')).map(c => parseInt(c.dataset.index));
-                    db.ref('games/' + sessionId + '/revealedCards').set(revealedCards).catch(e => console.log('Firebase sync error:', e));
-                    
-                    // Zapisz aktualny stan gry
-                    db.ref('games/' + sessionId + '/gameState').set({
-                        redRemaining: remaining.red,
-                        blueRemaining: remaining.blue,
-                        redScore: team.red.score,
-                        blueScore: team.blue.score
-                    }).catch(e => console.log('Firebase sync error:', e));
-                }
+            // Sync z Firebase - oznacz kartę jako odkrytą
+            if(currentBoardData && currentBoardData.revealed){
+                currentBoardData.revealed[i] = true;
+                syncBoardToFirebase();
             }
             
             if(roles[i]==='assassin'){
                 // Animacja zabójcy - shake + flash
                 animateAssassinReveal(card);
                 gameOver=true;
+                // Sync koniec gry do Firebase
+                if(currentBoardData){
+                    currentBoardData.gameOver = true;
+                    currentBoardData.winner = 'assassin';
+                    syncBoardToFirebase();
+                }
                 setTimeout(()=>{
                     $('assRedText').textContent=team.red.name;
                     $('assBlueText').textContent=team.blue.name;
@@ -3376,6 +3351,12 @@ function initRound(){
                 updateSideCard('red');
                 if(!remaining.red){
                     gameOver=true; // Blokuj natychmiast
+                    // Sync wygrana do Firebase
+                    if(currentBoardData){
+                        currentBoardData.gameOver = true;
+                        currentBoardData.winner = 'red';
+                        syncBoardToFirebase();
+                    }
                     // Wygrana - burst
                     setTimeout(()=>animateWinBurst('red'),300);
                     setTimeout(()=>endRound(null,'red'),800);
@@ -3386,6 +3367,12 @@ function initRound(){
                 updateSideCard('blue');
                 if(!remaining.blue){
                     gameOver=true; // Blokuj natychmiast
+                    // Sync wygrana do Firebase
+                    if(currentBoardData){
+                        currentBoardData.gameOver = true;
+                        currentBoardData.winner = 'blue';
+                        syncBoardToFirebase();
+                    }
                     // Wygrana - burst
                     setTimeout(()=>animateWinBurst('blue'),300);
                     setTimeout(()=>endRound(null,'blue'),800);
@@ -3467,12 +3454,7 @@ function endRound(resultText,winner,isAssassin=false){
         
         if(team[winner].score>=cfg.winTarget){
             // Wygrana meczu
-            const confettiColor = winner==='red'?'#e74c3c':'#3498db';
-            if(cfg.confettiStyle === 'canvas'){
-                showConfettiCanvas(confettiColor);
-            } else {
-                showConfetti(confettiColor);
-            }
+            showConfetti(winner==='red'?'#e74c3c':'#3498db');
             resultEl.textContent=`${team[winner].emoji} ${team[winner].name} WYGRYWAJĄ MECZ!`;
             resultEl.classList.add('match-won');
             $('nextRoundBtn').style.display='none';
@@ -3559,10 +3541,6 @@ async function generatePin(){
             await db.ref('games/' + sessionId).set({
                 pinHash: pinHash,
                 board: currentBoardData,
-                teamNames: {
-                    red: team.red.name,
-                    blue: team.blue.name
-                },
                 createdAt: Date.now()
             });
             
@@ -3585,6 +3563,135 @@ function generateSessionCode() {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return code;
+}
+
+// Sync stanu planszy do Firebase (wywoływane przy każdym odkryciu karty)
+async function syncBoardToFirebase(){
+    if(!db || !currentBoardData) return;
+    
+    const sessionId = localStorage.getItem('tajniacy_session_id');
+    if(!sessionId) return;
+    
+    try {
+        await db.ref('games/' + sessionId + '/board').set(currentBoardData);
+        // Aktualizuj też localStorage
+        localStorage.setItem('tajniacy_board', JSON.stringify(currentBoardData));
+    } catch(e) {
+        console.log('Błąd sync Firebase:', e);
+    }
+}
+
+// Zmienna dla listenera Firebase
+let captainFirebaseListener = null;
+let captainSessionCode = null;
+
+// Setup real-time listener na planszy kapitana
+function setupCaptainListener(sessionCode){
+    if(!db) return;
+    
+    // Usuń poprzedni listener jeśli istnieje
+    if(captainFirebaseListener && captainSessionCode){
+        db.ref('games/' + captainSessionCode + '/board').off('value', captainFirebaseListener);
+    }
+    
+    captainSessionCode = sessionCode;
+    
+    captainFirebaseListener = db.ref('games/' + sessionCode + '/board').on('value', (snapshot) => {
+        const boardData = snapshot.val();
+        if(!boardData) return;
+        
+        // Aktualizuj planszę kapitana
+        updateCaptainBoardFromFirebase(boardData);
+        
+        // Sprawdź czy gra się skończyła
+        if(boardData.gameOver && boardData.winner){
+            showCaptainRoundEnd(boardData.winner);
+        }
+    });
+}
+
+// Aktualizuj planszę kapitana z Firebase
+function updateCaptainBoardFromFirebase(boardData){
+    const cards = document.querySelectorAll('#captainBoard .captain-card');
+    if(!cards.length || !boardData.revealed) return;
+    
+    boardData.revealed.forEach((isRevealed, i) => {
+        if(cards[i]){
+            if(isRevealed && !cards[i].classList.contains('revealed')){
+                cards[i].classList.add('revealed');
+                // Dodaj avatar drużyny
+                let revealerEmoji = '';
+                if(boardData.roles[i] === 'red') revealerEmoji = team.red.emoji;
+                else if(boardData.roles[i] === 'blue') revealerEmoji = team.blue.emoji;
+                if(revealerEmoji && !cards[i].querySelector('.card-revealer')){
+                    const word = cards[i].textContent;
+                    cards[i].innerHTML = `${word}<span class="card-revealer">${revealerEmoji}</span>`;
+                }
+            }
+        }
+    });
+    
+    // Aktualizuj liczniki w legendzie
+    const redRemaining = boardData.revealed.filter((r,i) => !r && boardData.roles[i] === 'red').length;
+    const blueRemaining = boardData.revealed.filter((r,i) => !r && boardData.roles[i] === 'blue').length;
+    
+    const legendRed = $('legendRed');
+    const legendBlue = $('legendBlue');
+    if(legendRed) legendRed.querySelector('.legend-count').textContent = redRemaining;
+    if(legendBlue) legendBlue.querySelector('.legend-count').textContent = blueRemaining;
+}
+
+// Pokaż overlay końca rundy na planszy kapitana
+function showCaptainRoundEnd(winner){
+    const overlay = $('captainRoundEnd');
+    const emojiEl = $('captainWinnerEmoji');
+    const textEl = $('captainWinnerText');
+    const countdownEl = $('captainCountdown');
+    
+    if(winner === 'assassin'){
+        emojiEl.textContent = '💀';
+        textEl.textContent = 'Zabójca odkryty!';
+        textEl.className = 'round-end-text';
+    } else {
+        const teamData = team[winner];
+        emojiEl.textContent = teamData ? teamData.emoji : (winner === 'red' ? '🔴' : '🔵');
+        textEl.textContent = `${teamData ? teamData.name : (winner === 'red' ? 'Czerwoni' : 'Niebiescy')} wygrywają rundę!`;
+        textEl.className = 'round-end-text ' + winner;
+    }
+    
+    overlay.classList.add('active');
+    
+    // Countdown 3, 2, 1
+    let count = 3;
+    countdownEl.textContent = count;
+    
+    const countdownInterval = setInterval(() => {
+        count--;
+        if(count > 0){
+            countdownEl.textContent = count;
+        } else {
+            clearInterval(countdownInterval);
+            // Zamknij planszę kapitana
+            closeCaptainBoardAuto();
+        }
+    }, 1000);
+}
+
+// Auto-zamknięcie planszy kapitana po countdown
+function closeCaptainBoardAuto(){
+    // Usuń listener
+    if(captainFirebaseListener && captainSessionCode && db){
+        db.ref('games/' + captainSessionCode + '/board').off('value', captainFirebaseListener);
+        captainFirebaseListener = null;
+    }
+    
+    // Ukryj overlaye planszy
+    $('captainRoundEnd').classList.remove('active');
+    $('captainBoardOverlay').style.display = 'none';
+    $('captainBoardOverlay').style.opacity = '1';
+    
+    // Otwórz okienko z kodem gry i PIN
+    showCaptainKeyOverlay();
 }
 
 function showCaptainKeyOverlay(){
@@ -3651,9 +3758,6 @@ function showGlobalSettings(){
     // Ustaw wybraną opcję odkrywania kart
     const mode = cfg.cardRevealHold ? 'hold' : 'click';
     selectRevealMode(mode);
-    
-    // Ustaw wybraną opcję confetti
-    selectConfettiStyle(cfg.confettiStyle);
     
     showO('globalSettingsOverlay');
 }
@@ -3736,6 +3840,11 @@ async function verifyCaptainPin(){
             // Najpierw przygotuj planszę
             buildCaptainBoard(savedBoard);
             
+            // Setup real-time listener jeśli mamy kod sesji
+            if(sessionCode && sessionCode.length === 4){
+                setupCaptainListener(sessionCode);
+            }
+            
             // Ukryj input overlay i pokaż planszę
             $('captainKeyOverlay').style.display = 'none';
             $('captainBoardOverlay').style.display = 'flex';
@@ -3758,127 +3867,81 @@ function buildCaptainBoard(boardData){
     const starterEl = $('captainStarter');
     board.innerHTML = '';
     
-    // Załaduj nazwy drużyn z localStorage (zapisane przy starcie gry)
-    const savedTeamNames = {
-        red: localStorage.getItem('tajniacy_teamRedName') || 'Czerwoni',
-        blue: localStorage.getItem('tajniacy_teamBlueName') || 'Niebiescy'
-    };
+    // Resetuj overlay końca rundy
+    $('captainRoundEnd').classList.remove('active');
     
-    // Pokaż kto zaczyna + nazwy drużyn z gry
+    // Pokaż kto zaczyna
     if(boardData.starter){
         const isRed = boardData.starter === 'red';
         const color = isRed ? '#e74c3c' : '#3498db';
-        const teamName = isRed ? savedTeamNames.red : savedTeamNames.blue;
-        const count = isRed ? boardData.redCount : boardData.blueCount;
-        const otherCount = isRed ? boardData.blueCount : boardData.redCount;
+        const starterName = isRed ? (boardData.teamNames?.red || 'Czerwoni') : (boardData.teamNames?.blue || 'Niebiescy');
         
         starterEl.innerHTML = `
             <div class="starter-info" style="border-color:${color}">
                 <span class="starter-label">Zaczyna:</span>
-                <span class="starter-team" style="color:${color}">${teamName}</span>
-                <span class="starter-counts">
-                    <span style="color:#e74c3c">${boardData.redCount || '?'}</span>
-                    <span style="color:#888">vs</span>
-                    <span style="color:#3498db">${boardData.blueCount || '?'}</span>
-                </span>
+                <span class="starter-team" style="color:${color}">${starterName}</span>
             </div>
         `;
     } else {
         starterEl.innerHTML = '';
     }
     
+    // Aktualizuj legendę - nazwy drużyn i liczniki
+    const redName = boardData.teamNames?.red || 'Czerwoni';
+    const blueName = boardData.teamNames?.blue || 'Niebiescy';
+    const redCount = boardData.redCount || 0;
+    const blueCount = boardData.blueCount || 0;
+    
+    const legendRed = $('legendRed');
+    const legendBlue = $('legendBlue');
+    if(legendRed) {
+        legendRed.querySelector('.legend-name').textContent = redName;
+        legendRed.querySelector('.legend-count').textContent = redCount;
+    }
+    if(legendBlue) {
+        legendBlue.querySelector('.legend-name').textContent = blueName;
+        legendBlue.querySelector('.legend-count').textContent = blueCount;
+    }
+    
     boardData.words.forEach((word, i) => {
         const card = document.createElement('div');
         card.className = `captain-card is-${boardData.roles[i]}`;
-        card.dataset.index = i;
-        card.textContent = word;
+        
+        // Dodaj revealed jeśli karta była odkryta
+        if(boardData.revealed && boardData.revealed[i]){
+            card.classList.add('revealed');
+            // Określ avatar drużyny na podstawie roli karty
+            let revealerEmoji = '';
+            if(boardData.roles[i] === 'red') revealerEmoji = team.red.emoji;
+            else if(boardData.roles[i] === 'blue') revealerEmoji = team.blue.emoji;
+            card.innerHTML = `${word}<span class="card-revealer">${revealerEmoji}</span>`;
+        } else {
+            card.textContent = word;
+        }
         board.appendChild(card);
     });
-    
-    // Nasłuchuj na zmiany odkrytych kart (live sync z grą)
-    if(db) {
-        const sessionId = localStorage.getItem('tajniacy_session_id');
-        if(sessionId) {
-            console.log('🔗 Łączę z Firebase session:', sessionId);
-            
-            // Listener na odkryte karty
-            db.ref('games/' + sessionId + '/revealedCards').on('value', (snapshot) => {
-                const revealedIndexes = snapshot.val() || [];
-                console.log('📡 Otrzymano odkryte karty:', revealedIndexes);
-                document.querySelectorAll('.captain-card').forEach((card, idx) => {
-                    if(revealedIndexes.includes(idx)) {
-                        card.classList.add('revealed');
-                    } else {
-                        card.classList.remove('revealed');
-                    }
-                });
-            });
-            
-            // Listener na stan gry (liczniki)
-            db.ref('games/' + sessionId + '/gameState').on('value', (snapshot) => {
-                const state = snapshot.val();
-                console.log('📡 Otrzymano stan gry:', state);
-                if(state) {
-                    updateCaptainLegend(state, savedTeamNames);
-                }
-            });
-        }
-    }
 }
-
-// Aktualizuj legendę z licznikami live
-function updateCaptainLegend(state, teamNames) {
-    const legend = document.querySelector('.captain-legend');
-    if(!legend || !state) return;
-    
-    teamNames = teamNames || {
-        red: localStorage.getItem('tajniacy_teamRedName') || 'Czerwoni',
-        blue: localStorage.getItem('tajniacy_teamBlueName') || 'Niebiescy'
-    };
-    
-    legend.innerHTML = `
-        <span class="legend-item">
-            <span class="legend-color red"></span>
-            ${teamNames.red} (${state.redRemaining || '?'})
-        </span>
-        <span class="legend-item">
-            <span class="legend-color blue"></span>
-            ${teamNames.blue} (${state.blueRemaining || '?'})
-        </span>
-        <span class="legend-item">
-            <span class="legend-color neutral"></span>
-            Neutralni
-        </span>
-        <span class="legend-item">
-            <span class="legend-color assassin"></span>
-            Zabójca
-        </span>
-    `;
-}
-
 
 function confirmCloseCaptainBoard(){
     showO('closeCaptainConfirm');
 }
 
 function closeCaptainBoardAndReturn(){
-    // Wyłącz Firebase listenery
-    if(db) {
-        const sessionId = localStorage.getItem('tajniacy_session_id');
-        if(sessionId) {
-            db.ref('games/' + sessionId + '/revealedCards').off();
-            db.ref('games/' + sessionId + '/gameState').off();
-        }
+    // Usuń listener Firebase
+    if(captainFirebaseListener && captainSessionCode && db){
+        db.ref('games/' + captainSessionCode + '/board').off('value', captainFirebaseListener);
+        captainFirebaseListener = null;
     }
     
-    // Ukryj overlaye i zresetuj opacity
+    // Ukryj overlaye planszy kapitana
     $('closeCaptainConfirm').style.display = 'none';
     $('closeCaptainConfirm').style.opacity = '1';
+    $('captainRoundEnd').classList.remove('active');
     $('captainBoardOverlay').style.display = 'none';
     $('captainBoardOverlay').style.opacity = '1';
     
-    // Upewnij się że homeScreen jest widoczny
-    showO('homeScreen');
+    // Otwórz okienko z kodem gry i PIN
+    showCaptainKeyOverlay();
 }
 
 function confirmNewRound(){
@@ -3914,11 +3977,6 @@ function stopConfetti(){
         confettiInterval = null;
     }
     document.querySelectorAll('.confetti').forEach(c => c.remove());
-    
-    // Zatrzymaj canvas-confetti
-    if(typeof confetti !== 'undefined' && confetti.reset){
-        confetti.reset();
-    }
 }
 
 function showConfetti(color){
@@ -3995,112 +4053,6 @@ function showConfetti(color){
         }
         spawnConfetti();
     }, interval);
-    
-    // Fanfary
-    playFanfare();
-}
-
-// ANCHOR: CANVAS_CONFETTI (alternatywa - porównanie)
-function showConfettiCanvas(color){
-    // Kolory zależne od drużyny
-    const teamColors = color === '#e74c3c' 
-        ? ['#e74c3c','#c0392b','#ff6b6b','#ee5a24'] 
-        : ['#3498db','#2980b9','#74b9ff','#0984e3'];
-    const goldColors = ['#FFD700','#FFC107','#FFEB3B','#FFA000'];
-    const allColors = [...teamColors, ...goldColors];
-    
-    const duration = 10000; // 10 sekund
-    const animationEnd = Date.now() + duration;
-    
-    // Główny wybuch z góry - EKSPLOZJA
-    const fireworks = () => {
-        confetti({
-            particleCount: 100,
-            spread: 160,
-            origin: { y: 0.3 },
-            colors: allColors,
-            startVelocity: 45,
-            gravity: 1.2,
-            scalar: 1.5,
-            ticks: 400,
-            shapes: ['circle', 'square'],
-            zIndex: 10000
-        });
-    };
-    
-    // Boczne wyrzutnie
-    const sides = () => {
-        // Lewa
-        confetti({
-            particleCount: 50,
-            angle: 60,
-            spread: 55,
-            origin: { x: 0, y: 0.7 },
-            colors: allColors,
-            startVelocity: 55,
-            gravity: 1,
-            scalar: 1.2,
-            zIndex: 10000
-        });
-        // Prawa
-        confetti({
-            particleCount: 50,
-            angle: 120,
-            spread: 55,
-            origin: { x: 1, y: 0.7 },
-            colors: allColors,
-            startVelocity: 55,
-            gravity: 1,
-            scalar: 1.2,
-            zIndex: 10000
-        });
-    };
-    
-    // Deszcz confetti z góry
-    const rain = () => {
-        confetti({
-            particleCount: 30,
-            spread: 360,
-            origin: { y: 0 },
-            colors: allColors,
-            startVelocity: 25,
-            gravity: 0.5,
-            scalar: 1,
-            drift: 1,
-            zIndex: 10000
-        });
-    };
-    
-    // Początkowa seria wybuchów
-    fireworks();
-    setTimeout(fireworks, 150);
-    setTimeout(fireworks, 300);
-    setTimeout(sides, 100);
-    setTimeout(sides, 250);
-    
-    // Zatrzymaj poprzedni interval jeśli istnieje
-    if(confettiInterval){
-        clearInterval(confettiInterval);
-    }
-    
-    // Ciągłe efekty przez 10 sekund
-    confettiInterval = setInterval(() => {
-        const timeLeft = animationEnd - Date.now();
-        
-        if (timeLeft <= 0) {
-            clearInterval(confettiInterval);
-            confettiInterval = null;
-            return;
-        }
-        
-        // Co 300ms - różne efekty
-        const random = Math.random();
-        if(random < 0.5){
-            rain();
-        } else {
-            sides();
-        }
-    }, 300);
     
     // Fanfary
     playFanfare();
@@ -4457,12 +4409,6 @@ if(savedSound !== null){
 const savedCardRevealHold = localStorage.getItem('tajniacy_cardRevealHold');
 if(savedCardRevealHold !== null){
     cfg.cardRevealHold = savedCardRevealHold === 'true';
-}
-
-// Załaduj styl confetti z localStorage
-const savedConfettiStyle = localStorage.getItem('tajniacy_confettiStyle');
-if(savedConfettiStyle !== null){
-    cfg.confettiStyle = savedConfettiStyle;
 }
 
 showO('homeScreen');
@@ -4910,7 +4856,7 @@ function pollGamepad(){
     // Mapowanie przycisków (Xbox / PlayStation):
     // 0 = A / X (potwierdź)
     // 1 = B / O (anuluj)
-    // 2 = X / □ 
+    // 2 = X / □
     // 3 = Y / △ (klucz)
     // 4 = LB / L1
     // 5 = RB / R1
