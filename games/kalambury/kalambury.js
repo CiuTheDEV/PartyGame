@@ -1,7 +1,7 @@
 /* PartyHUB — Kalambury (logika gry) */
 
 // ANCHOR: VERSION
-    const GAME_VERSION = '1.0.2';
+    const GAME_VERSION = 'beta 1.0';
 
     // ANCHOR: CFG_CONSTANTS
     const TURN_STEPS = [15,30,45,60,75,90,120,0]; // 0 => no limit
