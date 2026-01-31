@@ -5,9 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PartyHUB — Kalambury</title>
 
-  
-  <link rel="stylesheet" href="../../core/ui.css">
-  <link rel="stylesheet" href="./kalambury.css">
+  <!-- [PH] GH_PAGES_LOADER: resilient CSS loading (core + game) -->
+  <script>
+  (function(){
+    const log = (...a)=>{ try{ console.log('[PH][asset]', ...a); }catch(_e){} };
+    function loadCSS(candidates){
+      return new Promise((resolve,reject)=>{
+        let i=0;
+        const tryNext=()=>{
+          if(i>=candidates.length) return reject(new Error('CSS not found: '+candidates.join(' | ')));
+          const href=candidates[i++];
+          const l=document.createElement('link');
+          l.rel='stylesheet';
+          l.href=href;
+          l.onload=()=>{ log('css ok', href); resolve(href); };
+          l.onerror=()=>{ l.remove(); log('css fail', href); tryNext(); };
+          document.head.appendChild(l);
+        };
+        tryNext();
+      });
+    }
+
+    const p = location.pathname;
+    const coreCandidates = (p.includes('/partyhub/'))
+      ? ['../../core/ui.css','../core/ui.css','/partyhub/core/ui.css']
+      : ['../../partyhub/core/ui.css','../partyhub/core/ui.css','/partyhub/core/ui.css','../../core/ui.css','/core/ui.css'];
+
+    const gameCandidates = ['./kalambury.css','./kalambury.css?v=1'];
+
+    loadCSS(coreCandidates).then(()=>loadCSS(gameCandidates)).catch((e)=>{ log(e.message); });
+  })();
+  </script>
+
 </head>
 <body>
 
@@ -419,12 +448,40 @@
   <!-- ANCHOR: TWEMOJI_TEST (CDN) -->
   <script defer src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
 
-  
-  <script src="../../core/ui.js"></script>
-  <!-- [PH] Hasła / pule w osobnym pliku (bez modułów ES) -->
-  <script src="./words.js"></script>
-  <script src="./kalambury.js"></script>
-  <!-- [PH] DEV_LOADER (tylko gdy ?dev=1 / ?dbg=1 lub localStorage.dev=1) -->
+  <!-- [PH] GH_PAGES_LOADER: resilient JS loading (core → words → game) -->
+  <script>
+  (function(){
+    const log = (...a)=>{ try{ console.log('[PH][asset]', ...a); }catch(_e){} };
+    function loadJS(candidates){
+      return new Promise((resolve,reject)=>{
+        let i=0;
+        const tryNext=()=>{
+          if(i>=candidates.length) return reject(new Error('JS not found: '+candidates.join(' | ')));
+          const src=candidates[i++];
+          const s=document.createElement('script');
+          s.src=src;
+          s.async=false;
+          s.onload=()=>{ log('js ok', src); resolve(src); };
+          s.onerror=()=>{ s.remove(); log('js fail', src); tryNext(); };
+          document.body.appendChild(s);
+        };
+        tryNext();
+      });
+    }
+    const p=location.pathname;
+    const uiCandidates = (p.includes('/partyhub/'))
+      ? ['../../core/ui.js','../core/ui.js','/partyhub/core/ui.js']
+      : ['../../partyhub/core/ui.js','../partyhub/core/ui.js','/partyhub/core/ui.js','../../core/ui.js','/core/ui.js'];
+
+    const wordsCandidates = ['./words.js','./words.js?v=1'];
+    const gameCandidates  = ['./kalambury.js','./kalambury.js?v=1'];
+
+    loadJS(uiCandidates).then(()=>loadJS(wordsCandidates)).then(()=>loadJS(gameCandidates))
+      .catch(e=>log(e.message));
+  })();
+  </script>
+
+<!-- [PH] DEV_LOADER (tylko gdy ?dev=1 / ?dbg=1 lub localStorage.dev=1) -->
   <script>
     (function(){
       try{
