@@ -1,7 +1,7 @@
 /* PartyHUB — Kalambury (logika gry) */
 
 // ANCHOR: VERSION
-    const GAME_VERSION = 'beta 1.0';
+    const GAME_VERSION = '1.0.2';
 
     // ANCHOR: CFG_CONSTANTS
     const TURN_STEPS = [15,30,45,60,75,90,120,0]; // 0 => no limit
@@ -1374,6 +1374,96 @@ if(n > 0){
     const STAGE3_WORD_SEC = 10;
     let __stage3TickT = null;
 
+    // ANCHOR: STAGE3_JINGLE (10s muzyczka gdy gracze mają zamknięte oczy / faza 3B "word")
+    let __phAudioCtx = null;
+    let __s3JingleTO = null;
+    let __s3JingleNodes = [];
+
+    function phGetAudioCtx(){
+      try{
+        if(__phAudioCtx) return __phAudioCtx;
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if(!Ctx) return null;
+        __phAudioCtx = new Ctx();
+        return __phAudioCtx;
+      }catch(_e){ return null; }
+    }
+
+    // iOS/Chrome: audio zwykle wymaga wcześniejszego "unlock" z gestu użytkownika
+    function phTryUnlockAudio(){
+      try{
+        if(!state || !state.settings || !state.settings.soundOn) return;
+        const ctx = phGetAudioCtx();
+        if(!ctx) return;
+        if(ctx.state === 'suspended') ctx.resume().catch(()=>{});
+      }catch(_e){}
+    }
+
+    function stage3StopWordJingle(){
+      try{
+        if(__s3JingleTO){ clearTimeout(__s3JingleTO); __s3JingleTO = null; }
+        const nodes = __s3JingleNodes;
+        __s3JingleNodes = [];
+        for(const n of nodes){
+          try{ n.stop && n.stop(); }catch(_e){}
+          try{ n.disconnect && n.disconnect(); }catch(_e){}
+        }
+      }catch(_e){}
+    }
+
+    function stage3StartWordJingle(ms){
+      try{
+        if(!state || !state.settings || !state.settings.soundOn) return;
+        const ctx = phGetAudioCtx();
+        if(!ctx) return;
+        if(ctx.state === 'suspended') ctx.resume().catch(()=>{});
+
+        stage3StopWordJingle();
+
+        const durMs = Math.max(0, Number(ms||0));
+        if(!durMs) return;
+
+        const now = ctx.currentTime;
+        const endT = now + (durMs/1000);
+        const fadeStart = Math.max(now + 0.12, endT - 0.18);
+
+        const master = ctx.createGain();
+        master.gain.setValueAtTime(0.0001, now);
+        master.gain.exponentialRampToValueAtTime(0.07, now + 0.05);
+        master.gain.setValueAtTime(0.07, fadeStart);
+        master.gain.exponentialRampToValueAtTime(0.0001, endT);
+
+        const o1 = ctx.createOscillator();
+        o1.type = 'sine';
+        const o2 = ctx.createOscillator();
+        o2.type = 'triangle';
+
+        // Prosty arpeggio (przyjemne, wyraźny sygnał) — 10s
+        const notes = [523.25, 659.25, 783.99, 659.25, 587.33, 698.46, 880.0, 698.46];
+        const step = 0.5; // co 0.5s
+        const steps = Math.ceil((durMs/1000)/step);
+        for(let i=0;i<steps;i++){
+          const t = now + i*step;
+          const f = notes[i % notes.length];
+          o1.frequency.setValueAtTime(f, t);
+          o2.frequency.setValueAtTime(f/2, t);
+        }
+
+        o1.connect(master);
+        o2.connect(master);
+        master.connect(ctx.destination);
+
+        o1.start(now);
+        o2.start(now);
+        o1.stop(endT + 0.03);
+        o2.stop(endT + 0.03);
+
+        __s3JingleNodes = [o1, o2, master];
+        __s3JingleTO = setTimeout(stage3StopWordJingle, durMs + 150);
+      }catch(_e){}
+    }
+
+
     // [PH] HASLA: pule w osobnym pliku (games/kalambury/words.js)
     const WORD_POOLS = (window.KALAMBURY_WORD_POOLS && typeof window.KALAMBURY_WORD_POOLS === "object")
       ? window.KALAMBURY_WORD_POOLS
@@ -1383,6 +1473,7 @@ if(n > 0){
     function clearStage3Timers(){
       if(__stage3TickT){ clearInterval(__stage3TickT); __stage3TickT = null; }
       stage3StopProgressBorder();
+      stage3StopWordJingle();
     }
 
     function stage3Turn(){
@@ -1418,6 +1509,8 @@ if(n > 0){
 
     function stage3SetPhase(phase, { refreshWord=false }={}){
       const t = stage3Turn();
+      const prev = t.phase;
+      if(prev === 'word' && phase !== 'word') stage3StopWordJingle();
       t.phase = phase;
       t.lastShown = -1;
 
@@ -1434,6 +1527,7 @@ if(n > 0){
       if(phase === 'word'){
         if(refreshWord || !t.word) stage3PickWord();
         t.endAt = Date.now() + STAGE3_WORD_SEC*1000;
+        stage3StartWordJingle(STAGE3_WORD_SEC*1000);
 
         renderGameStage();
         // [PH] dopasuj wielkość długich haseł (nie pozwól, by rozwalały układ / timer)
@@ -1724,6 +1818,7 @@ function stage3SyncProgressBorder(){
     }
 
     function stage3Start(){
+      phTryUnlockAudio();
       ensureOrderForStage2();
       const t = stage3Turn();
 
@@ -2908,9 +3003,9 @@ if(s === 'stage4' || s === 'stage5'){
     // ANCHOR: PLAYERS_SYSTEM (1:1 z 5 Sekund)
 
     const EMOJI_GROUPS = {
-      people:["😃","😁","🤣","🙃","🫠","😊","😇","🥰","😍","🤩","😋","🤪","😝","🤑","🤫","🤐","😑","😶","🫥","😶‍🌫️","😬","🤥","😴","🤢","🤮","🥵","🥶","🥴","😵‍💫","🤯","🤠","🥳","🥸","😎","🤓","🧐","😱","🥱","😤","😡","🤬","😈","🤡"],
-      animals:["🐵","🦍","🐶","🐺","🦊","🦝","🐱","🦁","🐯","🦄","🦌","🐮","🐷","🐗","🐭","🐹","🐰","🦇","🐻","🐻‍❄️","🐨","🐼","🦥","🐔","🐸","🐲","🦈","🐙","🐌","🦋","🕷️","🐞","🪰","🪱","🦠"],
-      other:["💩","💀","👹","👻","👽️","👾","🤖","⛄️","🎃","😻","😼","😹","🙉","👶","🥷","🎅"]
+      people:["🙂","😀","😄","😁","😆","😅","😂","😉","😊","😇","😍","🤩","🥳","😎","🤓","🤠","😴","🤯","😤","😱","🧑","👩","👨","🧔","👱‍♀️","👱‍♂️","👩‍🦰","👨‍🦳"],
+      animals:["🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐷","🐸","🐵","🐔","🐧","🐙","🦄","🐺","🐴"],
+      other:["🤖","👽","💎","🔮","🎯","🎪","🎭","🎨","🏆","🥇","👑","💀","🦇","🌟","⭐","✨","🔥","⚡","💥","🌈"]
     };
     const EMOJIS = [...EMOJI_GROUPS.people, ...EMOJI_GROUPS.animals, ...EMOJI_GROUPS.other];
 players = [];
