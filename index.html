@@ -47,7 +47,7 @@
           align-items:center;
         }
 
-        #app{width:100%;max-width:1400px;padding:var(--pad)}
+        #app{width:100%;max-width:1400px;padding:var(--pad);transition:opacity .22s ease, transform .22s ease;will-change:opacity,transform}
 
         header{text-align:center;margin-bottom:clamp(26px,5vh,70px)}
         header h1{
@@ -257,6 +257,65 @@
         .qr-link a:hover{border-bottom-color:rgba(0,173,181,1)}
         .qr-hint{position:relative;text-align:center;margin-top:10px;color:var(--dim);font-size:1rem}
 
+        /* NAV TRANSITION (Netflix vibe) */
+        .navfx{
+          position:fixed;
+          inset:0;
+          z-index:200;
+          pointer-events:none;
+          opacity:0;
+          visibility:hidden;
+          background:rgba(0,0,0,.12);
+        }
+        .navfx::after{
+          content:"";
+          position:absolute;
+          inset:0;
+          background:radial-gradient(900px 520px at 50% 45%, rgba(0,173,181,.14), rgba(0,0,0,.92));
+          opacity:.72;
+          pointer-events:none;
+        }
+        .navfx-bars{position:absolute;inset:0;display:flex}
+        .navfx-bar{
+          flex:1;
+          transform:scaleY(0);
+          background:linear-gradient(180deg, rgba(0,173,181,.08), rgba(0,0,0,.92));
+          border-left:1px solid rgba(238,238,238,.04);
+          box-shadow:inset 0 0 0 1px rgba(0,173,181,.06);
+        }
+        .navfx-line{
+          position:absolute;
+          left:-12%;
+          right:-12%;
+          top:50%;
+          height:2px;
+          transform:translateY(-50%) scaleX(0);
+          opacity:0;
+          background:linear-gradient(90deg, transparent, var(--accent), transparent);
+          filter:drop-shadow(0 0 16px rgba(0,173,181,.75));
+        }
+
+        /* CSS fallback (gdy GSAP nie działa / jest zablokowany) */
+        .navfx.is-open{opacity:1;visibility:visible}
+        #app.is-fade{opacity:0;transform:scale(.985)}
+        .navfx.is-open .navfx-bar{animation:navfxUp .78s cubic-bezier(.12,.72,.22,1) forwards}
+        .navfx.is-open .navfx-bar:nth-child(1){animation-delay:.08s}
+        .navfx.is-open .navfx-bar:nth-child(2){animation-delay:.145s}
+        .navfx.is-open .navfx-bar:nth-child(3){animation-delay:.21s}
+        .navfx.is-open .navfx-bar:nth-child(4){animation-delay:.275s}
+        .navfx.is-open .navfx-bar:nth-child(5){animation-delay:.34s}
+        .navfx.is-open .navfx-bar:nth-child(6){animation-delay:.405s}
+        .navfx.is-open .navfx-bar:nth-child(7){animation-delay:.47s}
+        .navfx.is-open .navfx-bar:nth-child(8){animation-delay:.535s}
+        .navfx.is-open .navfx-bar:nth-child(9){animation-delay:.60s}
+        .navfx.is-open .navfx-line{animation:navfxLine .46s ease-out .28s forwards}
+        @keyframes navfxUp{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+        @keyframes navfxLine{
+          0%{transform:translateY(-50%) scaleX(0);opacity:0}
+          25%{opacity:1}
+          100%{transform:translateY(-50%) scaleX(1);opacity:0}
+        }
+
         /* TV FOCUS MODE */
         .game-card:focus{
           outline:none;
@@ -352,7 +411,15 @@
                 <div class="qr-hint">Zeskanuj telefonem, żeby odpalić stronę.</div>
             </div>
         </div>
+    </div>
 
+    <div id="navFx" class="navfx" aria-hidden="true">
+        <div class="navfx-bars" aria-hidden="true">
+            <span class="navfx-bar"></span><span class="navfx-bar"></span><span class="navfx-bar"></span>
+            <span class="navfx-bar"></span><span class="navfx-bar"></span><span class="navfx-bar"></span>
+            <span class="navfx-bar"></span><span class="navfx-bar"></span><span class="navfx-bar"></span>
+        </div>
+        <div class="navfx-line" aria-hidden="true"></div>
     </div>
 
     <script>
@@ -422,6 +489,71 @@
         qrBackdrop && qrBackdrop.addEventListener('click', closeQR);
         qrClose && qrClose.addEventListener('click', closeQR);
 
+        // ===== NAV TRANSITION (Netflix vibe) =====
+        // Jeśli masz w systemie włączone "reduce motion", a mimo to chcesz animacje — zostaw true.
+        const FORCE_TRANSITION = true;
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const navFx = document.getElementById('navFx');
+        const navBars = navFx ? [...navFx.querySelectorAll('.navfx-bar')] : [];
+        const navLine = navFx ? navFx.querySelector('.navfx-line') : null;
+        let isNavigating = false;
+
+        function cssTransitionTo(url){
+            if(!navFx) { window.location.href = url; return; }
+            navFx.classList.add('is-open');
+            document.getElementById('app')?.classList.add('is-fade');
+
+            // czekamy aż OSTATNI pasek skończy animację (żeby nie ucinało końcówki)
+            const last = navBars && navBars.length ? navBars[navBars.length - 1] : null;
+            let waitMs = 1500;
+            if (last) {
+                const cs = getComputedStyle(last);
+                const d = parseFloat(cs.animationDelay || '0') * 1000;
+                const t = parseFloat(cs.animationDuration || '0.78') * 1000;
+                waitMs = Math.max(900, d + t + 260);
+            }
+            window.setTimeout(() => { window.location.href = url; }, waitMs);
+        }
+
+        function netflixTransitionTo(url){
+            if(!url || isNavigating) return;
+            isNavigating = true;
+
+            const allowMotion = FORCE_TRANSITION || !prefersReducedMotion;
+            const canUseGsap = !!window.gsap && typeof gsap.timeline === 'function';
+
+            // jeśli nie chcemy animacji albo brak overlay — idziemy od razu
+            if (!allowMotion || !navFx) {
+                window.location.href = url;
+                return;
+            }
+
+            // fallback CSS (gdy GSAP nie działa / jest zablokowany)
+            if (!canUseGsap || navBars.length === 0) {
+                cssTransitionTo(url);
+                return;
+            }
+
+            gsap.set(navFx, { autoAlpha: 1, visibility: 'visible' });
+            gsap.set(navBars, { scaleY: 0, transformOrigin: 'bottom' });
+            if (navLine) gsap.set(navLine, { scaleX: 0, autoAlpha: 0, transformOrigin: 'left' });
+
+            const tl = gsap.timeline({ defaults: { ease: 'power4.inOut' } });
+            const barsStart = 0.08;
+            const barsDur = 0.78;
+            const barsStagger = 0.06;
+            const barsEnd = barsStart + (navBars.length - 1) * barsStagger + barsDur;
+            tl.to('#app', { autoAlpha: 0, scale: 0.985, duration: 0.32, ease: 'power2.out' }, 0)
+              .to(navBars, { scaleY: 1, duration: 0.78, stagger: 0.06, ease: 'power3.in' }, 0.08);
+
+            if (navLine) {
+                tl.to(navLine, { autoAlpha: 1, scaleX: 1, duration: 0.44, ease: 'power2.out' }, 0.26)
+                  .to(navLine, { autoAlpha: 0, duration: 0.18 }, 0.78);
+            }
+
+            tl.call(() => { window.location.href = url; }, null, barsEnd + 0.26);
+        }
+
         // ===== KLAWIATURA / PILOT =====
         window.addEventListener('keydown', e => {
             // gdy modal QR jest otwarty, blokujemy nawigację po kafelkach
@@ -455,15 +587,7 @@
                     console.warn('Brak data-link');
                     return;
                 }
-                gsap.to('#app', {
-                    opacity: 0,
-                    scale: .95,
-                    duration: .4,
-                    ease: 'power2.inOut',
-                    onComplete: () => {
-                        window.location.href = link;
-                    }
-                });
+                netflixTransitionTo(link);
             });
         });
 
