@@ -213,7 +213,7 @@
     'Gdzie drwa rąbią, tam wióry lecą','Jakie drzewo, taki klin','Jaki ojciec, taki syn','Jaka matka, taka córka'
   ],
     dev:[
-    'Mała konstantynopolitańczykowianeczka tańczy na moście nad Bosforem','TEST1','TEST2','TEST3','TEST4',
+    'Mała konstantynopolitańczykowianeczka tańczy na moście nad Bosforem','TEST1','TEST2','TEST3','TEST4','TEST5'
   ]
   };
 })();
