@@ -213,27 +213,7 @@
     'Gdzie drwa rąbią, tam wióry lecą','Jakie drzewo, taki klin','Jaki ojciec, taki syn','Jaka matka, taka córka'
   ],
     dev:[
-    'Mała konstantynopolitańczykowianeczka tańczy na moście nad Bosforem','Jam jest poczmistrz z Tczewa','Idzie Jerzy i nie wierzy, że na wieży jest sto jeży','Czarna krowa w kropki bordo żuła trawę, kręcąc mordą','Nie pieprz wieprza pieprzem Pietrze, bo bez pieprzu wieprz jest lepszy','Czy Tata czyta cytaty z Tacyta','Czy się Czesi cieszą, że się Czesio czesze','Chłop pcha pchłę, pchłę pcha chłop',
-    'Baba bada baobaby, baba dba o oba baobaby','Wylaminowana i wyemaliowana iluminacja','Pchła pchła pchłę','W Szczebrzeszynie chrząszcz brzmi w trzcinie','Stół z powyłamywanymi nogami','Wyrewolwerowany rewolwer','Dziewięćsetdziewięćdziesięciodziewięciotysięcznik','Konstantynopolitańczykowianeczka','Idź z dżdżownicą nocą na ryby','Jerzy nie wierzy, że na wieży jest gniazdo jeży',
-    'Trzy pstre przepiórzyce','Król Karol kupił królowej Karolinie korale koloru koralowego','Pchnięto w tę łódź jeża lub ośm skrzyń fig','Sprawdź konsolę deweloperską','Błąd: ReferenceError','Błąd: TypeError','Błąd: SyntaxError','Błąd: Uncaught (in promise)','Nie znaleziono pliku','Brak średnika',
-    'Zamknięty nawias','Niepoprawny selektor CSS','Overflow hidden','Z-index się gryzie','Flexbox się rozsypał','Grid nie działa','Hover nie łapie','Klik nie działa','Event listener nie podpięty','DOMContentLoaded',
-    'LocalStorage','SessionStorage','Cache przeglądarki','Hard refresh','Ctrl+F5','Tryb incognito','Wyczyść cache','Minifikacja','Bundle','Tree shaking',
-    'Dead code','Spaghetti code','Refaktor','Hotfix','Bugfix','Pull request','Merge conflict','Rebase','Commit','Push',
-    'Pull','Checkout','Branch','Tag','Release','SemVer','Wersja 1.0.0','Wersja 2.0.0','Build failed','Testy nie przeszły',
-    'Snapshot test','Unit test','E2E test','Mock','Stub','Fixture','Linting','Prettier','ESLint','CI/CD',
-    'Pipeline','Docker build','Container','Kubernetes','Helm chart','NPM install','Yarn add','pnpm i','Node.js','Webpack',
-    'Vite','Parcel','Rollup','Babel','TypeScript','JavaScript','CSS variables','Design tokens','Clamp()','Gradient',
-    'Backdrop blur','Glassmorphism','Neumorphism','Responsywność','Breakpoint','Mobile-first','Media query','Viewport','Rem','Em',
-    'Vh/Vw','Clamp font','Animation','Transition','Keyframes','Transform','Translate','Scale','Rotate','Shadow',
-    'Border radius','Outline','Focus state','ARIA label','Accessibility','Keyboard navigation','Tabindex','Screen reader','Alt text','Lazy loading',
-    'Image sprite','SVG path','Canvas 2D','WebAudio','Sound effect','Haptic feedback','Promise chain','Async await','Callback hell','Race condition',
-    'Debounce','Throttle','RequestAnimationFrame','SetTimeout','SetInterval','API request','Fetch','XHR','CORS','HTTP 404',
-    'HTTP 500','Rate limit','JSON parse error','Invalid JSON','Try/catch','Null pointer','Undefined','NaN','Infinity','Lorem ipsum dolor sit amet',
-    'Hello world','Print debug','Console.log','Breakpoint w debuggerze','Step over','Step into','Call stack','Stack trace','Memory leak','Garbage collector',
-    'Event loop','Microtask queue','Macrotask queue','Strict mode','Hoisting','Closure','Prototype','This binding','Arrow function','Destructuring',
-    'Spread operator','Rest parameters','Template literal','Optional chaining','Nullish coalescing','Regex match','Escape HTML','Sanitize input','XSS','CSRF',
-    'SQL injection','Szyfruj hasła','Hash','Salt','JWT token','OAuth','Login','Logout','Session expired','Cookie consent',
-    'GDPR banner','Popup modal','Toast notification'
+    'Mała konstantynopolitańczykowianeczka tańczy na moście nad Bosforem','TEST1','TEST2','TEST3','TEST4',
   ]
   };
 })();

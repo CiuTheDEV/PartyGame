@@ -1,7 +1,7 @@
 /* PartyHUB — Kalambury (logika gry) */
 
 // ANCHOR: VERSION
-    const GAME_VERSION = '1.0.2';
+    const GAME_VERSION = 'beta 1.0';
 
     // ANCHOR: CFG_CONSTANTS
     const TURN_STEPS = [15,30,45,60,75,90,120,0]; // 0 => no limit
@@ -226,6 +226,9 @@
 
       // [PH] Refresh hasła per gracz / mecz
       try{ initRefreshById(); }catch(_e){ state.game.refreshById = {}; }
+
+      // [PH] Hasła: deck per kategoria (zużyte idą na koniec dopiero po prezentowaniu)
+      try{ initWordDecksForMatch(); }catch(_e){ state.game.wordDecks = {}; }
         state.game.turn = { phase:null, endAt:0, word:'', catId:'', catLabel:'', presenterId:'', verdict:'', verdictAt:0, guesserId:'', presenterPoint:false, lastStop:null };
       }
     }
@@ -1374,106 +1377,133 @@ if(n > 0){
     const STAGE3_WORD_SEC = 10;
     let __stage3TickT = null;
 
-    // ANCHOR: STAGE3_JINGLE (10s muzyczka gdy gracze mają zamknięte oczy / faza 3B "word")
-    let __phAudioCtx = null;
-    let __s3JingleTO = null;
-    let __s3JingleNodes = [];
-
-    function phGetAudioCtx(){
-      try{
-        if(__phAudioCtx) return __phAudioCtx;
-        const Ctx = window.AudioContext || window.webkitAudioContext;
-        if(!Ctx) return null;
-        __phAudioCtx = new Ctx();
-        return __phAudioCtx;
-      }catch(_e){ return null; }
-    }
-
-    // iOS/Chrome: audio zwykle wymaga wcześniejszego "unlock" z gestu użytkownika
-    function phTryUnlockAudio(){
-      try{
-        if(!state || !state.settings || !state.settings.soundOn) return;
-        const ctx = phGetAudioCtx();
-        if(!ctx) return;
-        if(ctx.state === 'suspended') ctx.resume().catch(()=>{});
-      }catch(_e){}
-    }
-
-    function stage3StopWordJingle(){
-      try{
-        if(__s3JingleTO){ clearTimeout(__s3JingleTO); __s3JingleTO = null; }
-        const nodes = __s3JingleNodes;
-        __s3JingleNodes = [];
-        for(const n of nodes){
-          try{ n.stop && n.stop(); }catch(_e){}
-          try{ n.disconnect && n.disconnect(); }catch(_e){}
-        }
-      }catch(_e){}
-    }
-
-    function stage3StartWordJingle(ms){
-      try{
-        if(!state || !state.settings || !state.settings.soundOn) return;
-        const ctx = phGetAudioCtx();
-        if(!ctx) return;
-        if(ctx.state === 'suspended') ctx.resume().catch(()=>{});
-
-        stage3StopWordJingle();
-
-        const durMs = Math.max(0, Number(ms||0));
-        if(!durMs) return;
-
-        const now = ctx.currentTime;
-        const endT = now + (durMs/1000);
-        const fadeStart = Math.max(now + 0.12, endT - 0.18);
-
-        const master = ctx.createGain();
-        master.gain.setValueAtTime(0.0001, now);
-        master.gain.exponentialRampToValueAtTime(0.07, now + 0.05);
-        master.gain.setValueAtTime(0.07, fadeStart);
-        master.gain.exponentialRampToValueAtTime(0.0001, endT);
-
-        const o1 = ctx.createOscillator();
-        o1.type = 'sine';
-        const o2 = ctx.createOscillator();
-        o2.type = 'triangle';
-
-        // Prosty arpeggio (przyjemne, wyraźny sygnał) — 10s
-        const notes = [523.25, 659.25, 783.99, 659.25, 587.33, 698.46, 880.0, 698.46];
-        const step = 0.5; // co 0.5s
-        const steps = Math.ceil((durMs/1000)/step);
-        for(let i=0;i<steps;i++){
-          const t = now + i*step;
-          const f = notes[i % notes.length];
-          o1.frequency.setValueAtTime(f, t);
-          o2.frequency.setValueAtTime(f/2, t);
-        }
-
-        o1.connect(master);
-        o2.connect(master);
-        master.connect(ctx.destination);
-
-        o1.start(now);
-        o2.start(now);
-        o1.stop(endT + 0.03);
-        o2.stop(endT + 0.03);
-
-        __s3JingleNodes = [o1, o2, master];
-        __s3JingleTO = setTimeout(stage3StopWordJingle, durMs + 150);
-      }catch(_e){}
-    }
-
-
     // [PH] HASLA: pule w osobnym pliku (games/kalambury/words.js)
     const WORD_POOLS = (window.KALAMBURY_WORD_POOLS && typeof window.KALAMBURY_WORD_POOLS === "object")
       ? window.KALAMBURY_WORD_POOLS
       : { classic:["Hasło"], dev:["TEST A","TEST B","TEST C"] };
 
 
+    // ANCHOR: WORD_DECK_ENGINE (zużyte na koniec puli; refresh nie zużywa)
+    // Założenia:
+    // - Losujemy hasło z "góry" tasowanej talii (deck + head).
+    // - Hasło jest uznane za "zużyte" dopiero gdy zacznie się prezentowanie (phase=act).
+    // - Refresh w phase=word NIE zużywa hasła — tylko podmienia bieżący kandydat, a stare pozostaje w puli.
+    // Implementacja:
+    // - per kategoria trzymamy { deck[], head, seed, cycle } w state.game.wordDecks
+    // - refresh = swap(deck[head], deck[j])
+    // - commit (start act) = head++ (cyklicznie)
+
+    function __hashStr(s){
+      s = String(s||'');
+      let h = 2166136261;
+      for(let i=0;i<s.length;i++) h = (h ^ s.charCodeAt(i)) * 16777619;
+      return (h >>> 0);
+    }
+
+    function __mulberry32(a){
+      a = (a >>> 0);
+      return function(){
+        let t = a += 0x6D2B79F5;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function __shuffleInPlace(arr, rnd){
+      for(let i=arr.length-1;i>0;i--){
+        const j = Math.floor(rnd() * (i+1));
+        const tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+      }
+      return arr;
+    }
+
+    function __getCfgCats(){
+      const cfg = (state && state.cfg && state.cfg.classic) ? state.cfg.classic : { categories:['classic'] };
+      const cats = Array.isArray(cfg.categories) && cfg.categories.length ? cfg.categories : ['classic'];
+      // unikalne, zachowaj kolejność
+      const seen = new Set();
+      const out = [];
+      cats.forEach(c=>{
+        const id = String(c||'').trim() || 'classic';
+        if(seen.has(id)) return;
+        seen.add(id);
+        out.push(id);
+      });
+      return out.length ? out : ['classic'];
+    }
+
+    function initWordDecksForMatch(){
+      if(!state || !state.game) return;
+      const cats = __getCfgCats();
+      const map = {};
+      const baseSeed = ((Date.now() & 0xffffffff) ^ ((players?.length||0) << 8) ^ 0xA5A5A5A5) >>> 0;
+      cats.forEach(catId=>{
+        const pool = WORD_POOLS[catId] || WORD_POOLS.classic || ['Hasło'];
+        const deck = (Array.isArray(pool) ? pool.slice() : ['Hasło']).map(x=>String(x||'Hasło'));
+        if(deck.length === 0) deck.push('Hasło');
+        const seed = (baseSeed ^ __hashStr(catId)) >>> 0;
+        __shuffleInPlace(deck, __mulberry32(seed));
+        map[String(catId)] = { deck, head:0, seed, cycle:1 };
+      });
+      state.game.wordDecks = map;
+    }
+
+    function __ensureDeck(catId){
+      if(!state || !state.game) return null;
+      if(!state.game.wordDecks || typeof state.game.wordDecks !== 'object') initWordDecksForMatch();
+      if(!state.game.wordDecks || typeof state.game.wordDecks !== 'object') state.game.wordDecks = {};
+
+      const k = String(catId||'classic');
+      if(state.game.wordDecks[k]) return state.game.wordDecks[k];
+
+      // jeśli kategoria pojawi się "znikąd" (dev/zmiana cfg), tworzymy ją lazy
+      const pool = WORD_POOLS[k] || WORD_POOLS.classic || ['Hasło'];
+      const deck = (Array.isArray(pool) ? pool.slice() : ['Hasło']).map(x=>String(x||'Hasło'));
+      if(deck.length === 0) deck.push('Hasło');
+      const seed = (((Date.now() & 0xffffffff) ^ __hashStr(k)) >>> 0);
+      __shuffleInPlace(deck, __mulberry32(seed));
+      state.game.wordDecks[k] = { deck, head:0, seed, cycle:1 };
+      return state.game.wordDecks[k];
+    }
+
+    function deckPeek(catId){
+      const st = __ensureDeck(catId);
+      if(!st || !Array.isArray(st.deck) || st.deck.length === 0) return 'Hasło';
+      const i = Math.max(0, Math.min(st.deck.length-1, Number(st.head)||0));
+      return String(st.deck[i] || 'Hasło');
+    }
+
+    function deckRefreshSwap(catId){
+      const st = __ensureDeck(catId);
+      if(!st || !Array.isArray(st.deck) || st.deck.length < 2) return;
+      const n = st.deck.length;
+      const head = ((Number(st.head)||0) % n + n) % n;
+      // losuj indeks inny niż head
+      let j = head;
+      for(let tries=0; tries<8 && j===head; tries++) j = Math.floor(Math.random() * n);
+      if(j === head) j = (head + 1) % n;
+      const tmp = st.deck[head];
+      st.deck[head] = st.deck[j];
+      st.deck[j] = tmp;
+    }
+
+    function deckCommit(catId){
+      const st = __ensureDeck(catId);
+      if(!st || !Array.isArray(st.deck) || st.deck.length === 0) return 'Hasło';
+      const n = st.deck.length;
+      const head = ((Number(st.head)||0) % n + n) % n;
+      const word = String(st.deck[head] || 'Hasło');
+      const next = (head + 1) % n;
+      st.head = next;
+      if(next === 0) st.cycle = Math.max(1, Number(st.cycle)||1) + 1;
+      return word;
+    }
+
+
     function clearStage3Timers(){
       if(__stage3TickT){ clearInterval(__stage3TickT); __stage3TickT = null; }
       stage3StopProgressBorder();
-      stage3StopWordJingle();
     }
 
     function stage3Turn(){
@@ -1489,28 +1519,30 @@ if(n > 0){
       return Math.max(0, Math.ceil((endAt - Date.now())/1000));
     }
 
-    function stage3PickWord(){
+    // [PH] Hasła w "talii" per kategoria:
+    // - t.word to kandydat (NIE zużyty), dopiero start prezentowania robi commit do decka.
+    // - refresh robi swap w talii (kandydat się zmienia, stare hasło zostaje w puli).
+    function stage3PickWord({ refreshSwap=false }={}){
       const t = stage3Turn();
-      const cfg = (state && state.cfg && state.cfg.classic) ? state.cfg.classic : { categories:['classic'] };
-      const cats = Array.isArray(cfg.categories) && cfg.categories.length ? cfg.categories : ['classic'];
-      const catId = String(cats[Math.floor(Math.random()*cats.length)] || 'classic');
-      const pool = WORD_POOLS[catId] || WORD_POOLS.classic || ['Hasło'];
-      let word = String(pool[Math.floor(Math.random()*pool.length)] || 'Hasło');
-      if(word === t.word && pool.length >= 2){
-        for(let tries=0; tries<6 && word === t.word; tries++){
-          word = String(pool[Math.floor(Math.random()*pool.length)] || word);
-        }
+
+      const cats = __getCfgCats();
+      let catId = String(t.catId||'');
+      if(!catId || !refreshSwap){
+        catId = String(cats[Math.floor(Math.random()*cats.length)] || 'classic');
       }
+
+      if(refreshSwap) deckRefreshSwap(catId);
+
+      const word = deckPeek(catId);
       const catLabel = (CATEGORY_LIST.find(x=>x.id===catId)||{label:catId}).label;
       t.catId = catId;
       t.catLabel = catLabel;
-      t.word = word;
+      t.word = String(word||'Hasło');
+      t.poolKey = catId;
     }
 
     function stage3SetPhase(phase, { refreshWord=false }={}){
       const t = stage3Turn();
-      const prev = t.phase;
-      if(prev === 'word' && phase !== 'word') stage3StopWordJingle();
       t.phase = phase;
       t.lastShown = -1;
 
@@ -1525,9 +1557,8 @@ if(n > 0){
       }
 
       if(phase === 'word'){
-        if(refreshWord || !t.word) stage3PickWord();
+        if(refreshWord || !t.word) stage3PickWord({ refreshSwap: !!(refreshWord && t.catId) });
         t.endAt = Date.now() + STAGE3_WORD_SEC*1000;
-        stage3StartWordJingle(STAGE3_WORD_SEC*1000);
 
         renderGameStage();
         // [PH] dopasuj wielkość długich haseł (nie pozwól, by rozwalały układ / timer)
@@ -1558,6 +1589,13 @@ if(n > 0){
 
 // 3D: prezentacja
       if(phase === 'act'){
+        // [PH] Słowo uznajemy za "zużyte" dopiero w momencie START prezentowania.
+        // Refreshowane hasła zostają w puli (swap w decku), więc tu commitujemy finalny wybór.
+        try{
+          const k = String(t.poolKey || t.catId || 'classic');
+          t.word = deckCommit(k);
+        }catch(_e){}
+
         const cfg = (state && state.cfg && state.cfg.classic) ? state.cfg.classic : { turnSeconds:90 };
         const sec = Number(cfg.turnSeconds)||0;
         t.endAt = (sec === 0) ? 0 : (Date.now() + sec*1000);
@@ -1818,7 +1856,6 @@ function stage3SyncProgressBorder(){
     }
 
     function stage3Start(){
-      phTryUnlockAudio();
       ensureOrderForStage2();
       const t = stage3Turn();
 
@@ -3003,9 +3040,9 @@ if(s === 'stage4' || s === 'stage5'){
     // ANCHOR: PLAYERS_SYSTEM (1:1 z 5 Sekund)
 
     const EMOJI_GROUPS = {
-      people:["🙂","😀","😄","😁","😆","😅","😂","😉","😊","😇","😍","🤩","🥳","😎","🤓","🤠","😴","🤯","😤","😱","🧑","👩","👨","🧔","👱‍♀️","👱‍♂️","👩‍🦰","👨‍🦳"],
-      animals:["🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐷","🐸","🐵","🐔","🐧","🐙","🦄","🐺","🐴"],
-      other:["🤖","👽","💎","🔮","🎯","🎪","🎭","🎨","🏆","🥇","👑","💀","🦇","🌟","⭐","✨","🔥","⚡","💥","🌈"]
+      people:["😃","😁","🤣","🙃","🫠","😊","😇","🥰","😍","🤩","😋","🤪","😝","🤑","🤫","🤐","😑","😶","🫥","😶‍🌫️","😬","🤥","😴","🤢","🤮","🥵","🥶","🥴","😵‍💫","🤯","🤠","🥳","🥸","😎","🤓","🧐","😱","🥱","😤","😡","🤬","😈","🤡"],
+      animals:["🐵","🦍","🐶","🐺","🦊","🦝","🐱","🦁","🐯","🦄","🦌","🐮","🐷","🐗","🐭","🐹","🐰","🦇","🐻","🐻‍❄️","🐨","🐼","🦥","🐔","🐸","🐲","🦈","🐙","🐌","🦋","🕷️","🐞","🪰","🪱","🦠"],
+      other:["💩","💀","👹","👻","👽️","👾","🤖","⛄️","🎃","😻","😼","😹","🙉","👶","🥷","🎅"]
     };
     const EMOJIS = [...EMOJI_GROUPS.people, ...EMOJI_GROUPS.animals, ...EMOJI_GROUPS.other];
 players = [];
