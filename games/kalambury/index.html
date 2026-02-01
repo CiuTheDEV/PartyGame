@@ -5,6 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PartyHUB — Kalambury</title>
 
+  <!-- [PH] PREHIDE: zapobiega "przeskokowi" (FOUC) zanim doładują się CSS+JS -->
+  <style id="ph-prehide">html{visibility:hidden}</style>
+  <script>
+  (function(){
+    try{
+      const PREHIDE_ID='ph-prehide';
+      const A = window.__phAsset = window.__phAsset || { css:false, js:false, revealed:false };
+      const reveal = ()=>{ const st=document.getElementById(PREHIDE_ID); if(st) st.remove(); };
+      A.maybeReveal = A.maybeReveal || function(){
+        if(A.revealed) return;
+        if(A.css && A.js){
+          A.revealed = true;
+          requestAnimationFrame(()=>requestAnimationFrame(reveal));
+        }
+      };
+      // Fail-safe: jeśli coś pójdzie nie tak, pokaż stronę po chwili.
+      setTimeout(()=>{ if(!A.revealed){ A.revealed=true; reveal(); } }, 2500);
+    }catch(_e){}
+  })();
+  </script>
+
   <!-- [PH] GH_PAGES_LOADER: resilient CSS loading (core + game) -->
   <script>
   (function(){
@@ -33,7 +54,10 @@
 
     const gameCandidates = ['./kalambury.css','./kalambury.css?v=1'];
 
-    loadCSS(coreCandidates).then(()=>loadCSS(gameCandidates)).catch((e)=>{ log(e.message); });
+    loadCSS(coreCandidates)
+      .then(()=>loadCSS(gameCandidates))
+      .then(()=>{ try{ const A=window.__phAsset; if(A){ A.css=true; A.maybeReveal&&A.maybeReveal(); } }catch(_e){} })
+      .catch((e)=>{ log(e.message); });
   })();
   </script>
 
@@ -476,7 +500,10 @@
     const wordsCandidates = ['./words.js','./words.js?v=1'];
     const gameCandidates  = ['./kalambury.js','./kalambury.js?v=1'];
 
-    loadJS(uiCandidates).then(()=>loadJS(wordsCandidates)).then(()=>loadJS(gameCandidates))
+    loadJS(uiCandidates)
+      .then(()=>loadJS(wordsCandidates))
+      .then(()=>loadJS(gameCandidates))
+      .then(()=>{ try{ const A=window.__phAsset; if(A){ A.js=true; A.maybeReveal&&A.maybeReveal(); } }catch(_e){} })
       .catch(e=>log(e.message));
   })();
   </script>
