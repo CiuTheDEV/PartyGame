@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PartyHUB — Kto Najprawdopodobniej</title>
+
+    <!-- [PH] GH_PAGES_LOADER: resilient CSS loading (core + game) -->
+    <script>
+        (function () {
+            const log = (...a) => { try { console.log('[PH][asset]', ...a); } catch (_e) { } };
+            function loadCSS(candidates) {
+                return new Promise((resolve, reject) => {
+                    let i = 0;
+                    const tryNext = () => {
+                        if (i >= candidates.length) return reject(new Error('CSS not found: ' + candidates.join(' | ')));
+                        const href = candidates[i++];
+                        const l = document.createElement('link');
+                        l.rel = 'stylesheet';
+                        l.href = href;
+                        l.onload = () => { log('css ok', href); resolve(href); };
+                        l.onerror = () => { l.remove(); log('css fail', href); tryNext(); };
+                        document.head.appendChild(l);
+                    };
+                    tryNext();
+                });
+            }
+
+            const p = location.pathname;
+            const coreCandidates = (p.includes('/partyhub/'))
+                ? ['../../core/ui.css', '../core/ui.css', '/partyhub/core/ui.css']
+                : ['../../partyhub/core/ui.css', '../partyhub/core/ui.css', '/partyhub/core/ui.css', '../../core/ui.css', '/core/ui.css'];
+
+            const gameCandidates = ['./whoslikely.css', './whoslikely.css?v=1'];
+
+            loadCSS(coreCandidates).then(() => loadCSS(gameCandidates)).catch((e) => { log(e.message); });
+        })();
+    </script>
+
+</head>
+
+<body>
+
+    <!-- ANCHOR: HOME_UI -->
+    <div class="overlay is-visible" id="overlayHome" aria-label="Menu główne">
+        <div class="home-container" data-dbg2="HOME_CONTAINER">
+            <h1 class="home-title">KTO NAJPRAWDOPODOBNIEJ</h1>
+
+            <!-- ANCHOR: MODE_CARDS_UI -->
+            <div class="mode-selection">
+
+                <!-- LOCAL MODE -->
+                <div class="mode-card classic" data-mode="local" id="localCard">
+                    <div class="mode-header" role="button" tabindex="0">
+                        <div class="mode-icon">📱</div>
+                        <div class="mode-title-wrapper">
+                            <div class="mode-title">LOKALNIE</div>
+                        </div>
+                        <div class="mode-arrow">▼</div>
+                    </div>
+                    <div class="mode-content">
+                        <div class="mode-content-inner">
+                            <div class="mode-details">
+                                <div class="mode-description">Wszyscy głosują na jednym urządzeniu po kolei.</div>
+                                <ul class="mode-features">
+                                    <li>Bez internetu</li>
+                                    <li>Jeden telefon/laptop</li>
+                                    <li>3-12 graczy</li>
+                                </ul>
+                            </div>
+                            <div class="mode-buttons">
+                                <button class="mode-btn info" data-mode-info title="Info">i</button>
+                                <button class="mode-btn play" data-mode-play="local" title="Dalej"><span
+                                        class="play-tri"></span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MULTIPLAYER MODE -->
+                <div class="mode-card classic" data-mode="multiplayer" id="multiplayerCard">
+                    <div class="mode-header" role="button" tabindex="0">
+                        <div class="mode-icon">🌐</div>
+                        <div class="mode-title-wrapper">
+                            <div class="mode-title">MULTIPLAYER</div>
+                            <span class="mode-badge-new">NEW</span>
+                        </div>
+                        <div class="mode-arrow">▼</div>
+                    </div>
+                    <div class="mode-content">
+                        <div class="mode-content-inner">
+                            <div class="mode-details">
+                                <div class="mode-description">Każdy głosuje na SWOIM telefonie!</div>
+                                <ul class="mode-features">
+                                    <li>Host pokazuje grę na TV</li>
+                                    <li>Gracze skanują QR</li>
+                                    <li>Real-time sync</li>
+                                </ul>
+                            </div>
+                            <div class="mode-buttons">
+                                <button class="mode-btn info" data-mode-info title="Info">i</button>
+                                <button class="mode-btn mp-host" data-mp-host title="Hostuj">🖥️</button>
+                                <button class="mode-btn mp-join" data-mp-join title="Dołącz">📲</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ANCHOR: HOME_BOTTOM_BUTTONS -->
+            <div class="home-bottom-buttons">
+                <button class="home-btn hub-btn" id="btnBackToHub" type="button">← PartyHUB</button>
+                <button class="home-btn settings-btn" id="btnGlobalSettings" type="button">⚙️ Ustawienia</button>
+            </div>
+            <div class="home-version" id="homeVersion"></div>
+        </div>
+    </div>
+
+    <!-- ANCHOR: MODE_SETTINGS_UI -->
+    <div class="overlay" id="overlayModeSettings" aria-label="Ustawienia trybu">
+        <div class="settings-container scroll-surface" data-dbg2="MODE_SETTINGS_CONTAINER">
+            <h2 class="settings-title">Ustawienia gry</h2>
+
+            <!-- ANCHOR: PLAYERS_STATIC -->
+            <div class="game-settings" id="playersSettings">
+                <h3 class="section-head">
+                    <span>Gracze</span>
+                    <span id="playersSummary" class="txt-muted">0/12</span>
+                </h3>
+                <div id="playersList"></div>
+                <div class="setting-actions">
+                    <button class="btn-new" id="addPlayerBtn" type="button">+ Dodaj gracza</button>
+                </div>
+            </div>
+
+            <!-- ANCHOR: MODE_SETTINGS_CARDS -->
+            <div class="settings-accordion" id="modeSettingsCards">
+
+                <!-- ANCHOR: CARD_ROUND -->
+                <div class="setting-card" id="cardRound">
+                    <div class="setting-head" role="button" tabindex="0" aria-label="Ustawienia rundy">
+                        <div class="setting-title">Ustawienia rundy</div>
+                        <div class="setting-sub" id="roundSummary">—</div>
+                        <div class="setting-arrow">▼</div>
+                    </div>
+                    <div class="setting-body">
+                        <div class="setting-body-inner">
+                            <div class="setting-row setting-row-range">
+                                <label for="cfgRoundsTotal">Liczba pytań:</label>
+                                <div class="range-wrap" aria-label="Ustaw liczbę pytań">
+                                    <input id="cfgRoundsTotal" type="range" min="1" max="8" step="1" value="4" />
+                                    <div class="range-scale range-8" aria-hidden="true">
+                                        <span>5</span>
+                                        <span>8</span>
+                                        <span>10</span>
+                                        <span>12</span>
+                                        <span>15</span>
+                                        <span>18</span>
+                                        <span>20</span>
+                                        <span>∞</span>
+                                    </div>
+                                </div>
+                                <div class="range-badge" id="roundsTotalBadge">12</div>
+                            </div>
+
+                            <div class="setting-row" id="rowAdultMode">
+                                <label for="adultToggle">Pytania 18+:</label>
+                                <label class="switch" aria-label="Włącz pytania 18+">
+                                    <input type="checkbox" id="adultToggle" />
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ANCHOR: CARD_CATEGORIES -->
+                <div class="setting-card" id="cardCategories">
+                    <div class="setting-head" role="button" tabindex="0" aria-label="Kategorie">
+                        <div class="setting-title">Kategorie</div>
+                        <div class="setting-sub" id="catsSummary">—</div>
+                        <div class="setting-arrow">▼</div>
+                    </div>
+                    <div class="setting-body">
+                        <div class="setting-body-inner">
+                            <div class="small" id="catsCount">0/0</div>
+                            <div class="cat-grid" id="catsGrid"></div>
+                            <div class="cat-actions">
+                                <button class="btn-ghost btn-sm" id="btnCatsAll" type="button">Wszystkie</button>
+                                <button class="btn-ghost btn-sm" id="btnCatsNone" type="button">Wyczyść</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mode-actions">
+                <div class="button-group">
+                    <button class="btn-back btn-grow-1" id="btnBackToHome" type="button">← Powrót</button>
+                    <button class="btn-new btn-grow-2 btn-lg" id="btnStartGame" type="button" disabled>Start</button>
+                </div>
+                <div class="txt-muted mt-10" id="startHint"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANCHOR: GAME_SCREEN -->
+    <div class="overlay" id="overlayGame" aria-label="Plansza gry — Kto Najprawdopodobniej">
+        <div class="game-screen" data-dbg="GAME_SCREEN">
+
+            <!-- ANCHOR: TOP_BAR -->
+            <div class="top-bar" data-dbg="TOP_BAR">
+                <div class="top-bar-inner" data-dbg2="TOP_BAR_INNER">
+                    <div class="round-info" id="roundInfo">Pytanie 1/10</div>
+                    <div class="top-title" id="topTitle">Głosowanie</div>
+                    <button class="gear-btn" id="btnGameSettings" type="button" aria-label="Ustawienia">⚙️</button>
+                </div>
+            </div>
+
+            <!-- ANCHOR: GAME_HUD -->
+            <div class="game-hud" id="gameHud" data-dbg="GAME_HUD">
+                <!-- Stage content injected here -->
+            </div>
+
+            <!-- ANCHOR: BOTTOM_BAR -->
+            <div class="bottom-bar" id="bottomBar" data-dbg="BOTTOM_BAR">
+                <!-- Actions injected here -->
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ANCHOR: GAME_SETTINGS_OVERLAY_UI -->
+    <div class="overlay" id="gameSettingsOverlay" aria-label="Ustawienia w grze">
+        <div class="settings-container settings-container--sm scroll-surface" data-dbg2="GAME_SETTINGS_CONTAINER">
+            <h2 class="settings-title">Ustawienia</h2>
+            <div class="game-settings game-settings--flush">
+                <div class="setting-row setting-row--compact">
+                    <label for="soundToggleGame">Dźwięk:</label>
+                    <label class="switch" aria-label="Włącz/wyłącz dźwięk">
+                        <input type="checkbox" id="soundToggleGame" />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="game-settings-actions">
+                <button class="btn-new" id="btnGameSettingsClose" type="button">Kontynuuj</button>
+                <button class="btn-back" id="btnGameExitToMenu" type="button">← Powrót do menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANCHOR: RULES_OVERLAY -->
+    <div class="overlay" id="rulesOverlay" aria-label="Zasady gry">
+        <div class="rules-container scroll-surface" data-dbg2="RULES_CONTAINER">
+            <h2 class="rules-title">Zasady — Kto Najprawdopodobniej</h2>
+            <div class="rules-content">
+                <h3>🎯 Cel gry</h3>
+                <p>Odpowiadacie na pytania "Kto z nas najprawdopodobniej...?" i głosujecie na osobę, która najbardziej
+                    pasuje.</p>
+                <h3>🗳️ Jak gramy</h3>
+                <ul>
+                    <li>Wylosowane zostaje pytanie.</li>
+                    <li>Każdy gracz <span class="highlight">głosuje</span> na jedną osobę (może na siebie).</li>
+                    <li>Po głosowaniu wyniki są ujawniane.</li>
+                    <li>Osoba z największą liczbą głosów dostaje <span class="highlight">+1 punkt</span>.</li>
+                </ul>
+                <h3>🏆 Zwycięstwo</h3>
+                <p>Na koniec gry osoba z <span class="highlight">największą liczbą punktów</span> wygrywa!</p>
+            </div>
+            <button class="btn-new" id="btnRulesOk" type="button">Rozumiem</button>
+        </div>
+    </div>
+
+    <!-- ANCHOR: GLOBAL_SETTINGS_UI -->
+    <div class="overlay" id="globalSettingsOverlay" aria-label="Ustawienia">
+        <div class="settings-container settings-container--sm scroll-surface">
+            <h2 class="settings-title">Ustawienia</h2>
+            <div class="game-settings game-settings--flush">
+
+                <div class="setting-row setting-row--compact">
+                    <label for="soundToggle">Dźwięk:</label>
+                    <label class="switch" aria-label="Włącz/wyłącz dźwięk">
+                        <input type="checkbox" id="soundToggle" />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-row setting-row--compact">
+                    <label for="motionToggle">Animacje:</label>
+                    <label class="switch" aria-label="Włącz/wyłącz animacje">
+                        <input type="checkbox" id="motionToggle" />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-row setting-row--compact">
+                    <label>Dane gry:</label>
+                    <button class="btn-reset btn-sm" id="btnClearData" type="button">Wyczyść</button>
+                </div>
+
+                <div class="setting-row setting-row--last">
+                    <label>Wersja:</label>
+                    <span id="txtVersion" class="txt-muted">—</span>
+                </div>
+            </div>
+            <button class="btn-new btn-close" id="btnGlobalSettingsClose" type="button">Zamknij</button>
+        </div>
+    </div>
+
+    <!-- ANCHOR: CONFIRM_UI -->
+    <div class="overlay" id="confirmOverlay" aria-label="Potwierdzenie">
+        <div class="settings-container settings-container--sm scroll-surface" data-dbg2="CONFIRM_CONTAINER">
+            <h2 class="settings-title" id="confirmTitle">Potwierdź</h2>
+            <p id="confirmMessage" class="confirm-msg"></p>
+            <div class="button-group">
+                <button class="btn-ghost" id="confirmCancel" type="button">Anuluj</button>
+                <button class="btn-reset" id="confirmOk" type="button">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANCHOR: EMOJI_PICKER_OVERLAY -->
+    <div class="overlay" id="emojiPickerOverlay">
+        <div class="settings-container settings-container--sm" data-dbg2="EMOJI_PICKER_CONTAINER">
+            <h2 class="settings-title" id="emojiPickerTitle">Nowy gracz</h2>
+            <div class="card-block">
+                <label class="emoji-name-label" for="emojiPickerNameInput">Nazwa gracza</label>
+                <input type="text" id="emojiPickerNameInput" class="emoji-name-input" placeholder="Min. 3 znaki..."
+                    minlength="3" />
+                <div id="emojiPickerError" class="txt-muted mt-8 text-center is-hidden"></div>
+            </div>
+            <div class="card-block emoji-picker-avatars">
+                <div class="small">Wybierz avatar</div>
+                <div class="emoji-tabs" id="emojiTabs">
+                    <button type="button" class="emoji-tab selected" id="emojiTabPeople"
+                        data-emoji-cat="people">Ludzie</button>
+                    <button type="button" class="emoji-tab" id="emojiTabAnimals"
+                        data-emoji-cat="animals">Zwierzęta</button>
+                    <button type="button" class="emoji-tab" id="emojiTabOther" data-emoji-cat="other">Inne</button>
+                </div>
+                <div class="emoji-grid scroll-surface" id="emojiGrid"></div>
+            </div>
+            <div class="emoji-picker-actions">
+                <button class="btn-ghost" id="btnEmojiCancel" type="button">Anuluj</button>
+                <button class="btn-primary" id="btnConfirmEmoji" type="button" disabled>Gotowe</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANCHOR: MULTIPLAYER_HOST_LOBBY -->
+    <div class="overlay" id="overlayHostLobby" aria-label="Lobby multiplayer">
+        <div class="settings-container scroll-surface" data-dbg2="HOST_LOBBY">
+            <h2 class="settings-title">📡 LOBBY</h2>
+            <div class="lobby-qr-section">
+                <img id="lobbyQrCode" class="lobby-qr" alt="QR Code" />
+                <div class="lobby-pin">
+                    <span class="lobby-pin-label">PIN:</span>
+                    <span class="lobby-pin-code" id="lobbyPinCode">------</span>
+                </div>
+                <div class="lobby-url txt-muted" id="lobbyUrl"></div>
+            </div>
+            <div class="lobby-players-section">
+                <h3 class="section-head">Gracze <span id="lobbyPlayerCount" class="txt-muted">0</span></h3>
+                <div class="lobby-players-grid" id="lobbyPlayersGrid"></div>
+            </div>
+            <div class="lobby-hint txt-muted">Poczekaj aż wszyscy dołączą, potem kliknij Start</div>
+            <div class="mode-actions">
+                <div class="button-group">
+                    <button class="btn-back btn-grow-1" id="btnLobbyCancel" type="button">← Anuluj</button>
+                    <button class="btn-new btn-grow-2 btn-lg" id="btnLobbyStart" type="button" disabled>Start</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANCHOR: MULTIPLAYER_GUEST_JOIN -->
+    <div class="overlay" id="overlayGuestJoin" aria-label="Dołącz do gry">
+        <div class="settings-container settings-container--sm scroll-surface" data-dbg2="GUEST_JOIN">
+            <h2 class="settings-title">📲 Dołącz do gry</h2>
+            <div class="card-block">
+                <label class="emoji-name-label" for="guestPinInput">Wpisz PIN pokoju</label>
+                <input type="text" id="guestPinInput" class="emoji-name-input pin-input" placeholder="np. ABC123"
+                    maxlength="6" autocomplete="off" />
+            </div>
+            <div class="card-block">
+                <label class="emoji-name-label" for="guestNameInput">Twój nick</label>
+                <input type="text" id="guestNameInput" class="emoji-name-input" placeholder="Min. 3 znaki..."
+                    minlength="3" />
+            </div>
+            <div class="card-block emoji-picker-avatars">
+                <div class="small">Wybierz avatar</div>
+                <div class="emoji-tabs" id="guestEmojiTabs">
+                    <button type="button" class="emoji-tab selected" data-emoji-cat="people">Ludzie</button>
+                    <button type="button" class="emoji-tab" data-emoji-cat="animals">Zwierzęta</button>
+                    <button type="button" class="emoji-tab" data-emoji-cat="other">Inne</button>
+                </div>
+                <div class="emoji-grid scroll-surface" id="guestEmojiGrid"></div>
+            </div>
+            <div id="guestJoinError" class="txt-error text-center is-hidden"></div>
+            <div class="mode-actions">
+                <div class="button-group">
+                    <button class="btn-back btn-grow-1" id="btnGuestCancel" type="button">← Anuluj</button>
+                    <button class="btn-new btn-grow-2 btn-lg" id="btnGuestConnect" type="button"
+                        disabled>Połącz</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANCHOR: MULTIPLAYER_GUEST_WAITING -->
+    <div class="overlay" id="overlayGuestWaiting" aria-label="Oczekiwanie">
+        <div class="settings-container settings-container--sm" data-dbg2="GUEST_WAITING">
+            <h2 class="settings-title">✅ Połączono!</h2>
+            <div class="guest-waiting-content">
+                <div class="guest-avatar" id="guestWaitingAvatar">😀</div>
+                <div class="guest-name" id="guestWaitingName">Gracz</div>
+                <div class="guest-status">Czekaj na start gry...</div>
+                <div class="loader-dots"><span></span><span></span><span></span></div>
+            </div>
+            <button class="btn-back" id="btnGuestDisconnect" type="button">Rozłącz</button>
+        </div>
+    </div>
+
+    <!-- ANCHOR: MULTIPLAYER_GUEST_GAME -->
+    <div class="overlay" id="overlayGuestGame" aria-label="Gra - widok gracza">
+        <div class="guest-game-screen" data-dbg2="GUEST_GAME">
+            <div class="guest-question" id="guestQuestion">Czekaj na pytanie...</div>
+            <div class="guest-vote-grid" id="guestVoteGrid"></div>
+            <div class="guest-status-bar" id="guestStatusBar"></div>
+        </div>
+    </div>
+
+    <!-- [PH] GH_PAGES_LOADER: resilient JS loading (core → questions → game) -->
+    <script>
+        (function () {
+            const log = (...a) => { try { console.log('[PH][asset]', ...a); } catch (_e) { } };
+            function loadJS(candidates) {
+                return new Promise((resolve, reject) => {
+                    let i = 0;
+                    const tryNext = () => {
+                        if (i >= candidates.length) return reject(new Error('JS not found: ' + candidates.join(' | ')));
+                        const src = candidates[i++];
+                        const s = document.createElement('script');
+                        s.src = src;
+                        s.async = false;
+                        s.onload = () => { log('js ok', src); resolve(src); };
+                        s.onerror = () => { s.remove(); log('js fail', src); tryNext(); };
+                        document.body.appendChild(s);
+                    };
+                    tryNext();
+                });
+            }
+            const p = location.pathname;
+            const uiCandidates = (p.includes('/partyhub/'))
+                ? ['../../core/ui.js', '../core/ui.js', '/partyhub/core/ui.js']
+                : ['../../partyhub/core/ui.js', '../partyhub/core/ui.js', '/partyhub/core/ui.js', '../../core/ui.js', '/core/ui.js'];
+
+            const peerCandidates = ['https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js'];
+            const questionsCandidates = ['./questions.js', './questions.js?v=1'];
+            const multiplayerCandidates = ['./multiplayer.js', './multiplayer.js?v=1'];
+            const gameCandidates = ['./whoslikely.js', './whoslikely.js?v=1'];
+
+            loadJS(uiCandidates)
+                .then(() => loadJS(peerCandidates))
+                .then(() => loadJS(questionsCandidates))
+                .then(() => loadJS(multiplayerCandidates))
+                .then(() => loadJS(gameCandidates))
+                .catch(e => log(e.message));
+        })();
+    </script>
+
+</body>
+
+</html>

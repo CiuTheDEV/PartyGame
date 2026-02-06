@@ -1,597 +1,1173 @@
 <!DOCTYPE html>
 <html lang="pl">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PartyHUB</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PartyHUB</title>
 
-    <!-- GSAP -->
-    <script src="https://unpkg.com/gsap@3/dist/gsap.min.js"></script>
+  <!-- GSAP -->
+  <script src="https://unpkg.com/gsap@3/dist/gsap.min.js"></script>
 
-    <style>
-        /* [PH] THEME_BEGIN */
-        :root{
-          color-scheme: dark;
-          --bg:#222831;
-          --panel:#393E46;
-          --accent:#00ADB5;
-          --text:#EEEEEE;
+  <style>
+    /* [PH] THEME_BEGIN */
+    :root{
+      color-scheme: dark;
+      --bg:#222831;
+      --panel:#393E46;
+      --accent:#00ADB5;
+      --text:#EEEEEE;
 
-          --muted:rgba(238,238,238,.72);
-          --dim:rgba(238,238,238,.56);
-          --stroke:rgba(238,238,238,.12);
-          --stroke2:rgba(0,173,181,.45);
-          --shadow:0 22px 60px rgba(0,0,0,.55);
-          --r1:28px;
-          --r2:18px;
-          --pad:clamp(20px,4vw,60px);
-          --gap:clamp(18px,3.4vw,44px);
-          --focus:0 0 0 3px rgba(0,173,181,.70),0 18px 48px rgba(0,0,0,.62);
-        }
-        /* [PH] THEME_END */
+      --muted:rgba(238,238,238,.72);
+      --dim:rgba(238,238,238,.56);
+      --stroke:rgba(238,238,238,.12);
+      --stroke2:rgba(0,173,181,.45);
+      --shadow:0 22px 60px rgba(0,0,0,.55);
+      --r1:28px;
+      --r2:18px;
+      --pad:clamp(20px,4vw,60px);
+      --gap:clamp(18px,3.4vw,44px);
+      --focus:0 0 0 3px rgba(0,173,181,.70),0 18px 48px rgba(0,0,0,.62);
+    }
+    /* [PH] THEME_END */
 
-        *{box-sizing:border-box}
-        html,body{height:100%;margin:0;padding:0}
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;padding:0}
 
-        body{
-          font-family:'Segoe UI',Tahoma,sans-serif;
-          background:
-            radial-gradient(1200px 800px at 18% 12%, rgba(0,173,181,.20), transparent 58%),
-            radial-gradient(900px 700px at 82% 20%, rgba(238,238,238,.07), transparent 60%),
-            radial-gradient(900px 700px at 60% 92%, rgba(57,62,70,.60), transparent 62%),
-            var(--bg);
-          color:var(--text);
-          display:flex;
-          justify-content:center;
-          align-items:center;
-        }
+    body{
+      font-family:'Segoe UI',Tahoma,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      padding:clamp(18px,3vh,44px) 0;
+      position:relative;
+      overflow-x:hidden;
+    }
 
-        #app{width:100%;max-width:1400px;padding:var(--pad);transition:opacity .22s ease, transform .22s ease;will-change:opacity,transform}
+    /* Prevent background scroll when modal is open */
+    html.modal-open, body.modal-open{ overflow:hidden; }
+    body.modal-open{ touch-action:none; }
 
-        header{text-align:center;margin-bottom:clamp(26px,5vh,70px)}
-        header h1{
-          font-size:clamp(3rem,8vw,6rem);
-          margin:0;
-          letter-spacing:1px;
-          background:linear-gradient(135deg, var(--accent), rgba(238,238,238,.92));
-          -webkit-background-clip:text;background-clip:text;
-          -webkit-text-fill-color:transparent;
-          filter:drop-shadow(0 18px 28px rgba(0,0,0,.45));
-        }
-        header p{
-          margin:12px 0 0;
-          font-size:clamp(1.05rem,2.2vw,1.6rem);
-          color:var(--muted);
-        }
+    /* [PH] BG_FIXED_BEGIN */
+    body::before{
+      content:'';
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      pointer-events:none;
+      background:
+        radial-gradient(1200px 800px at 18% 12%, rgba(0,173,181,.20), transparent 58%),
+        radial-gradient(900px 700px at 82% 20%, rgba(238,238,238,.07), transparent 60%),
+        radial-gradient(900px 700px at 60% 92%, rgba(57,62,70,.60), transparent 62%);
+      transform:translateZ(0);
+    }
+    /* [PH] BG_FIXED_END */
 
-        .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:var(--gap)}
 
-        .game-card{
-          background:linear-gradient(180deg, rgba(57,62,70,.78), rgba(57,62,70,.52));
-          border:1px solid var(--stroke);
-          border-radius:var(--r1);
-          padding:30px 26px 38px;
-          cursor:pointer;
-          position:relative;
-          overflow:hidden;
-          box-shadow:var(--shadow);
-          transform:translateZ(0);
-          transition:transform .22s ease, border-color .22s ease, filter .22s ease, box-shadow .22s ease;
-          backdrop-filter:blur(10px);
-          -webkit-backdrop-filter:blur(10px);
-        }
-        .game-card::before{
-          content:"";
-          position:absolute;
-          inset:-2px;
-          background:
-            radial-gradient(420px 260px at 18% 20%, rgba(0,173,181,.20), transparent 60%),
-            radial-gradient(380px 260px at 88% 10%, rgba(238,238,238,.10), transparent 62%),
-            linear-gradient(135deg, transparent, rgba(238,238,238,.06), transparent);
-          opacity:.85;
-          pointer-events:none;
-        }
-        .game-card::after{
-          content:"";
-          position:absolute;
-          inset:0;
-          background:linear-gradient(180deg, rgba(0,173,181,0), rgba(0,173,181,.12));
-          opacity:0;
-          transition:opacity .22s ease;
-          pointer-events:none;
-        }
-        .game-card:hover{
-          transform:translateY(-8px) scale(1.015);
-          border-color:var(--stroke2);
-          box-shadow:0 26px 70px rgba(0,0,0,.62);
-          filter:brightness(1.04);
-        }
-        .game-card:hover::after{opacity:1}
-        .game-card:active{transform:translateY(-4px) scale(1.005)}
+    #app{
+      width:100%;
+      max-width:1400px;
+      margin:0 auto;
+      min-width:0;
+      padding:var(--pad);
+      transition:opacity .22s ease, transform .22s ease;
+      will-change:opacity,transform;
+    }
 
-        .icon{
-          font-size:4.5rem;
-          margin-bottom:18px;
-          filter:drop-shadow(0 10px 22px rgba(0,0,0,.45));
-        }
-        .game-title{font-size:1.8rem;font-weight:800;margin-bottom:10px;letter-spacing:.2px}
-        .game-desc{font-size:1.05rem;color:var(--dim);line-height:1.35}
+    header{text-align:center;margin-bottom:clamp(18px,3.2vh,40px)}
+    header h1{
+      font-size:clamp(2.4rem,10vw,6rem);
+      margin:0;
+      letter-spacing:clamp(.6px,.22vw,1.2px);
+      background:linear-gradient(135deg, var(--accent), rgba(238,238,238,.92));
+      -webkit-background-clip:text;background-clip:text;
+      -webkit-text-fill-color:transparent;
+      filter:drop-shadow(0 18px 28px rgba(0,0,0,.45));
+    }
+    header p{
+      margin:12px 0 0;
+      font-size:clamp(1.05rem,2.2vw,1.6rem);
+      color:var(--muted);
+    }
 
-        .badge{
-          position:absolute;
-          top:16px;
-          right:16px;
-          padding:6px 12px;
-          font-size:.78rem;
-          letter-spacing:.6px;
-          border-radius:999px;
-          font-weight:900;
-          color:var(--text);
-          background:rgba(0,173,181,.16);
-          border:1px solid rgba(0,173,181,.55);
-          box-shadow:0 10px 22px rgba(0,0,0,.35);
-          text-transform:uppercase;
-        }
-        .badge.hot{background:rgba(0,173,181,.22)}
-        .badge.new{background:rgba(0,173,181,.16)}
-        .badge.adult{background:rgba(0,173,181,.14)}
-        .badge.soon{
-          background:rgba(238,238,238,.08);
-          border:1px solid rgba(238,238,238,.18);
-          color:rgba(238,238,238,.88);
-        }
+    /* [PH] HUB_CONTROLS_BEGIN */
+    .hub-controls{
+      width:100%;
+      min-width:0;
+      margin:0 auto clamp(22px,4vh,46px);
+      padding:16px 18px;
+      border-radius:var(--r1);
+      background:linear-gradient(180deg, rgba(57,62,70,.94), rgba(57,62,70,.86));
+      border:1px solid var(--stroke);
+      box-shadow:0 22px 60px rgba(0,0,0,.55);
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:14px;
+    }
+    .searchbox{
+      flex:1 1 320px;
+      min-width:0;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:12px 14px;
+      border-radius:999px;
+      background:rgba(34,40,49,.35);
+      border:1px solid rgba(238,238,238,.12);
+      transition:border-color .18s ease, filter .18s ease, box-shadow .18s ease;
+    }
+    .searchbox:focus-within{
+      border-color:rgba(0,173,181,.75);
+      box-shadow:0 0 0 3px rgba(0,173,181,.16);
+      filter:brightness(1.03);
+    }
+    .search-ico{opacity:.9;filter:drop-shadow(0 10px 18px rgba(0,0,0,.35))}
+    .searchbox input{
+      flex:1;
+      min-width:0;
+      border:0;
+      outline:none;
+      background:transparent;
+      color:rgba(238,238,238,.92);
+      font-size:1.05rem;
+      letter-spacing:.2px;
+    }
+    .searchbox input::placeholder{color:rgba(238,238,238,.46)}
+    .search-clear{
+      width:38px;height:38px;
+      border-radius:999px;
+      border:1px solid rgba(238,238,238,.12);
+      background:rgba(57,62,70,.40);
+      color:rgba(238,238,238,.88);
+      cursor:pointer;
+      transition:transform .15s ease, border-color .15s ease, filter .15s ease;
+    }
+    .search-clear:hover{border-color:rgba(0,173,181,.75);filter:brightness(1.06);transform:translateY(-1px)}
+    .search-clear:active{transform:translateY(0)}
+    .chips{
+      flex:1 1 320px;
+      min-width:0;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:center;
+    }
+    .chip{
+      border:1px solid rgba(238,238,238,.12);
+      background:rgba(34,40,49,.22);
+      color:rgba(238,238,238,.88);
+      padding:10px 14px;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:900;
+      letter-spacing:.6px;
+      text-transform:uppercase;
+      font-size:.82rem;
+      transition:transform .15s ease, border-color .15s ease, filter .15s ease, background .15s ease;
+    }
+    .chip:hover{border-color:rgba(0,173,181,.75);filter:brightness(1.06);transform:translateY(-1px)}
+    .chip:active{transform:translateY(0)}
+    .chip.is-active{
+      background:rgba(0,173,181,.18);
+      border-color:rgba(0,173,181,.85);
+      box-shadow:0 16px 44px rgba(0,0,0,.35);
+    }
+    .hub-meta{
+      flex:0 0 auto;
+      white-space:nowrap;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:flex-end;
+      color:rgba(238,238,238,.78);
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .hub-meta .hint{opacity:.75;font-weight:700}
+    /* [PH] HUB_CONTROLS_END */
 
-        .game-card.is-disabled{
-          cursor:not-allowed;
-          opacity:.62;
-          filter:grayscale(1) saturate(.15) brightness(.95);
-        }
-        .game-card.is-disabled:hover{
-          transform:none;
-          border-color:var(--stroke);
-          box-shadow:var(--shadow);
-          filter:grayscale(1) saturate(.15) brightness(.95);
-        }
-        .game-card.is-disabled:hover::after{opacity:0}
+    /* [PH] SECTIONS_BEGIN */
+    .hub-section{margin:0 0 clamp(18px,3.5vh,38px)}
+    .section-head{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:16px;
+      padding:0 2px;
+      margin:0 0 14px;
+    }
+    .section-head h2{
+      margin:0;
+      font-size:clamp(1.18rem, 2.8vw, 1.6rem);
+      letter-spacing:.45px;
+      font-weight:1000;
+      color:rgba(238,238,238,.92);
+    }
+    .section-sub{color:var(--muted);font-weight:800;letter-spacing:.2px}
 
-        footer{
-          margin-top:clamp(26px,5vh,58px);
-          display:flex;
-          justify-content:center;
-          gap:18px;
-          opacity:.9;
-          flex-wrap:wrap;
-        }
-        footer button{
-          background:linear-gradient(180deg, rgba(57,62,70,.85), rgba(57,62,70,.65));
-          color:var(--text);
-          border:1px solid var(--stroke);
-          padding:14px 22px;
-          font-size:1rem;
-          border-radius:var(--r2);
-          cursor:pointer;
-          box-shadow:0 14px 30px rgba(0,0,0,.45);
-          transition:transform .18s ease, border-color .18s ease, filter .18s ease;
-        }
-        footer button:hover{
-          border-color:var(--stroke2);
-          filter:brightness(1.05);
-          transform:translateY(-2px);
-        }
-        footer button:active{transform:translateY(0)}
+        .strip{
+      display:grid;
+      grid-auto-flow:column;
+      grid-auto-columns:minmax(260px, 1fr);
+      gap:var(--gap);
+      overflow:auto;
+      padding:2px 2px 10px;
+      scroll-snap-type:x mandatory;
+      scrollbar-width:thin;
+      scrollbar-color:rgba(0,173,181,.45) rgba(34,40,49,.25);
+    }
+    .strip::-webkit-scrollbar{height:10px}
+    .strip::-webkit-scrollbar-track{background:rgba(34,40,49,.25);border-radius:999px}
+    .strip::-webkit-scrollbar-thumb{background:rgba(0,173,181,.45);border-radius:999px;border:2px solid rgba(34,40,49,.25)}
+    .strip .game-card{scroll-snap-align:start}
+    .empty-state{
+      padding:18px 16px;
+      border-radius:var(--r2);
+      border:1px dashed rgba(238,238,238,.16);
+      color:rgba(238,238,238,.62);
+      background:rgba(34,40,49,.16);
+      text-align:center;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    /* [PH] SECTIONS_END */
+    .grid{
+  width:100%;
+  max-width:1320px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:var(--gap);
+}
+@media (min-width: 760px){
+  .grid{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1120px){
+  .grid{ grid-template-columns:repeat(3, minmax(0, 1fr)); }
+}
 
-        /* QR button + modal */
-        footer button.qr-btn{
-          background:linear-gradient(135deg, rgba(0,173,181,.34), rgba(57,62,70,.70));
-          border-color:rgba(0,173,181,.55);
-        }
-        footer button.qr-btn:hover{border-color:rgba(0,173,181,.85)}
+    .game-card{
+      background:linear-gradient(180deg, rgba(57,62,70,.94), rgba(57,62,70,.86));
+      border:1px solid var(--stroke);
+      border-radius:var(--r1);
+      padding:30px 26px 38px;
+      cursor:pointer;
+      position:relative;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+      transform:translateZ(0);
+      transition:transform .22s ease, border-color .22s ease, filter .22s ease, box-shadow .22s ease;
+    }
+    .game-card::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background:
+        radial-gradient(420px 260px at 18% 20%, rgba(0,173,181,.20), transparent 60%),
+        radial-gradient(380px 260px at 88% 10%, rgba(238,238,238,.10), transparent 62%),
+        linear-gradient(135deg, transparent, rgba(238,238,238,.06), transparent);
+      opacity:.85;
+      pointer-events:none;
+    }
+    .game-card::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(180deg, rgba(0,173,181,0), rgba(0,173,181,.12));
+      opacity:0;
+      transition:opacity .22s ease;
+      pointer-events:none;
+    }
+    .game-card:hover{
+      transform:translateY(-8px) scale(1.015);
+      border-color:var(--stroke2);
+      box-shadow:0 26px 70px rgba(0,0,0,.62);
+      filter:brightness(1.04);
+    }
+    .game-card:hover::after{opacity:1}
+    .game-card:active{transform:translateY(-4px) scale(1.005)}
 
-        .qr-modal{
-          position:fixed;
-          inset:0;
-          display:none;
-          align-items:center;
-          justify-content:center;
-          padding:var(--pad);
-          z-index:80;
-        }
-        .qr-modal.is-open{display:flex}
-        .qr-backdrop{
-          position:absolute;
-          inset:0;
-          background:rgba(0,0,0,.62);
-          backdrop-filter:blur(8px);
-          -webkit-backdrop-filter:blur(8px);
-        }
-        .qr-card{
-          position:relative;
-          width:min(560px, 94vw);
-          background:linear-gradient(180deg, rgba(57,62,70,.94), rgba(57,62,70,.72));
-          border:1px solid rgba(0,173,181,.38);
-          border-radius:var(--r1);
-          box-shadow:0 34px 96px rgba(0,0,0,.78);
-          padding:22px 22px 18px;
-          overflow:hidden;
-        }
-        .qr-card::before{
-          content:"";
-          position:absolute;
-          inset:-2px;
-          background:
-            radial-gradient(520px 340px at 20% 10%, rgba(0,173,181,.18), transparent 60%),
-            radial-gradient(420px 320px at 90% 0%, rgba(238,238,238,.08), transparent 62%);
-          pointer-events:none;
-          opacity:.9;
-        }
-        .qr-top{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
-        .qr-title{font-weight:1000;letter-spacing:.6px;text-transform:uppercase;color:rgba(238,238,238,.92)}
-        .qr-x{
-          width:42px;height:42px;border-radius:14px;
-          background:rgba(34,40,49,.35);
-          border:1px solid rgba(238,238,238,.14);
-          color:rgba(238,238,238,.92);
-          cursor:pointer;
-          transition:transform .15s ease, border-color .15s ease, filter .15s ease;
-        }
-        .qr-x:hover{border-color:rgba(0,173,181,.75);filter:brightness(1.06);transform:translateY(-1px)}
-        .qr-x:active{transform:translateY(0)}
-        .qr-wrap{position:relative;display:flex;justify-content:center;padding:10px 0 6px}
-        .qr-img{
-          width:min(300px, 72vw);
-          height:auto;
-          border-radius:18px;
-          border:1px solid rgba(238,238,238,.14);
-          background:rgba(34,40,49,.55);
-          padding:10px;
-          box-shadow:0 18px 54px rgba(0,0,0,.55);
-        }
-        .qr-link{position:relative;text-align:center;margin-top:10px}
-        .qr-link a{
-          color:rgba(238,238,238,.92);
-          text-decoration:none;
-          border-bottom:1px dashed rgba(0,173,181,.68);
-          padding-bottom:2px;
-        }
-        .qr-link a:hover{border-bottom-color:rgba(0,173,181,1)}
-        .qr-hint{position:relative;text-align:center;margin-top:10px;color:var(--dim);font-size:1rem}
+    .icon{
+      font-size:4.5rem;
+      /* leave room for ⭐ button in the top-left corner */
+      margin:28px 0 18px;
+      filter:drop-shadow(0 10px 22px rgba(0,0,0,.45));
+      position:relative;
+      z-index:1;
+    }
+    .game-title{font-size:1.8rem;font-weight:800;margin-bottom:10px;letter-spacing:.2px;position:relative;z-index:1}
+    .game-desc{font-size:1.05rem;color:var(--dim);line-height:1.35;position:relative;z-index:1}
 
-        /* NAV TRANSITION (Netflix vibe) */
-        .navfx{
-          position:fixed;
-          inset:0;
-          z-index:200;
-          pointer-events:none;
-          opacity:0;
-          visibility:hidden;
-          background:rgba(0,0,0,.12);
-        }
-        .navfx::after{
-          content:"";
-          position:absolute;
-          inset:0;
-          background:radial-gradient(900px 520px at 50% 45%, rgba(0,173,181,.14), rgba(0,0,0,.92));
-          opacity:.72;
-          pointer-events:none;
-        }
-        .navfx-bars{position:absolute;inset:0;display:flex}
-        .navfx-bar{
-          flex:1;
-          transform:scaleY(0);
-          background:linear-gradient(180deg, rgba(0,173,181,.08), rgba(0,0,0,.92));
-          border-left:1px solid rgba(238,238,238,.04);
-          box-shadow:inset 0 0 0 1px rgba(0,173,181,.06);
-        }
-        .navfx-line{
-          position:absolute;
-          left:-12%;
-          right:-12%;
-          top:50%;
-          height:2px;
-          transform:translateY(-50%) scaleX(0);
-          opacity:0;
-          background:linear-gradient(90deg, transparent, var(--accent), transparent);
-          filter:drop-shadow(0 0 16px rgba(0,173,181,.75));
-        }
+    .badge{
+      position:absolute;
+      top:16px;
+      right:16px;
+      padding:6px 12px;
+      font-size:.78rem;
+      letter-spacing:.6px;
+      border-radius:999px;
+      font-weight:900;
+      color:var(--text);
+      background:rgba(0,173,181,.16);
+      border:1px solid rgba(0,173,181,.55);
+      box-shadow:0 10px 22px rgba(0,0,0,.35);
+      text-transform:uppercase;
+      z-index:2;
+    }
+    .badge.hot{background:rgba(0,173,181,.22)}
+    .badge.new{background:rgba(0,173,181,.16)}
+    .badge.adult{background:rgba(0,173,181,.14)}
+    .badge.soon{
+      background:rgba(238,238,238,.08);
+      border:1px solid rgba(238,238,238,.18);
+      color:rgba(238,238,238,.88);
+    }
 
-        /* CSS fallback (gdy GSAP nie działa / jest zablokowany) */
-        .navfx.is-open{opacity:1;visibility:visible}
-        #app.is-fade{opacity:0;transform:scale(.985)}
-        .navfx.is-open .navfx-bar{animation:navfxUp .78s cubic-bezier(.12,.72,.22,1) forwards}
-        .navfx.is-open .navfx-bar:nth-child(1){animation-delay:.08s}
-        .navfx.is-open .navfx-bar:nth-child(2){animation-delay:.145s}
-        .navfx.is-open .navfx-bar:nth-child(3){animation-delay:.21s}
-        .navfx.is-open .navfx-bar:nth-child(4){animation-delay:.275s}
-        .navfx.is-open .navfx-bar:nth-child(5){animation-delay:.34s}
-        .navfx.is-open .navfx-bar:nth-child(6){animation-delay:.405s}
-        .navfx.is-open .navfx-bar:nth-child(7){animation-delay:.47s}
-        .navfx.is-open .navfx-bar:nth-child(8){animation-delay:.535s}
-        .navfx.is-open .navfx-bar:nth-child(9){animation-delay:.60s}
-        .navfx.is-open .navfx-line{animation:navfxLine .46s ease-out .28s forwards}
-        @keyframes navfxUp{from{transform:scaleY(0)}to{transform:scaleY(1)}}
-        @keyframes navfxLine{
-          0%{transform:translateY(-50%) scaleX(0);opacity:0}
-          25%{opacity:1}
-          100%{transform:translateY(-50%) scaleX(1);opacity:0}
-        }
+    .game-card.is-disabled{
+      cursor:not-allowed;
+      opacity:1;
+      background:linear-gradient(180deg, rgba(57,62,70,.92), rgba(57,62,70,.90));
+      filter:grayscale(.95) saturate(.35) brightness(.92);
+    }
+    .game-card.is-disabled:hover{
+      transform:none;
+      border-color:var(--stroke);
+      box-shadow:var(--shadow);
+      filter:grayscale(1) saturate(.15) brightness(.95);
+    }
+    .game-card.is-disabled:hover::after{opacity:0}
 
-        /* TV FOCUS MODE */
-        .game-card:focus{
-          outline:none;
-          box-shadow:var(--focus);
-          border-color:rgba(0,173,181,.75);
-        }
-        body.tv-mode .game-card{padding:40px 34px 50px}
-        body.tv-mode header h1{font-size:clamp(4rem,8vw,7rem)}
+    /* [PH] STAR_BEGIN */
+    .star-btn{
+      position:absolute;
+      top:14px;
+      left:14px;
+      width:42px;height:42px;
+      border-radius:14px;
+      border:1px solid rgba(238,238,238,.12);
+      background:rgba(34,40,49,.35);
+      color:rgba(238,238,238,.82);
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:3;
+      transition:transform .15s ease, border-color .15s ease, filter .15s ease, background .15s ease;
+    }
+    .star-btn:hover{border-color:rgba(0,173,181,.75);filter:brightness(1.06);transform:translateY(-1px)}
+    .star-btn:active{transform:translateY(0)}
+    .star-btn .star{font-size:1.2rem;line-height:1;filter:drop-shadow(0 10px 18px rgba(0,0,0,.35))}
+    .game-card.is-fav .star-btn{
+      background:rgba(0,173,181,.16);
+      border-color:rgba(0,173,181,.85);
+      color:rgba(238,238,238,.92);
+      box-shadow:0 16px 46px rgba(0,0,0,.35);
+    }
+    /* [PH] STAR_END */
 
-        @media (max-width:520px){
-          .icon{font-size:4rem}
-          .game-card{padding:26px 22px 32px}
-        }
-        @media (prefers-reduced-motion:reduce){
-          *{transition:none!important;animation:none!important}
-          .game-card:hover,.game-card:active{transform:none}
-        }
-    </style>
+    /* Compact cards for strips */
+    .game-card.is-compact{padding:22px 20px 26px}
+    .game-card.is-compact .icon{font-size:3.5rem;margin:32px 0 12px}
+    .game-card.is-compact .game-title{font-size:1.45rem;margin-bottom:8px}
+    .game-card.is-compact .game-desc{font-size:.98rem}
+    .game-card.is-compact .badge{top:14px;right:14px;font-size:.74rem}
+    .game-card.is-compact .star-btn{top:12px;left:12px;width:40px;height:40px}
+
+    footer{
+      margin-top:clamp(26px,5vh,58px);
+      display:flex;
+      justify-content:center;
+      gap:18px;
+      opacity:.9;
+      flex-wrap:wrap;
+    }
+    footer button{
+      background:linear-gradient(180deg, rgba(57,62,70,.85), rgba(57,62,70,.65));
+      color:var(--text);
+      border:1px solid var(--stroke);
+      padding:14px 22px;
+      font-size:1rem;
+      border-radius:var(--r2);
+      cursor:pointer;
+      box-shadow:0 14px 30px rgba(0,0,0,.45);
+      transition:transform .18s ease, border-color .18s ease, filter .18s ease;
+    }
+    footer button:hover{
+      border-color:var(--stroke2);
+      filter:brightness(1.05);
+      transform:translateY(-2px);
+    }
+    footer button:active{transform:translateY(0)}
+
+    /* QR button + modal */
+    footer button.qr-btn{
+      background:linear-gradient(135deg, rgba(0,173,181,.34), rgba(57,62,70,.70));
+      border-color:rgba(0,173,181,.55);
+    }
+    footer button.qr-btn:hover{border-color:rgba(0,173,181,.85)}
+
+    .qr-modal{
+      position:fixed;
+      inset:0;
+      width:100vw;
+      height:100vh;
+      max-width:none;
+      overflow:hidden;
+      overscroll-behavior:none;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:var(--pad);
+      z-index:220;
+    }
+    .qr-modal.is-open{display:flex}
+    .qr-backdrop{
+      position:absolute;
+      touch-action:none;
+      inset:0;
+      background:rgba(0,0,0,.62);
+      backdrop-filter:blur(8px);
+      -webkit-backdrop-filter:blur(8px);
+    }
+    .qr-card{
+      position:relative;
+      width:min(560px, 94vw);
+      margin:auto;
+      max-height:calc(100vh - 2*var(--pad));
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+      background:linear-gradient(180deg, rgba(57,62,70,.94), rgba(57,62,70,.72));
+      border:1px solid rgba(0,173,181,.38);
+      border-radius:var(--r1);
+      box-shadow:0 34px 96px rgba(0,0,0,.78);
+      padding:22px 22px 18px;
+    }
+    .qr-card::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background:
+        radial-gradient(520px 340px at 20% 10%, rgba(0,173,181,.18), transparent 60%),
+        radial-gradient(420px 320px at 90% 0%, rgba(238,238,238,.08), transparent 62%);
+      pointer-events:none;
+      opacity:.9;
+    }
+    .qr-top{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .qr-title{font-weight:1000;letter-spacing:.6px;text-transform:uppercase;color:rgba(238,238,238,.92)}
+    .qr-x{
+      width:42px;height:42px;border-radius:14px;
+      background:rgba(34,40,49,.35);
+      border:1px solid rgba(238,238,238,.14);
+      color:rgba(238,238,238,.92);
+      cursor:pointer;
+      transition:transform .15s ease, border-color .15s ease, filter .15s ease;
+    }
+    .qr-x:hover{border-color:rgba(0,173,181,.75);filter:brightness(1.06);transform:translateY(-1px)}
+    .qr-x:active{transform:translateY(0)}
+    .qr-wrap{position:relative;display:flex;justify-content:center;padding:10px 0 6px}
+    .qr-img{
+      width:min(320px, 74vw, 52vh);
+      aspect-ratio:1/1;
+      height:auto;
+      border-radius:18px;
+      border:1px solid rgba(238,238,238,.14);
+      background:rgba(34,40,49,.55);
+      padding:10px;
+      box-shadow:0 18px 54px rgba(0,0,0,.55);
+    }
+    .qr-link{position:relative;text-align:center;margin-top:10px}
+    .qr-link a{
+      display:inline-block;
+      max-width:100%;
+      color:rgba(238,238,238,.92);
+      text-decoration:none;
+      border-bottom:1px dashed rgba(0,173,181,.68);
+      padding-bottom:2px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .qr-link a:hover{border-bottom-color:rgba(0,173,181,1)}
+    .qr-hint{position:relative;text-align:center;margin-top:10px;color:var(--dim);font-size:1rem}
+
+    /* NAV TRANSITION (Netflix vibe) */
+    .navfx{
+      position:fixed;
+      inset:0;
+      z-index:200;
+      pointer-events:none;
+      opacity:0;
+      visibility:hidden;
+      background:rgba(0,0,0,.12);
+    }
+
+        /* QR modal — fit without scrollbars (including landscape phones) */
+    @media (orientation: landscape) and (max-height: 520px){
+      .qr-modal{ padding:12px; }
+      .qr-card{ padding:16px 16px 14px; border-radius:24px; }
+      .qr-top{ margin-bottom:8px; }
+      .qr-x{ width:38px; height:38px; border-radius:12px; }
+      .qr-wrap{ padding:6px 0 4px; }
+      .qr-img{ width:min(260px, 70vw, 44vh); padding:8px; border-radius:16px; }
+      .qr-link{ margin-top:8px; }
+      .qr-link a{ font-size:.95rem; }
+      .qr-hint{ margin-top:8px; font-size:.92rem; }
+    }
+    @media (orientation: landscape) and (max-height: 420px){
+      .qr-modal{ padding:10px; }
+      .qr-card{ width:min(520px, 96vw); padding:14px 14px 12px; border-radius:22px; }
+      .qr-title{ font-size:.92rem; }
+      .qr-x{ width:36px; height:36px; border-radius:12px; }
+      .qr-wrap{ padding:4px 0 0; }
+      .qr-img{ width:min(210px, 66vw, 60vh); padding:7px; border-radius:14px; }
+      .qr-link{ margin-top:6px; }
+      .qr-link a{ font-size:.9rem; }
+      .qr-hint{ margin-top:6px; font-size:.86rem; }
+    }
+    @media (orientation: landscape) and (max-height: 340px){
+      /* Extreme landscape: keep link (useful), drop hint (cosmetic) */
+      .qr-hint{ display:none; }
+    }
+
+    .navfx::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:radial-gradient(900px 520px at 50% 45%, rgba(0,173,181,.14), rgba(0,0,0,.92));
+      opacity:.72;
+      pointer-events:none;
+    }
+    .navfx-bars{position:absolute;inset:0;display:flex}
+    .navfx-bar{
+      flex:1;
+      transform:scaleY(0);
+      background:linear-gradient(180deg, rgba(0,173,181,.08), rgba(0,0,0,.92));
+      border-left:1px solid rgba(238,238,238,.04);
+      box-shadow:inset 0 0 0 1px rgba(0,173,181,.06);
+    }
+    .navfx-line{
+      position:absolute;
+      left:-12%;
+      right:-12%;
+      top:50%;
+      height:2px;
+      transform:translateY(-50%) scaleX(0);
+      opacity:0;
+      background:linear-gradient(90deg, transparent, var(--accent), transparent);
+      filter:drop-shadow(0 0 16px rgba(0,173,181,.75));
+    }
+
+    /* CSS fallback (gdy GSAP nie działa / jest zablokowany) */
+    .navfx.is-open{opacity:1;visibility:visible}
+    #app.is-fade{opacity:0;transform:scale(.985)}
+    .navfx.is-open .navfx-bar{animation:navfxUp .78s cubic-bezier(.12,.72,.22,1) forwards}
+    .navfx.is-open .navfx-bar:nth-child(1){animation-delay:.08s}
+    .navfx.is-open .navfx-bar:nth-child(2){animation-delay:.145s}
+    .navfx.is-open .navfx-bar:nth-child(3){animation-delay:.21s}
+    .navfx.is-open .navfx-bar:nth-child(4){animation-delay:.275s}
+    .navfx.is-open .navfx-bar:nth-child(5){animation-delay:.34s}
+    .navfx.is-open .navfx-bar:nth-child(6){animation-delay:.405s}
+    .navfx.is-open .navfx-bar:nth-child(7){animation-delay:.47s}
+    .navfx.is-open .navfx-bar:nth-child(8){animation-delay:.535s}
+    .navfx.is-open .navfx-bar:nth-child(9){animation-delay:.60s}
+    .navfx.is-open .navfx-line{animation:navfxLine .46s ease-out .28s forwards}
+    @keyframes navfxUp{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+    @keyframes navfxLine{
+      0%{transform:translateY(-50%) scaleX(0);opacity:0}
+      25%{opacity:1}
+      100%{transform:translateY(-50%) scaleX(1);opacity:0}
+    }
+
+    /* TV FOCUS MODE */
+    .game-card:focus{
+      outline:none;
+      box-shadow:var(--focus);
+      border-color:rgba(0,173,181,.75);
+    }
+    body.tv-mode .game-card{padding:40px 34px 50px}
+    body.tv-mode header h1{font-size:clamp(4rem,8vw,7rem)}
+
+    @media (max-width:520px){
+      .icon{font-size:4rem}
+      .game-card{padding:26px 22px 32px}
+      .searchbox{min-width:100%}
+      .hub-meta{width:100%;justify-content:center}
+      .section-head{flex-direction:column;align-items:flex-start}
+    }
+    @media (prefers-reduced-motion: reduce){
+      *{transition:none!important;animation:none!important}
+      .game-card:hover,.game-card:active{transform:none}
+    }
+  </style>
 </head>
 
 <body>
-    <div id="app">
+  <div id="app">
+    <header>
+      <h1>PARTYHUB</h1>
+      <p>Zbierz ekipę, wybierz grę i startujmy!</p>
+    </header>
 
-        <header>
-            <h1>PARTYHUB</h1>
+    <!-- [PH] HUB_UI_BEGIN -->
+    <div class="hub-controls" id="hubControls">
+      <div class="searchbox" role="search">
+        <div class="search-ico" aria-hidden="true">🔎</div>
+        <input id="searchInput" type="search" inputmode="search" autocomplete="off" spellcheck="false"
+               placeholder="Szukaj gry… (np. Tajniacy)" aria-label="Szukaj gry" />
+        <button class="search-clear" id="searchClear" aria-label="Wyczyść wyszukiwanie" title="Wyczyść">✕</button>
+      </div>
 
-        </header>
+      <div class="chips" id="filterChips" aria-label="Kategorie">
+        <button class="chip is-active" data-filter="all" type="button">Wszystkie</button>
+        <button class="chip" data-filter="favs" type="button">Ulubione</button>
+        <button class="chip" data-filter="recent" type="button" title="Ostatnio grane">Ostatnio</button>
+      </div>
 
-        <section class="grid" id="gameGrid">
-
-            <div class="game-card" data-link="games/tajniacy/index.html">
-                <span class="badge hot">HOT</span>
-                <div class="icon">🎯</div>
-                <div class="game-title">Tajniacy</div>
-                <div class="game-desc">Drużynowa gra skojarzeń!</div>
-            </div>
-
-            <div class="game-card" data-link="games/kalambury/index.html">
-                <span class="badge new">NEW</span>
-                <div class="icon">🎭</div>
-                <div class="game-title">Kalambury</div>
-                <div class="game-desc">Prezentuj, zgaduj, zdobywaj punkty!</div>
-            </div>
-
-            <div class="game-card is-disabled" data-disabled="1">
-                <span class="badge soon">WKRÓTCE</span>
-                <div class="icon">⏱️</div>
-                <div class="game-title">5 Sekund</div>
-                <div class="game-desc">Wkrótce — gra w przygotowaniu</div>
-            </div>
-
-<!-- WORK IN PROGRESS
-           
-            <div class="game-card" data-link="games/5sekund/index.html">
-                <span class="badge new">NEW</span>
-                <div class="icon">⏱️</div>
-                <div class="game-title">5 Sekund</div>
-                <div class="game-desc">Czas działa na Twoją niekorzyść</div>
-            </div>
-
-            <div class="game-card">
-                <span class="badge adult">WIP</span>
-                <div class="icon">🔜</div>
-                <div class="game-title">WORK IN PROGRESS</div>
-                <div class="game-desc">Be patient</div>
-            </div>
-
-            <div class="game-card">
-                <div class="icon">🎲</div>
-                <div class="game-title">Losowa gra</div>
-                <div class="game-desc">Niech los zdecyduje</div>
-            </div>
--->
-        </section>
-
-        <footer>
-            <button id="qrBtn" class="qr-btn" aria-haspopup="dialog" aria-controls="qrModal">QR code</button>
-        </footer>
-
-        <div class="qr-modal" id="qrModal" aria-hidden="true">
-            <div class="qr-backdrop" id="qrBackdrop" aria-hidden="true"></div>
-            <div class="qr-card" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
-                <div class="qr-top">
-                    <div class="qr-title" id="qrTitle">QR code</div>
-                    <button class="qr-x" id="qrClose" aria-label="Zamknij">✕</button>
-                </div>
-                <div class="qr-wrap">
-                    <img class="qr-img" id="qrImg" alt="QR code do strony PartyGame" />
-                </div>
-                <div class="qr-link">
-                    <a href="https://ciuthedev.github.io/PartyGame/" target="_blank" rel="noopener">ciuthedev.github.io/PartyGame/</a>
-                </div>
-                <div class="qr-hint">Zeskanuj telefonem, żeby odpalić stronę.</div>
-            </div>
-        </div>
+      <div class="hub-meta">
+        <span id="resultCount">—</span>
+        <span class="hint" title="Skrót: /"></span>
+      </div>
     </div>
+
+<section class="hub-section">
+      <div class="section-head">
+        <h2 id="allTitle">Wszystkie gry</h2>
+        <div class="section-sub" id="allCount"></div>
+      </div>
+
+      <section class="grid" id="gameGrid">
+        <!-- Cards are harvested on load and then re-rendered (keeps monolith). -->
+        <div class="game-card" data-link="games/tajniacy/index.html">
+          <span class="badge hot">HOT</span>
+          <div class="icon">🎯</div>
+          <div class="game-title">Tajniacy</div>
+          <div class="game-desc">Drużynowa gra skojarzeń!</div>
+        </div>
+
+        <div class="game-card" data-link="games/kalambury/index.html">
+          <span class="badge new">NEW</span>
+          <div class="icon">🎭</div>
+          <div class="game-title">Kalambury</div>
+          <div class="game-desc">Prezentuj, zgaduj, zdobywaj punkty!</div>
+        </div>
+
+        <div class="game-card is-disabled" data-disabled="1">
+          <span class="badge soon">WKRÓTCE</span>
+          <div class="icon">⏱️</div>
+          <div class="game-title">5 Sekund</div>
+          <div class="game-desc">Wkrótce — gra w przygotowaniu</div>
+        </div>
+
+        <!-- WORK IN PROGRESS
+        <div class="game-card" data-link="games/5sekund/index.html">
+          <span class="badge new">NEW</span>
+          <div class="icon">⏱️</div>
+          <div class="game-title">5 Sekund</div>
+          <div class="game-desc">Czas działa na Twoją niekorzyść</div>
+        </div>
+        -->
+      </section>
+      <div class="empty-state" id="gridEmpty" hidden></div>
+    </section>
+    <!-- [PH] HUB_UI_END -->
+
+    <footer>
+      <button id="qrBtn" class="qr-btn" aria-haspopup="dialog" aria-controls="qrModal">QR code</button>
+    </footer>
 
     <div id="navFx" class="navfx" aria-hidden="true">
-        <div class="navfx-bars" aria-hidden="true">
-            <span class="navfx-bar"></span><span class="navfx-bar"></span><span class="navfx-bar"></span>
-            <span class="navfx-bar"></span><span class="navfx-bar"></span><span class="navfx-bar"></span>
-            <span class="navfx-bar"></span><span class="navfx-bar"></span><span class="navfx-bar"></span>
-        </div>
-        <div class="navfx-line" aria-hidden="true"></div>
+    <div class="navfx-bars" aria-hidden="true">
+      <span class="navfx-bar"></span><span class="navfx-bar"></span><span class="navfx-bar"></span>
+      <span class="navfx-bar"></span><span class="navfx-bar"></span><span class="navfx-bar"></span>
+      <span class="navfx-bar"></span><span class="navfx-bar"></span><span class="navfx-bar"></span>
     </div>
+    <div class="navfx-line" aria-hidden="true"></div>
+  </div>
+</div><!-- /#app -->
 
-    <script>
-        // ===== START ANIMACJI =====
-        gsap.from('header h1', {
-            y: -40,
-            opacity: 0,
-            duration: 1,
-            ease: 'power3.out'
+<div class="qr-modal" id="qrModal" aria-hidden="true">
+      <div class="qr-backdrop" id="qrBackdrop" aria-hidden="true"></div>
+      <div class="qr-card" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
+        <div class="qr-top">
+          <div class="qr-title" id="qrTitle">QR code</div>
+          <button class="qr-x" id="qrClose" aria-label="Zamknij">✕</button>
+        </div>
+        <div class="qr-wrap">
+          <img class="qr-img" id="qrImg" alt="QR code do strony PartyGame" />
+        </div>
+        <div class="qr-link">
+          <a href="https://ciuthedev.github.io/PartyGame/" target="_blank" rel="noopener">ciuthedev.github.io/PartyGame/</a>
+        </div>
+        <div class="qr-hint">Zeskanuj telefonem, żeby odpalić stronę.</div>
+      </div>
+    </div>
+  </div>
+
+  
+
+
+
+  <script>
+        // [PH] HUB_LOGIC_BEGIN
+    (function(){
+      const LS_FAVS = 'ph_favs_v1';
+      const LS_RECENT = 'ph_recent_v1';
+
+      const allGrid = document.getElementById('gameGrid');
+      const gridEmpty = document.getElementById('gridEmpty');
+
+      const searchInput = document.getElementById('searchInput');
+      const searchClear = document.getElementById('searchClear');
+      const filterChips = document.getElementById('filterChips');
+
+      const resultCount = document.getElementById('resultCount');
+      const allCount = document.getElementById('allCount');
+      const allTitle = document.getElementById('allTitle');
+
+      // ===== NAV TRANSITION (Netflix vibe) =====
+      // Jeśli masz w systemie włączone "reduce motion", a mimo to chcesz animacje — zostaw true.
+      const FORCE_TRANSITION = true;
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const navFx = document.getElementById('navFx');
+      // [PH] NAVFX_ROOT_FIX: keep transition layer outside #app so fading #app doesn't hide the overlay
+      try{
+        if(navFx && navFx.parentElement && navFx.closest('#app')){
+          document.body.appendChild(navFx);
+        }
+      }catch(_e){}
+      const navBars = navFx ? [...navFx.querySelectorAll('.navfx-bar')] : [];
+      const navLine = navFx ? navFx.querySelector('.navfx-line') : null;
+      let isNavigating = false;
+
+      function cssTransitionTo(url){
+        if(!navFx) { window.location.href = url; return; }
+        navFx.classList.add('is-open');
+        document.getElementById('app')?.classList.add('is-fade');
+
+        const last = navBars && navBars.length ? navBars[navBars.length - 1] : null;
+        let waitMs = 1500;
+        if (last) {
+          const cs = getComputedStyle(last);
+          const d = parseFloat(cs.animationDelay || '0') * 1000;
+          const t = parseFloat(cs.animationDuration || '0.78') * 1000;
+          waitMs = Math.max(900, d + t + 260);
+        }
+        window.setTimeout(() => { window.location.href = url; }, waitMs);
+      }
+
+      function netflixTransitionTo(url){
+        if(!url || isNavigating) return;
+        isNavigating = true;
+
+        const allowMotion = FORCE_TRANSITION || !prefersReducedMotion;
+        const canUseGsap = !!window.gsap && typeof gsap.timeline === 'function';
+
+        if (!allowMotion || !navFx) { window.location.href = url; return; }
+        if (!canUseGsap || navBars.length === 0) { cssTransitionTo(url); return; }
+
+        gsap.set(navFx, { autoAlpha: 1, visibility: 'visible' });
+        gsap.set(navBars, { scaleY: 0, transformOrigin: 'bottom' });
+        if (navLine) gsap.set(navLine, { scaleX: 0, autoAlpha: 0, transformOrigin: 'left' });
+
+        const tl = gsap.timeline({ defaults: { ease: 'power4.inOut' } });
+        const barsStart = 0.08;
+        const barsDur = 0.78;
+        const barsStagger = 0.06;
+        const barsEnd = barsStart + (navBars.length - 1) * barsStagger + barsDur;
+
+        tl.to('#app', { autoAlpha: 0, scale: 0.985, duration: 0.32, ease: 'power2.out' }, 0)
+          .to(navBars, { scaleY: 1, duration: barsDur, stagger: barsStagger, ease: 'power3.in' }, barsStart);
+
+        if (navLine) {
+          tl.to(navLine, { autoAlpha: 1, scaleX: 1, duration: 0.44, ease: 'power2.out' }, 0.26)
+            .to(navLine, { autoAlpha: 0, duration: 0.18 }, 0.78);
+        }
+
+        tl.call(() => { window.location.href = url; }, null, barsEnd + 0.26);
+      }
+
+      // ===== QR MODAL =====
+      const QR_URL = 'https://ciuthedev.github.io/PartyGame/';
+      const qrBtn = document.getElementById('qrBtn');
+      const qrModal = document.getElementById('qrModal');
+      const qrBackdrop = document.getElementById('qrBackdrop');
+      const qrClose = document.getElementById('qrClose');
+      const qrImg = document.getElementById('qrImg');
+
+      if (qrImg) {
+        qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=360x360&margin=12&data=' + encodeURIComponent(QR_URL);
+      }
+
+      const isQrOpen = () => qrModal && qrModal.classList.contains('is-open');
+
+      // Scroll lock (mobile-safe, no background scroll)
+      let _lockScrollY = 0;
+      function lockBodyScroll(){
+        _lockScrollY = window.scrollY || window.pageYOffset || 0;
+        const sbw = window.innerWidth - document.documentElement.clientWidth;
+        document.documentElement.classList.add('modal-open');
+        document.body.classList.add('modal-open');
+        document.body.dataset.scrollY = String(_lockScrollY);
+        if (sbw > 0) document.body.style.paddingRight = sbw + 'px';
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${_lockScrollY}px`;
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.width = '100%';
+      }
+      function unlockBodyScroll(){
+        const y = parseInt(document.body.dataset.scrollY || '0', 10) || 0;
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.width = '';
+        document.body.style.paddingRight = '';
+        document.body.classList.remove('modal-open');
+        document.documentElement.classList.remove('modal-open');
+        delete document.body.dataset.scrollY;
+        window.scrollTo(0, y);
+      }
+
+
+      function openQR() {
+        if (!qrModal) return;
+        if (isQrOpen()) return;
+        lockBodyScroll();
+        qrModal.classList.add('is-open');
+        qrModal.setAttribute('aria-hidden', 'false');
+        qrClose && qrClose.focus();
+      }
+
+      function closeQR() {
+        if (!qrModal) return;
+        if (!isQrOpen()) return;
+        qrModal.classList.remove('is-open');
+        qrModal.setAttribute('aria-hidden', 'true');
+        unlockBodyScroll();
+        qrBtn && qrBtn.focus();
+      }
+
+      qrBtn && qrBtn.addEventListener('click', openQR);
+      qrBackdrop && qrBackdrop.addEventListener('click', closeQR);
+      qrClose && qrClose.addEventListener('click', closeQR);
+
+      // ===== DATA MODEL (harvest existing cards, keep monolith) =====
+      const initial = [...allGrid.querySelectorAll('.game-card')];
+
+      function norm(s){ return String(s || '').trim(); }
+      function slugify(s){
+        return norm(s).toLowerCase()
+          .replace(/[\u0105\u0107\u0119\u0142\u0144\u00f3\u015b\u017a\u017c]/g, ch => ({
+            'ą':'a','ć':'c','ę':'e','ł':'l','ń':'n','ó':'o','ś':'s','ź':'z','ż':'z'
+          }[ch] || ch))
+          .replace(/[^a-z0-9]+/g,'-')
+          .replace(/(^-|-$)/g,'') || 'game';
+      }
+
+      const GAMES = initial.map((el, idx) => {
+        const title = norm(el.querySelector('.game-title')?.textContent);
+        const desc = norm(el.querySelector('.game-desc')?.textContent);
+        const icon = norm(el.querySelector('.icon')?.textContent) || '🎲';
+        const badgeEl = el.querySelector('.badge');
+        const badgeText = norm(badgeEl?.textContent);
+        const badgeType = badgeEl ? (badgeEl.classList.contains('hot') ? 'hot'
+                          : badgeEl.classList.contains('new') ? 'new'
+                          : badgeEl.classList.contains('soon') ? 'soon'
+                          : badgeEl.classList.contains('adult') ? 'adult'
+                          : 'tag') : '';
+        const link = el.dataset.link ? norm(el.dataset.link) : '';
+        const disabled = el.dataset.disabled === '1' || el.classList.contains('is-disabled');
+
+        const idBase = link || title || ('game-' + idx);
+        const id = slugify(idBase);
+
+        return { id, title, desc, icon, badgeText, badgeType, link, disabled };
+      });
+
+      // Clear initial markup after harvesting
+      allGrid.innerHTML = '';
+
+      // ===== LocalStorage helpers =====
+      function readJSON(key, fallback){
+        try{
+          const v = localStorage.getItem(key);
+          return v ? JSON.parse(v) : fallback;
+        }catch(_){ return fallback; }
+      }
+      function writeJSON(key, value){
+        try{ localStorage.setItem(key, JSON.stringify(value)); }catch(_){}
+      }
+      function loadFavs(){
+        const arr = readJSON(LS_FAVS, []);
+        return new Set(Array.isArray(arr) ? arr : []);
+      }
+      function saveFavs(set){
+        writeJSON(LS_FAVS, [...set].slice(0, 64));
+      }
+      function loadRecents(){
+        const arr = readJSON(LS_RECENT, []);
+        return Array.isArray(arr) ? arr : [];
+      }
+      function pushRecent(id){
+        const cur = loadRecents().filter(x => x && x !== id);
+        cur.unshift(id);
+        writeJSON(LS_RECENT, cur.slice(0, 10));
+      }
+
+      // ===== UI state =====
+      let activeView = 'all'; // all | favs | recent
+      let query = '';
+
+      function setActiveChip(view){
+        activeView = (view === 'favs' || view === 'recent') ? view : 'all';
+        [...filterChips.querySelectorAll('.chip')].forEach(b => b.classList.toggle('is-active', b.dataset.filter === activeView));
+        render();
+      }
+
+      function titleForView(view){
+        if(view === 'favs') return 'Ulubione';
+        if(view === 'recent') return 'Ostatnio grane';
+        return 'Wszystkie gry';
+      }
+
+      function buildCard(game, opts){
+        const favSet = opts && opts.favSet ? opts.favSet : new Set();
+        const isFav = favSet.has(game.id);
+
+        const card = document.createElement('div');
+        card.className = 'game-card' + (game.disabled ? ' is-disabled' : '') + (isFav ? ' is-fav' : '');
+        card.dataset.gameId = game.id;
+        if(game.link) card.dataset.link = game.link;
+        if(game.disabled) card.dataset.disabled = '1';
+        card.setAttribute('tabindex', '0');
+
+        // star
+        const starBtn = document.createElement('button');
+        starBtn.className = 'star-btn';
+        starBtn.type = 'button';
+        starBtn.setAttribute('aria-label', isFav ? 'Usuń z ulubionych' : 'Dodaj do ulubionych');
+        starBtn.innerHTML = '<span class="star" aria-hidden="true">' + (isFav ? '★' : '☆') + '</span>';
+        starBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const favs = loadFavs();
+          if(favs.has(game.id)) favs.delete(game.id); else favs.add(game.id);
+          saveFavs(favs);
+          render();
         });
-        gsap.from('header p', {
-            y: -20,
-            opacity: 0,
-            duration: .8,
-            delay: .3
-        });
-        gsap.from('.game-card', {
-            opacity: 0,
-            y: 40,
-            stagger: .12,
-            duration: .8,
-            delay: .6,
-            ease: 'power3.out'
+        card.appendChild(starBtn);
+
+        // badge
+        if(game.badgeText){
+          const badge = document.createElement('span');
+          badge.className = 'badge' + (game.badgeType ? ' ' + game.badgeType : '');
+          badge.textContent = game.badgeText;
+          card.appendChild(badge);
+        }
+
+        const icon = document.createElement('div');
+        icon.className = 'icon';
+        icon.textContent = game.icon;
+
+        const title = document.createElement('div');
+        title.className = 'game-title';
+        title.textContent = game.title || 'Gra';
+
+        const desc = document.createElement('div');
+        desc.className = 'game-desc';
+        desc.textContent = game.desc || '';
+
+        card.appendChild(icon);
+        card.appendChild(title);
+        card.appendChild(desc);
+
+        card.addEventListener('click', () => {
+          if (game.disabled || !game.link) return;
+          pushRecent(game.id);
+          netflixTransitionTo(game.link);
         });
 
-        // ===== TRYB TV =====
-        const cards = [...document.querySelectorAll('.game-card')];
+        return card;
+      }
+
+      // ===== TV focus navigation =====
+      let cards = [];
+      let focusIndex = 0;
+
+      function refreshFocusables(){
+        cards = [...document.querySelectorAll('#gameGrid .game-card')];
         cards.forEach(c => c.setAttribute('tabindex', '0'));
-        let focusIndex = 0;
+        if(!cards.length) return;
+        focusIndex = Math.max(0, Math.min(cards.length - 1, focusIndex));
+      }
 
-        function focusCard(i) {
-            focusIndex = (i + cards.length) % cards.length;
-            cards[focusIndex].focus();
+      function focusCard(i){
+        if(!cards.length) return;
+        focusIndex = (i + cards.length) % cards.length;
+        cards[focusIndex].focus();
+      }
+
+      function focusCardById(id){
+        if(!cards.length) return false;
+        const idx = cards.findIndex(c => c.dataset.gameId === id);
+        if(idx >= 0){ focusIndex = idx; cards[idx].focus(); return true; }
+        return false;
+      }
+
+      function activeInControls(){
+        const ae = document.activeElement;
+        if(!ae) return false;
+        if(ae.closest && ae.closest('.hub-controls')) return true;
+        if(ae.closest && ae.closest('.qr-modal')) return true;
+        const tag = (ae.tagName || '').toLowerCase();
+        if(tag === 'input' || tag === 'textarea' || tag === 'select') return true;
+        if(ae.isContentEditable) return true;
+        return false;
+      }
+
+      // ===== Render =====
+      function render(){
+        const prevFocusId = document.activeElement?.closest?.('.game-card')?.dataset?.gameId || null;
+
+        const favSet = loadFavs();
+        const recentIds = loadRecents();
+
+        // base list per view
+        let base = GAMES;
+        if(activeView === 'favs'){
+          base = GAMES.filter(g => favSet.has(g.id));
+        } else if(activeView === 'recent'){
+          const byId = new Map(GAMES.map(g => [g.id, g]));
+          base = recentIds.map(id => byId.get(id)).filter(Boolean);
         }
 
-        focusCard(0);
+        const q = String(query || '').trim().toLowerCase();
+        const visible = q ? base.filter(g => ((g.title + ' ' + g.desc + ' ' + (g.badgeText || '')).toLowerCase().includes(q))) : base;
 
-        // ===== QR MODAL =====
-        const QR_URL = 'https://ciuthedev.github.io/PartyGame/';
-        const qrBtn = document.getElementById('qrBtn');
-        const qrModal = document.getElementById('qrModal');
-        const qrBackdrop = document.getElementById('qrBackdrop');
-        const qrClose = document.getElementById('qrClose');
-        const qrImg = document.getElementById('qrImg');
-
-        if (qrImg) {
-            qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=360x360&margin=12&data=' + encodeURIComponent(QR_URL);
+        // titles / counts
+        const baseTitle = titleForView(activeView);
+        if(allTitle){
+          allTitle.textContent = q ? ('Wyniki — ' + baseTitle) : baseTitle;
         }
 
-        const isQrOpen = () => qrModal && qrModal.classList.contains('is-open');
-
-        function openQR() {
-            if (!qrModal) return;
-            qrModal.classList.add('is-open');
-            qrModal.setAttribute('aria-hidden', 'false');
-            qrClose && qrClose.focus();
+        if(resultCount){
+          resultCount.textContent = visible.length + ' / ' + base.length;
         }
 
-        function closeQR() {
-            if (!qrModal) return;
-            qrModal.classList.remove('is-open');
-            qrModal.setAttribute('aria-hidden', 'true');
-            qrBtn && qrBtn.focus();
+        if(allCount){
+          if(!base.length){
+            allCount.textContent = (activeView === 'favs') ? 'Brak ulubionych' : (activeView === 'recent') ? 'Brak ostatnio granych' : 'Brak gier';
+          } else if(!visible.length){
+            allCount.textContent = 'Brak wyników';
+          } else {
+            allCount.textContent = 'Widoczne: ' + visible.length;
+          }
         }
 
-        qrBtn && qrBtn.addEventListener('click', openQR);
-        qrBackdrop && qrBackdrop.addEventListener('click', closeQR);
-        qrClose && qrClose.addEventListener('click', closeQR);
+        // grid content
+        allGrid.innerHTML = '';
+        visible.forEach(g => allGrid.appendChild(buildCard(g, { favSet })));
 
-        // ===== NAV TRANSITION (Netflix vibe) =====
-        // Jeśli masz w systemie włączone "reduce motion", a mimo to chcesz animacje — zostaw true.
-        const FORCE_TRANSITION = true;
-        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const navFx = document.getElementById('navFx');
-        const navBars = navFx ? [...navFx.querySelectorAll('.navfx-bar')] : [];
-        const navLine = navFx ? navFx.querySelector('.navfx-line') : null;
-        let isNavigating = false;
+        // empty state
+        if(gridEmpty){
+          let show = false;
+          let msg = '';
 
-        function cssTransitionTo(url){
-            if(!navFx) { window.location.href = url; return; }
-            navFx.classList.add('is-open');
-            document.getElementById('app')?.classList.add('is-fade');
+          if(!base.length){
+            show = true;
+            if(activeView === 'favs') msg = 'Brak ulubionych. Kliknij ☆ przy grze, żeby dodać do ulubionych.';
+            else if(activeView === 'recent') msg = 'Brak ostatnio granych. Uruchom grę, a pojawi się tutaj.';
+            else msg = 'Brak gier do wyświetlenia.';
+          } else if(base.length && !visible.length){
+            show = true;
+            msg = 'Brak wyników dla: „' + query + '”.';
+          }
 
-            // czekamy aż OSTATNI pasek skończy animację (żeby nie ucinało końcówki)
-            const last = navBars && navBars.length ? navBars[navBars.length - 1] : null;
-            let waitMs = 1500;
-            if (last) {
-                const cs = getComputedStyle(last);
-                const d = parseFloat(cs.animationDelay || '0') * 1000;
-                const t = parseFloat(cs.animationDuration || '0.78') * 1000;
-                waitMs = Math.max(900, d + t + 260);
-            }
-            window.setTimeout(() => { window.location.href = url; }, waitMs);
+          gridEmpty.hidden = !show;
+          gridEmpty.textContent = msg;
         }
 
-        function netflixTransitionTo(url){
-            if(!url || isNavigating) return;
-            isNavigating = true;
+        refreshFocusables();
 
-            const allowMotion = FORCE_TRANSITION || !prefersReducedMotion;
-            const canUseGsap = !!window.gsap && typeof gsap.timeline === 'function';
+        // restore focus only if user isn't typing/pressing controls
+        if(!activeInControls()){
+          if(prevFocusId && focusCardById(prevFocusId)) return;
+          if(cards.length) focusCard(0);
+        }
+      }
 
-            // jeśli nie chcemy animacji albo brak overlay — idziemy od razu
-            if (!allowMotion || !navFx) {
-                window.location.href = url;
-                return;
-            }
+      // ===== Search =====
+      let t = 0;
+      function scheduleRender(){
+        window.clearTimeout(t);
+        t = window.setTimeout(render, 70);
+      }
 
-            // fallback CSS (gdy GSAP nie działa / jest zablokowany)
-            if (!canUseGsap || navBars.length === 0) {
-                cssTransitionTo(url);
-                return;
-            }
+      searchInput && searchInput.addEventListener('input', () => {
+        query = String(searchInput.value || '').trim();
+        scheduleRender();
+      });
 
-            gsap.set(navFx, { autoAlpha: 1, visibility: 'visible' });
-            gsap.set(navBars, { scaleY: 0, transformOrigin: 'bottom' });
-            if (navLine) gsap.set(navLine, { scaleX: 0, autoAlpha: 0, transformOrigin: 'left' });
+      searchClear && searchClear.addEventListener('click', () => {
+        if(!searchInput) return;
+        searchInput.value = '';
+        query = '';
+        render();
+        searchInput.focus();
+      });
 
-            const tl = gsap.timeline({ defaults: { ease: 'power4.inOut' } });
-            const barsStart = 0.08;
-            const barsDur = 0.78;
-            const barsStagger = 0.06;
-            const barsEnd = barsStart + (navBars.length - 1) * barsStagger + barsDur;
-            tl.to('#app', { autoAlpha: 0, scale: 0.985, duration: 0.32, ease: 'power2.out' }, 0)
-              .to(navBars, { scaleY: 1, duration: 0.78, stagger: 0.06, ease: 'power3.in' }, 0.08);
+      filterChips && filterChips.addEventListener('click', (e) => {
+        const btn = e.target && e.target.closest ? e.target.closest('.chip') : null;
+        if(!btn) return;
+        setActiveChip(btn.dataset.filter || 'all');
+      });
 
-            if (navLine) {
-                tl.to(navLine, { autoAlpha: 1, scaleX: 1, duration: 0.44, ease: 'power2.out' }, 0.26)
-                  .to(navLine, { autoAlpha: 0, duration: 0.18 }, 0.78);
-            }
-
-            tl.call(() => { window.location.href = url; }, null, barsEnd + 0.26);
+      // ===== Keyboard / remote =====
+      window.addEventListener('keydown', (e) => {
+        if (isQrOpen()) {
+          if (e.key === 'Escape') { e.preventDefault(); closeQR(); }
+          return;
         }
 
-        // ===== KLAWIATURA / PILOT =====
-        window.addEventListener('keydown', e => {
-            // gdy modal QR jest otwarty, blokujemy nawigację po kafelkach
-            if (isQrOpen()) {
-                if (e.key === 'Escape') {
-                    e.preventDefault();
-                    closeQR();
-                }
-                return;
-            }
+        // quick search
+        if (e.key === '/' && searchInput && !activeInControls()) {
+          e.preventDefault();
+          searchInput.focus();
+          searchInput.select();
+          return;
+        }
 
-            if (['ArrowRight', 'ArrowDown'].includes(e.key)) {
-                e.preventDefault();
-                focusCard(focusIndex + 1);
-            }
-            if (['ArrowLeft', 'ArrowUp'].includes(e.key)) {
-                e.preventDefault();
-                focusCard(focusIndex - 1);
-            }
-            if (e.key === 'Enter') {
-                cards[focusIndex].click();
-            }
-        });
+        // do not hijack arrows when user is interacting with inputs/buttons
+        if (activeInControls()) {
+          if (e.key === 'Escape' && document.activeElement === searchInput) {
+            e.preventDefault();
+            searchInput.blur();
+            if(cards.length) focusCard(0);
+          }
+          return;
+        }
 
-        // ===== KLIK / MYSZ =====
-        cards.forEach(card => {
-            card.addEventListener('click', () => {
-                if (card.dataset.disabled === '1' || card.classList.contains('is-disabled')) return;
-                const link = card.dataset.link;
-                if (!link) {
-                    console.warn('Brak data-link');
-                    return;
-                }
-                netflixTransitionTo(link);
-            });
-        });
+        if (['ArrowRight', 'ArrowDown'].includes(e.key)) { e.preventDefault(); focusCard(focusIndex + 1); }
+        if (['ArrowLeft', 'ArrowUp'].includes(e.key)) { e.preventDefault(); focusCard(focusIndex - 1); }
+        if (e.key === 'Enter') { cards[focusIndex] && cards[focusIndex].click(); }
+      });
 
-    </script>
+      // ===== Intro animation (after initial render) =====
+      function introAnim(){
+        if(!window.gsap) return;
+        gsap.from('header h1', { y: -40, opacity: 0, duration: 1, ease: 'power3.out' });
+        gsap.from('header p', { y: -18, opacity: 0, duration: .8, delay: .22, ease: 'power3.out' });
+        gsap.from('.hub-controls', { y: -10, opacity: 0, duration: .6, delay: .25, ease: 'power2.out' });
+        gsap.from('#gameGrid .game-card', { opacity: 0, y: 34, stagger: .10, duration: .7, delay: .38, ease: 'power3.out' });
+      }
+
+      // First paint
+      setActiveChip('all'); // also calls render()
+      introAnim();
+
+    })();
+    // [PH] HUB_LOGIC_END
+  </script>
 </body>
-
 </html>

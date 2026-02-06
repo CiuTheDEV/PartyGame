@@ -1,0 +1,7 @@
+2026-02-06 — partyhub_whoslikely_multiplayer.zip — Multiplayer Implementation (PeerJS)
+- Added 'multiplayer.js' PeerJS wrapper for Host/Guest communication.
+- Implemented Host Lobby with QR Code and PIN generation.
+- Implemented Guest Join flow (PIN entry, name search, avatar select).
+- Updated 'whoslikely.js' to support 'local', 'host', 'guest' modes.
+- Added real-time voting sync and results broadcast.
+- Styles added for lobby, guest waiting screen, and guest game view.
