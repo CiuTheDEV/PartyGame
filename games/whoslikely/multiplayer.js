@@ -300,11 +300,14 @@
                         log('Connected to host!');
                         this.isConnected = true;
 
-                        // Send join message
-                        this.conn.send({
-                            type: MSG.JOIN,
-                            player: playerInfo
-                        });
+                        // Wait a bit to ensure connection is stable before sending data
+                        setTimeout(() => {
+                            // Send join message
+                            this.conn.send({
+                                type: MSG.JOIN,
+                                player: playerInfo
+                            });
+                        }, 500);
 
                         this._emit('connected');
                         resolve();

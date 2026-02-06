@@ -67,7 +67,12 @@
 }
 
 .home-title {
-    font-size: clamp(2.5rem, 8vmin, 5rem);
+    font-size: clamp(1.6rem, 9vw, 5rem);
+    line-height: 1.1;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    width: 100%;
     margin-bottom: 2vh;
     background: linear-gradient(135deg, var(--brand2), var(--brand1));
     -webkit-background-clip: text;

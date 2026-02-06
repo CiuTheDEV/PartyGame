@@ -5,3 +5,5 @@
 - Updated 'whoslikely.js' to support 'local', 'host', 'guest' modes.
 - Added real-time voting sync and results broadcast.
 - Styles added for lobby, guest waiting screen, and guest game view.
+- Fix: Adjusted main menu logo scaling for mobile devices.
+- Fix: Added delay to Multiplayer Guest connection to ensure stable data channel before sending join request.
